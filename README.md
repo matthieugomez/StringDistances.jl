@@ -5,8 +5,8 @@ String Distances in Julia
 - [x] Jaro distance
 - [x] Jaro-Winkler Distance
 - [x] Levenshtein distance
-- [] Damerau-Levenshtein Distance
-- [] qgram
+- [ ] Damerau-Levenshtein Distance
+- [ ] qgram
 
 
 Examples
