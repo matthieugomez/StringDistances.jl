@@ -28,7 +28,7 @@ type Hamming end
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
 	length(s1) > length(s2) && return evaluate(dist, s2, s1)
 	count = 0
-	for i in 1:length(s1)
+	@inbounds for i in 1:length(s1)
 	   count += s1[i] != s2[i]
 	end
 	count += length(s2) - length(s1)
@@ -50,10 +50,10 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     length(s2) == 0 && return 0
    
     dist = Array(Int, length(s1) + 1)
-    for i1 in 1:length(s1)
+    @inbounds for i1 in 1:length(s1)
         dist[i1 + 1] = i1
     end
-    for i2 in 1:length(s2)
+    @inbounds for i2 in 1:length(s2)
         dist[1] = i2
         lastdiag = i2 - 1
         for i1 in 1:length(s1)
@@ -87,7 +87,7 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     t = 0 # half number of transpositions
     flag = fill(false, length(s2))
     prevpos = 0
-    for i1 in 1:length(s1)
+    @inbounds for i1 in 1:length(s1)
     	ch = s1[i1]
     	i2low =  max(1, i1 - maxdist)
     	i2high = min(length(s2), i1 + maxdist)
