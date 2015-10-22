@@ -93,14 +93,14 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     	i2high = min(length(s2), i1 + maxdist)
     	for i2 in i2low:i2high
     		if ch == s2[i2] && !flag[i2] 
-    			m += 1
-                # if match is before the index of previous match
-    			if i2 < prevpos
-                    t += 1
-                end
-                prevpos = max(i2, prevpos)
-                flag[i2] = true
-                break
+            m += 1
+            # if match is before the index of previous match
+            if i2 < prevpos
+                t += 1
+            end
+            prevpos = max(i2, prevpos)
+            flag[i2] = true
+            break
     		end
     	end
     end
