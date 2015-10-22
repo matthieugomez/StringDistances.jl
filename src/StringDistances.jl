@@ -80,7 +80,7 @@ type JaroWinkler{T1 <: Number, T2 <: Number, T3 <: Integer}
 end
 
 function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
-	length(s1) > length(s2) && return evaluate(dist, s2, s1)
+    length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
     maxdist = max(0, div(length(s2), 2) - 1)
     m = 0 # matching characters
@@ -98,15 +98,15 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     			if i2 < prevpos
                     t += 1
                 end
-    			prevpos = max(i2, prevpos)
+                prevpos = max(i2, prevpos)
                 flag[i2] = true
                 break
     		end
     	end
     end
     m == 0.0 && return 0.0
-
     score = (m / length(s1) + m / length(s2) + (m - t) / m) / 3.0
+
     # common prefix adjustment
     if (dist.scaling_factor > 0  && score >= dist.boosting_threshold) || (length(s1) >= dist.long_threshold)
         l = 0
@@ -120,13 +120,17 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
         end
         # longer string adjustment
         if (length(s1) >= dist.long_threshold) &&  (m - l >= 2) && ((m - l) >= (length(s1) - l) / 2)
-          score += (1 - score) * (m - (l + 1)) / (length(s1) + length(s2) - (2 * (l - 1)))
+            score += (1 - score) * (m - (l + 1)) / (length(s1) + length(s2) - (2 * (l - 1)))
         end
     end
     return score
 end
 
-jaro_winkler(s1::AbstractString, s2::AbstractString; scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5) = evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
+function jaro_winkler(s1::AbstractString, s2::AbstractString; 
+        scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5)
+    evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
+end
+
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
 
 end 
