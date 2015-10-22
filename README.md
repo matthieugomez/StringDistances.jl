@@ -1,12 +1,20 @@
 # StringDistances
 String Distances in Julia
 
-- Hamming Distance
-- Jaro distance
-- Jaro-Winkler Distance. Options are `p` (scaling factor), `b` (boosting parameter), and `minlen` (minimum length for long string adjustment)
-- Levenshtein distance
+-[x] Hamming Distance
+-[x] Jaro distance
+-[x] Jaro-Winkler Distance
+-[x] Levenshtein distance
+-[] Damerau-Levenshtein Distance
+-[] qgram
 
 
-To be implemented
-- Damerau-Levenshtein Distance
-- qgram
+Examples
+```julia
+using StringDistances
+hamming("MARTHA", "MARHTA")
+levenshtein("MARTHA", "MARHTA")
+jaro("MARTHA", "MARHTA")
+jaro_winkler("MARTHA", "MARHTA"; scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5)
+```
+
