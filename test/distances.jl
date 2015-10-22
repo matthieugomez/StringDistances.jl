@@ -2,13 +2,13 @@
 using Base.Test
 
 
-@test_approx_eq_eps jaro_winkler("MARTHA", "MARHTA", b = 0.0, long = 100) 0.9611 1e-4
-@test_approx_eq_eps jaro_winkler("DWAYNE", "DUANE", b = 0.0, long = 100) 0.84 1e-4
-@test_approx_eq_eps jaro_winkler("DIXON", "DICKSONX", b = 0.0, long = 100) 0.81333 1e-4
-@test_approx_eq_eps jaro_winkler("William", "Williams", b = 0.0, long = 100) 0.975 1e-4
-@test_approx_eq_eps jaro_winkler("", "foo", b = 0.0, long = 100) 0.0 1e-4
-@test_approx_eq_eps jaro_winkler("a", "a", b = 0.0, long = 100) 1.0 1e-4
-@test_approx_eq_eps jaro_winkler("abc", "xyz", b = 0.0, long = 100) 0.0 1e-4
+@test_approx_eq_eps jaro_winkler("MARTHA", "MARHTA", boosting_threshold = 0.0, long_threshold = 100) 0.9611 1e-4
+@test_approx_eq_eps jaro_winkler("DWAYNE", "DUANE", boosting_threshold = 0.0, long_threshold = 100) 0.84 1e-4
+@test_approx_eq_eps jaro_winkler("DIXON", "DICKSONX", boosting_threshold = 0.0, long_threshold = 100) 0.81333 1e-4
+@test_approx_eq_eps jaro_winkler("William", "Williams", boosting_threshold = 0.0, long_threshold = 100) 0.975 1e-4
+@test_approx_eq_eps jaro_winkler("", "foo", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
+@test_approx_eq_eps jaro_winkler("a", "a", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
+@test_approx_eq_eps jaro_winkler("abc", "xyz", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
 
 
 

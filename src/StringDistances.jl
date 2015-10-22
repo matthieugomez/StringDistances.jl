@@ -74,9 +74,9 @@ levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(Levenshtein(), s1
 ##############################################################################
 
 type JaroWinkler{T1 <: Number, T2 <: Number, T3 <: Integer}
-    p::T1      # scaling factor. Default to 0.1
-    b::T2      # boost threshold. Default to 0.7
-    long::T3  # long string adjustment. Default to 5
+    scaling_factor::T1      # scaling factor. Default to 0.1
+    boosting_threshold::T2      # boost threshold. Default to 0.7
+    long_threshold::T3  # long string adjustment. Default to 5
 end
 
 function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
@@ -108,25 +108,25 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
 
     score = (m / length(s1) + m / length(s2) + (m - t) / m) / 3.0
     # common prefix adjustment
-    if (dist.p > 0  && score >= dist.b) || (length(s1) >= dist.long)
+    if (dist.scaling_factor > 0  && score >= dist.boosting_threshold) || (length(s1) >= dist.long_threshold)
         l = 0
         last = min(4, length(s1))
         while l < last && s1[l+1] == s2[l+1]
             l += 1
         end
         # common prefix adjustment
-        if (dist.p > 0  && score >= dist.b)
-            score += l * (1 - score) * dist.p
+        if (dist.scaling_factor > 0  && score >= dist.boosting_threshold)
+            score += l * (1 - score) * dist.scaling_factor
         end
         # longer string adjustment
-        if (length(s1) >= dist.long) &&  (m - l >= 2) && ((m - l) >= (length(s1) - l) / 2)
+        if (length(s1) >= dist.long_threshold) &&  (m - l >= 2) && ((m - l) >= (length(s1) - l) / 2)
           score += (1 - score) * (m - (l + 1)) / (length(s1) + length(s2) - (2 * (l - 1)))
         end
     end
     return score
 end
 
-jaro_winkler(s1::AbstractString, s2::AbstractString; p = 0.1, b = 0.7, long = 5) = evaluate(JaroWinkler(p, b, long), s1, s2)
+jaro_winkler(s1::AbstractString, s2::AbstractString; scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5) = evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
 
 end  # module FixedEffectModels
