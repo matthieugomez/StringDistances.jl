@@ -1,12 +1,12 @@
 # StringDistances
 String Distances in Julia
 
--[x] Hamming Distance
--[x] Jaro distance
--[x] Jaro-Winkler Distance
--[x] Levenshtein distance
--[] Damerau-Levenshtein Distance
--[] qgram
+- [x] Hamming Distance
+- [x] Jaro distance
+- [x] Jaro-Winkler Distance
+- [x] Levenshtein distance
+- [] Damerau-Levenshtein Distance
+- [] qgram
 
 
 Examples
