@@ -129,4 +129,4 @@ end
 jaro_winkler(s1::AbstractString, s2::AbstractString; scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5) = evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
 
-end  # module FixedEffectModels
+end 
