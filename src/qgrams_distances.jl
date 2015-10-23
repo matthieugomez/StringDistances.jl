@@ -21,14 +21,14 @@ type Bag{Tv, Ti <: Integer}
 end
 
 function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
-    bag.dict[x] = get(bag.dict, x, zero(UInt)) + one(UInt)
+    bag.dict[x] = get(bag.dict, x, zero(Ti)) + one(Ti)
     return bag
 end
 
 function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
-    v = get(bag.dict, x, zero(UInt))
-    if v > zero(UInt)
-        bag.dict[x] = v - one(UInt)
+    v = get(bag.dict, x, zero(Ti))
+    if v > zero(Ti)
+        bag.dict[x] = v - one(Ti)
     end
     return x
 end
