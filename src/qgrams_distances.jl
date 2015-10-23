@@ -20,7 +20,7 @@ type Bag{Tv <: Union{Char, AbstractString}, Ti <: Integer}
     Bag() = new(Dict{Tv, Ti}())
 end
 
-function Base.push!{Tv <: Union{Char, AbstractString}, Ti}(bag::Bag{Tv, Ti}, x::Tv)
+function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     bag.dict[x] = get(bag.dict, x, 0) + 1
     return bag
 end
@@ -30,7 +30,7 @@ function Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     return x
 end
 
-Base.in{Tv <: Union{Char, AbstractString}, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
+Base.in{Tv, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
 
 Base.length(bag::Bag) = sum(values(bag.dict))
 
