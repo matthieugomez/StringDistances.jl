@@ -26,28 +26,22 @@ function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
 end
 
 function Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
-    bag.dict[x] -= 1
+    bag.dict[x] = max(0, bag.dict[x] - 1)
     return x
 end
 
 Base.in{Tv, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
 
-function Base.length(bag::Bag)
-    v = values(bag.dict)
-    if isempty(v)
-        return 0
-    else
-        return mapreduce(x -> max(x, 0), +, values(bag.dict))
-    end
-end
+Base.length(bag::Bag) =  sum(values(bag.dict))
 
 function Bag(s::AbstractString, q::Integer)
-    bag = Bag{typeof(s), Int}()
-    for i in 1:(length(s) - q + 1)
+    bag = Bag{typeof(s), UInt}()
+    @inbounds for i in 1:(length(s) - q + 1)
         push!(bag, s[i:(i + q - 1)])
     end
     return bag
 end
+
 ##############################################################################
 ##
 ## q-gram 
@@ -58,7 +52,7 @@ type QGram{T <: Integer}
     q::T
 end
 
-function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString) 
+function evaluate{T}(dist::QGram, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
     
@@ -66,7 +60,7 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
     count = 0
     n1 = length(s1) - dist.q + 1
     for i1 in 1:n1
-        ch = s1[i1:(i1 + dist.q - 1)]
+        @inbounds ch = s1[i1:(i1 + dist.q - 1)]
         if ch in bag
             pop!(bag, ch)
             count += 1
@@ -76,7 +70,7 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
     return n1 - count + length(bag)
 end
 
-qgram(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(QGram(q), s1, s2)
+qgram{T}(s1::T, s2::T; q = 2) = evaluate(QGram(q), s1, s2)
 
 ##############################################################################
 ##
@@ -88,7 +82,7 @@ type Cosine{T <: Integer}
     q::T
 end
 
-function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString) 
+function evaluate{T}(dist::Cosine, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
 
@@ -96,16 +90,14 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
     bag1 = Bag(s1, dist.q)
 
     count = 0
-    for x in keys(bag1.dict)
-        if x in bag2
-            count += bag1.dict[x] * bag2.dict[x]
-        end
+    for (k, v1) in bag1.dict
+        count += v1 * get(bag2.dict, k, 0)
     end
     denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
     denominator == 0 ? 1.0 : 1.0 - count / denominator
 end
 
-cosine(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Cosine(q), s1, s2)
+cosine{T}(s1::T, s2::T; q = 2) = evaluate(Cosine(q), s1, s2)
 
 ##############################################################################
 ##
@@ -120,20 +112,20 @@ type Jaccard{T <: Integer}
     q::T
 end
 
-function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString) 
+function evaluate{T}(dist::Jaccard, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
 
     n2 = length(s2) - dist.q + 1
     n1 = length(s1) - dist.q + 1
    
-    set2 = Set{typeof(s2)}()
-    for i2 in 1:n2
+    set2 = Set{T}()
+    @inbounds for i2 in 1:n2
         push!(set2, s2[i2:(i2 + dist.q - 1)])
     end
 
-    set1 = Set{typeof(s1)}()
-    for i1 in 1:n1
+    set1 = Set{T}()
+    @inbounds for i1 in 1:n1
         push!(set1, s1[i1:(i1 + dist.q - 1)])
     end
 
@@ -147,7 +139,7 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
     return 1.0 - n_intersect / (length(set1) + length(set2) - n_intersect)
 end
 
-jaccard(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Jaccard(q), s1, s2)
+jaccard{T}(s1::T, s2::T; q = 2) = evaluate(Jaccard(q), s1, s2)
 
 
 

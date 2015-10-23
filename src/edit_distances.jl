@@ -5,7 +5,7 @@
 ##
 ##############################################################################
 
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
+function evaluate{T}(dist::Hamming, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     count = 0
     @inbounds for i in 1:length(s1)
@@ -15,7 +15,7 @@ function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
     return count
 end
 
-hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
+hamming{T}(s1::T, s2::T) = evaluate(Hamming(), s1, s2)
 
 ##############################################################################
 ##
@@ -25,7 +25,7 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 ##
 ##############################################################################
 
-function common_suffix(s1::AbstractString, s2::AbstractString)
+function common_suffix{T}(s1::T, s2::T)
     len1 = length(s1)
     len2 = length(s2)
     while ((len1 > 0) && (s1[len1] == s2[len2]))
@@ -35,7 +35,7 @@ function common_suffix(s1::AbstractString, s2::AbstractString)
     return len1, len2
 end
 
-function common_prefix(s1::AbstractString, s2::AbstractString, len1::Int, len2::Int)
+function common_prefix{T}(s1::T, s2::T, len1::Int, len2::Int)
     start = 0
     len1 == 0 && return len1, len2, start
     if (s1[start + 1] == s2[start + 1]) 
@@ -51,7 +51,7 @@ end
 
 type Levenshtein end
 
-function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
+function evaluate{T}(dist::Levenshtein, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
 
@@ -89,11 +89,11 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     return current
 end
 
-levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(Levenshtein(), s1, s2)
+levenshtein{T}(s1::T, s2::T) = evaluate(Levenshtein(), s1, s2)
 
 type DamerauLevenshtein end
 
-function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
+function evaluate{T}(dist::DamerauLevenshtein, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
 
@@ -146,7 +146,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     return current
 end
 
-damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLevenshtein(), s1, s2)
+damerau_levenshtein{T}(s1::T, s2::T) = evaluate(DamerauLevenshtein(), s1, s2)
 
 ##############################################################################
 ##
@@ -160,7 +160,7 @@ type JaroWinkler{T1 <: Number, T2 <: Number, T3 <: Integer}
     long_threshold::T3  # long string adjustment. Default to 5
 end
 
-function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
+function evaluate{T}(dist::JaroWinkler, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 1.0
 
@@ -208,11 +208,11 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     return 1 - score
 end
 
-function jaro_winkler(s1::AbstractString, s2::AbstractString; 
+function jaro_winkler{T}(s1::T, s2::T; 
         scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5)
     evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
 end
 
-jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
+jaro{T}(s1::T, s2::T) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
 
 
