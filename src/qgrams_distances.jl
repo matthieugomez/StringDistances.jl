@@ -28,7 +28,10 @@ function Bag(s::AbstractString, q::Integer)
 end
 
 Base.in{Tv <: Union{Char, AbstractString}, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
-Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv) = bag.dict[x] -= 1 ; x
+function Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
+    bag.dict[x] -= 1
+    return x
+end
 Base.length(bag::Bag) = sum(values(bag.dict))
 
 ##############################################################################
