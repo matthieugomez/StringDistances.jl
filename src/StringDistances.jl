@@ -8,7 +8,7 @@ module StringDistances
 ##
 ##############################################################################
 
-import Distances: evaluate
+import Distances: evaluate, Hamming, hamming
 
 export Hamming,
 Levenshtein,
@@ -25,19 +25,18 @@ jaro
 ## Hamming
 ##
 ##############################################################################
-type Hamming end
 
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
-	length(s1) > length(s2) && return evaluate(dist, s2, s1)
-	count = 0
-	@inbounds for i in 1:length(s1)
+    length(s1) > length(s2) && return evaluate(dist, s2, s1)
+    count = 0
+    @inbounds for i in 1:length(s1)
 	   count += s1[i] != s2[i]
-	end
-	count += length(s2) - length(s1)
-	return count
+    end
+    count += length(s2) - length(s1)
+    return count
 end
-hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 
+hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 
 ##############################################################################
 ##
@@ -110,6 +109,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     end
     return current
 end
+
 levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(Levenshtein(), s1, s2)
 
 type DamerauLevenshtein end
@@ -166,6 +166,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     end
     return current
 end
+
 damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLevenshtein(), s1, s2)
 
 ##############################################################################
