@@ -21,7 +21,7 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 ##
 ## Levenshtein and Damerau Levenshtein
 ## Source Levenshtein: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-##  Source DamerauLevenshtein: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+## Source DamerauLevenshtein: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 ##
 ##############################################################################
 
@@ -162,7 +162,7 @@ end
 
 function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 0.0
+    length(s2) == 0 && return 1.0
 
     maxdist = max(0, div(length(s2), 2) - 1)
     m = 0 # matching characters
@@ -186,7 +186,7 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
             end
         end
     end
-    m == 0.0 && return 0.0
+    m == 0.0 && return 1.0
     score = (m / length(s1) + m / length(s2) + (m - t) / m) / 3.0
 
     # common prefix adjustment
@@ -205,7 +205,7 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
             score += (1 - score) * (m - (l + 1)) / (length(s1) + length(s2) - (2 * (l - 1)))
         end
     end
-    return score
+    return 1 - score
 end
 
 function jaro_winkler(s1::AbstractString, s2::AbstractString; 

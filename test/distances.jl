@@ -2,13 +2,13 @@
 using StringDistances, Base.Test
 
 
-@test_approx_eq_eps jaro_winkler("MARTHA", "MARHTA", boosting_threshold = 0.0, long_threshold = 100) 0.9611 1e-4
-@test_approx_eq_eps jaro_winkler("DWAYNE", "DUANE", boosting_threshold = 0.0, long_threshold = 100) 0.84 1e-4
-@test_approx_eq_eps jaro_winkler("DIXON", "DICKSONX", boosting_threshold = 0.0, long_threshold = 100) 0.81333 1e-4
-@test_approx_eq_eps jaro_winkler("William", "Williams", boosting_threshold = 0.0, long_threshold = 100) 0.975 1e-4
-@test_approx_eq_eps jaro_winkler("", "foo", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
-@test_approx_eq_eps jaro_winkler("a", "a", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
-@test_approx_eq_eps jaro_winkler("abc", "xyz", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
+@test_approx_eq_eps jaro_winkler("MARTHA", "MARHTA", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.9611 1e-4
+@test_approx_eq_eps jaro_winkler("DWAYNE", "DUANE", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.84 1e-4
+@test_approx_eq_eps jaro_winkler("DIXON", "DICKSONX", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.81333 1e-4
+@test_approx_eq_eps jaro_winkler("William", "Williams", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.975 1e-4
+@test_approx_eq_eps jaro_winkler("", "foo", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
+@test_approx_eq_eps jaro_winkler("a", "a", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
+@test_approx_eq_eps jaro_winkler("abc", "xyz", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
 
 
 
@@ -50,6 +50,6 @@ using StringDistances, Base.Test
 @test_approx_eq_eps jaccard("leia", "leela", q = 2) 0.83333 1e-4
 
 
-@test_approx_eq_eps cosine("", "abc", q = 2) NaN 1e-4
+@test_approx_eq_eps cosine("", "abc", q = 2) 1 1e-4
 @test_approx_eq_eps cosine("abc", "ccc", q = 2) 1 1e-4
 @test_approx_eq_eps cosine("leia", "leela", q = 2) 0.7113249 1e-4

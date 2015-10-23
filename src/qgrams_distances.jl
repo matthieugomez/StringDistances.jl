@@ -35,9 +35,9 @@ Base.in{Tv, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
 function Base.length(bag::Bag)
     v = values(bag.dict)
     if isempty(v)
-        0
+        return 0
     else
-        mapreduce(x -> max(x, 0), +, values(bag.dict))
+        return mapreduce(x -> max(x, 0), +, values(bag.dict))
     end
 end
 
@@ -101,8 +101,8 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
             count += bag1.dict[x] * bag2.dict[x]
         end
     end
-
-    return 1.0 - count / (sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict))))
+    denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
+    denominator == 0 ? 1.0 : 1.0 - count / denominator
 end
 
 cosine(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Cosine(q), s1, s2)
