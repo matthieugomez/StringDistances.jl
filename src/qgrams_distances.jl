@@ -10,30 +10,37 @@
 
 ##############################################################################
 ##
-## A bag is a Set but that allows duplicated values
-## Underlying, dictionary from elements => number of duplicates
+## A Bag is like Set that it allows duplicated values
+## I implement it as dictionary from elements => number of duplicates
+##
 ##############################################################################
 
 type Bag{Tv <: Union{Char, AbstractString}, Ti <: Integer}
     dict::Dict{Tv, Ti}
+    Bag() = new(Dict{Tv, Ti}())
 end
 
-function Bag(s::AbstractString, q::Integer)
-    dict = Dict{typeof(s), Int}()
-    for i in 1:(length(s) - q + 1)
-        ch = s[i:(i + q - 1)]
-        dict[ch] = get(dict, ch, 0) + 1
-    end
-    return Bag(dict)
+function Base.push!{Tv <: Union{Char, AbstractString}, Ti}(bag::Bag{Tv, Ti}, x::Tv)
+    bag.dict[x] = get(bag.dict, x, 0) + 1
+    return bag
 end
 
-Base.in{Tv <: Union{Char, AbstractString}, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
 function Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     bag.dict[x] -= 1
     return x
 end
+
+Base.in{Tv <: Union{Char, AbstractString}, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
+
 Base.length(bag::Bag) = sum(values(bag.dict))
 
+function Bag(s::AbstractString, q::Integer)
+    bag = Bag{typeof(s), Int}()
+    for i in 1:(length(s) - q + 1)
+        push!(bag, s[i:(i + q - 1)])
+    end
+    return bag
+end
 ##############################################################################
 ##
 ## q-gram 
@@ -134,5 +141,7 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
 end
 
 jaccard(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Jaccard(q), s1, s2)
+
+
 
 
