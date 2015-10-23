@@ -1,5 +1,5 @@
 
-using Base.Test
+using StringDistances, Base.Test
 
 
 @test_approx_eq_eps jaro_winkler("MARTHA", "MARHTA", boosting_threshold = 0.0, long_threshold = 100) 0.9611 1e-4
@@ -19,6 +19,15 @@ using Base.Test
 @test levenshtein("kitten", "sitting") == 3
 @test levenshtein("Saturday", "Sunday") == 3
 
+
+@test damerau_levenshtein("", "") == 0
+@test damerau_levenshtein("abc", "") == 3
+@test damerau_levenshtein("bc", "abc") == 1
+@test damerau_levenshtein("fuor", "four") == 1
+@test damerau_levenshtein("abcd", "acb") == 2
+@test damerau_levenshtein("cape sand recycling ", "edith ann graham") == 17
+@test damerau_levenshtein("jellyifhs", "jellyfish") == 2
+@test damerau_levenshtein("ifhs", "fish") == 2
 
 
 @test hamming("", "") == 0
