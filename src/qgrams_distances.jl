@@ -10,8 +10,8 @@
 
 ##############################################################################
 ##
-## A bag is a Set with repeated values
-##
+## A bag is a Set but that allows duplicated values
+## Underlying, dictionary from elements => number of duplicates
 ##############################################################################
 
 type Bag{Tv <: Union{Char, AbstractString}, Ti <: Integer}
@@ -48,7 +48,6 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
     
-    # set with repeated element : for each key, number of repetitions
     bag = Bag(s2, dist.q)
     count = 0
     n1 = length(s1) - dist.q + 1
