@@ -25,14 +25,15 @@ function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     return bag
 end
 
-function Base.pop!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
-    bag.dict[x] = max(0, bag.dict[x] - 1)
+function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
+    v = get(bag.dict, x, 0)
+    if v > 0
+        bag.dict[x] = v - 1
+    end
     return x
 end
 
-Base.in{Tv, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
-
-Base.length(bag::Bag) =  sum(values(bag.dict))
+Base.length(bag::Bag) = convert(Int, sum(values(bag.dict)))
 
 function Bag(s::AbstractString, q::Integer)
     bag = Bag{typeof(s), UInt}()
@@ -55,19 +56,17 @@ end
 function evaluate{T}(dist::QGram, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
-    
+    n2 = length(s2) - dist.q + 1
     bag = Bag(s2, dist.q)
     count = 0
     n1 = length(s1) - dist.q + 1
     for i1 in 1:n1
         @inbounds ch = s1[i1:(i1 + dist.q - 1)]
-        if ch in bag
-            pop!(bag, ch)
-            count += 1
-        end
+        delete!(bag, ch)
     end
-
-    return n1 - count + length(bag)
+    # number non matched in s1 : n1 - (n2 - length(bag)) 
+    # number non matched in s2 : length(bag)
+    return n1 - n2 + 2 * length(bag)
 end
 
 qgram{T}(s1::T, s2::T; q = 2) = evaluate(QGram(q), s1, s2)

@@ -5,7 +5,7 @@ x = map(randstring, rand(5:25,100_000))
 y = map(randstring, rand(5:25,100_000))
 function f(out, t, x, y)
     d = Array(out, length(x))
-    for i in 1:length(x)
+    @inbounds for i in 1:length(x)
         d[i] = StringDistances.evaluate(t, x[i], y[i])
     end
 end
@@ -16,9 +16,7 @@ end
 @time f(Int, Levenshtein(), x, y)
 @time f(Float64, Jaccard(2), x, y)
 @time f(Float64, Cosine(2), x, y)
-
-
-
+@time f(Float64, Cosine(2), x, y)
 #= Rcode
 library(stringdist)
 x <- sapply(sample(5:25,1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse="")) 
