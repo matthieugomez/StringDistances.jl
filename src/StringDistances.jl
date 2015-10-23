@@ -30,7 +30,7 @@ function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     count = 0
     @inbounds for i in 1:length(s1)
-	   count += s1[i] != s2[i]
+        count += s1[i] != s2[i]
     end
     count += length(s2) - length(s1)
     return count
@@ -191,19 +191,19 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     flag = fill(false, length(s2))
     prevpos = 0
     @inbounds for i1 in 1:length(s1)
-    ch = s1[i1]
-    i2low =  max(1, i1 - maxdist)
-    i2high = min(length(s2), i1 + maxdist)
-    for i2 in i2low:i2high
-        if ch == s2[i2] && !flag[i2] 
-            m += 1
-            # if match is before the index of previous match
-            if i2 < prevpos
-                t += 1
-            end
-            prevpos = max(i2, prevpos)
-            flag[i2] = true
-            break
+        ch = s1[i1]
+        i2low =  max(1, i1 - maxdist)
+        i2high = min(length(s2), i1 + maxdist)
+        for i2 in i2low:i2high
+            if ch == s2[i2] && !flag[i2] 
+                m += 1
+                # if match is before the index of previous match
+                if i2 < prevpos
+                    t += 1
+                end
+                prevpos = max(i2, prevpos)
+                flag[i2] = true
+                break
             end
         end
     end
