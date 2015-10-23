@@ -40,4 +40,16 @@ using StringDistances, Base.Test
 @test hamming("Saturday", "Sunday") == 7
 
 
+@test qgram("", "abc", q = 1) == 3
+@test qgram("abc", "cba", q = 1) == 0
+@test qgram("abc", "ccc", q = 1) == 4
 
+
+@test_approx_eq_eps jaccard("", "abc", q = 1) 1.0 1e-4
+@test_approx_eq_eps jaccard("abc", "ccc", q = 1) .666666 1e-4
+@test_approx_eq_eps jaccard("leia", "leela", q = 2) 0.83333 1e-4
+
+
+@test_approx_eq_eps cosine("", "abc", q = 2) NaN 1e-4
+@test_approx_eq_eps cosine("abc", "ccc", q = 2) 1 1e-4
+@test_approx_eq_eps cosine("leia", "leela", q = 2) 0.7113249 1e-4

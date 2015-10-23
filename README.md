@@ -4,14 +4,19 @@
 
 # StringDistances
 
-String Distances in Julia
+Edit Distances
 
 - [x] Hamming Distance
 - [x] Jaro Distance
 - [x] Jaro-Winkler Distance
 - [x] Levenshtein Distance
 - [x] Damerau-Levenshtein Distance
-- [ ] qgram
+
+Q-gram Distances
+
+- [x] qgram
+- [x] cosine
+- [x] jaccard
 
 Type supports
 
