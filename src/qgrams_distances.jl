@@ -15,7 +15,7 @@
 ##
 ##############################################################################
 
-type Bag{Tv <: Union{Char, AbstractString}, Ti <: Integer}
+type Bag{Tv, Ti <: Integer}
     dict::Dict{Tv, Ti}
     Bag() = new(Dict{Tv, Ti}())
 end
@@ -32,7 +32,14 @@ end
 
 Base.in{Tv, Ti}(x::Tv, bag::Bag{Tv, Ti}) = get(bag.dict, x, 0) > 0
 
-Base.length(bag::Bag) = sum(values(bag.dict))
+function Base.length(bag::Bag)
+    v = values(bag.dict)
+    if isempty(v)
+        0
+    else
+        mapreduce(x -> max(x, 0), +, values(bag.dict))
+    end
+end
 
 function Bag(s::AbstractString, q::Integer)
     bag = Bag{typeof(s), Int}()
