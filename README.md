@@ -4,25 +4,25 @@
 
 # StringDistances
 
-Edit Distances
+ASCII
 
 - [x] Hamming Distance
-- [x] Jaro Distance
-- [x] Jaro-Winkler Distance
+- [x] Jaro Distance and Jaro-Winkler Distance
 - [x] Levenshtein Distance
 - [x] Damerau-Levenshtein Distance
+- [x] Qgram Distance
+- [x] Cosine Distance
+- [x] Jaccard Distance
 
-Q-gram Distances
+AbstractString
 
-- [x] qgram
-- [x] cosine
-- [x] jaccard
-
-Type supports
-
-- [x] ASCIIString
-- [x] UTF8String
-- [ ] Unicode
+- [x] Hamming Distance
+- [] Jaro Distance and Jaro-Winkler Distance
+- [x] Levenshtein Distance
+- [x] Damerau-Levenshtein Distance
+- [x] Qgram Distance
+- [x] Cosine Distance
+- [x] Jaccard Distance
 
 
 

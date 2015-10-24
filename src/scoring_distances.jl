@@ -1,27 +1,11 @@
-##############################################################################
-##
-## Gram Iterator iterates through q-grams of a string
-##
-##############################################################################
 
-type QGramIterator{S <: AbstractString, T <: Integer}
-    s::S
-    q::T
-end
-function Base.start(qgram::QGramIterator)
-    len = length(qgram.s)
-    (1, len == 0 ? 1 : len < qgram.q ? nextind(chr2ind(qgram.s, len)) : chr2ind(qgram.s, qgram.q))
-end
-function Base.next{S, T}(qgram::QGramIterator{S, T}, state)
-    istart, iend = state
-    convert(S, SubString(qgram.s, istart, iend)), (nextind(qgram.s, istart), nextind(qgram.s, iend))
-end
-function Base.done(qgram::QGramIterator, state)
-    istart, idend = state
-    done(qgram.s, idend)
-end
-Base.eltype{S, T}(::QGramIterator{S, T}) = S
-Base.length(qgram::QGramIterator) = length(qgram.s - qgram.q + 1)
+##############################################################################
+##
+## Define v(s) a vector on the space of q-uple which contains number of times it appears in s
+## For instance v("leila")["il"] =1 
+## cosine is 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
+## q-gram is ∑ |v(s1, p) - v(s2, p)|
+##############################################################################
 
 ##############################################################################
 ##
@@ -50,22 +34,13 @@ end
 
 Base.length(bag::Bag) = convert(Int, sum(values(bag.dict)))
 
-function Bag(s)
-    bag = Bag{eltype(s), UInt}()
-    for x in s
-        push!(bag, x)
+function Bag(s::AbstractString, q::Integer)
+    bag = Bag{typeof(s), UInt}()
+    @inbounds for i in 1:(length(s) - q + 1)
+        push!(bag, s[i:(i + q - 1)])
     end
     return bag
 end
-
-
-##############################################################################
-##
-## Define v(s) a vector on the space of q-uple which contains number of times it appears in s
-## For instance v("leila")["il"] =1 
-## cosine is 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
-## q-gram is ∑ |v(s1, p) - v(s2, p)|
-##############################################################################
 
 ##############################################################################
 ##
@@ -83,10 +58,11 @@ function evaluate{T}(dist::QGram, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
     n2 = length(s2) - dist.q + 1
-    bag = Bag(QGramIterator(s2, dist.q))
+    bag = Bag(s2, dist.q)
     count = 0
     n1 = length(s1) - dist.q + 1
-    for ch in QGramIterator(s1, dist.q)
+    for i1 in 1:n1
+        @inbounds ch = s1[i1:(i1 + dist.q - 1)]
         delete!(bag, ch)
     end
     # number non matched in s1 : n1 - (n2 - length(bag)) 
@@ -111,8 +87,9 @@ function evaluate{T}(dist::Cosine, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
 
-    bag2 = Bag(QGramIterator(s2, dist.q))
-    bag1 = Bag(QGramIterator(s1, dist.q))
+    bag2 = Bag(s2, dist.q)
+    bag1 = Bag(s1, dist.q)
+
     count = 0
     for (k, v1) in bag1.dict
         count += v1 * get(bag2.dict, k, 0)
@@ -142,8 +119,17 @@ function evaluate{T}(dist::Jaccard, s1::T, s2::T)
     length(s2) == 0 && return 0.0
 
    
-    set2 = Set(QGramIterator(s2, dist.q))
-    set1 = Set(QGramIterator(s1, dist.q))
+    set2 = Set{T}()
+    n2 = length(s2) - dist.q + 1
+    @inbounds for i2 in 1:n2
+        push!(set2, s2[i2:(i2 + dist.q - 1)])
+    end
+
+    set1 = Set{T}()
+    n1 = length(s1) - dist.q + 1
+    @inbounds for i1 in 1:n1
+        push!(set1, s1[i1:(i1 + dist.q - 1)])
+    end
 
     n_intersect = 0
     for x in set1

@@ -20,6 +20,13 @@ using StringDistances, Base.Test
 @test levenshtein("Saturday", "Sunday") == 3
 
 
+@test 4 == evaluate(Levenshtein(), "Hi, my name is", "my name is")
+@test 21 == evaluate(Levenshtein(), "%^@!^@#^@#!! Snoooooooop", "Dro!p it!!!! like it's hot")
+@test 7 == evaluate(Levenshtein(), "Alborgów", "amoniak")
+
+
+
+
 @test damerau_levenshtein("", "") == 0
 @test damerau_levenshtein("abc", "") == 3
 @test damerau_levenshtein("bc", "abc") == 1
