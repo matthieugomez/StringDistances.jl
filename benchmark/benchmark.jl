@@ -6,7 +6,7 @@ y = map(randstring, rand(5:25,100_000))
 function f(out, t, x, y)
     d = Array(out, length(x))
     @inbounds for i in 1:length(x)
-        d[i] = StringDistances.evaluate(t, x[i], y[i])
+        d[i] = evaluate(t, x[i], y[i])
     end
 end
 
@@ -18,7 +18,8 @@ end
 @time f(Float64, Jaccard(2), x, y)
 @time f(Float64, Cosine(2), x, y)
 @time f(Float64, Cosine(2), x, y)
-@time f(Int QGram(2), x, y)
+@time f(Int, QGram(2), x, y)
+
 
 
 #= Rcode

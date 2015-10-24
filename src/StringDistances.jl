@@ -9,22 +9,15 @@ module StringDistances
 ##############################################################################
 
 import Distances: evaluate, Hamming, hamming
+export evaluate,
+Hamming, hamming,
+Levenshtein, levenshtein,
+JaroWinkler, jaro_winkler, jaro,
+DamerauLevenshtein, damerau_levenshtein,
+QGram, qgram,
+Cosine, cosine,
+Jaccard, jaccard
 
-export Hamming,
-Levenshtein,
-JaroWinkler,
-DamerauLevenshtein,
-QGram,
-Cosine,
-Jaccard,
-hamming,
-levenshtein,
-damerau_levenshtein,
-jaro_winkler,
-jaro,
-qgram,
-cosine,
-jaccard
 
 
 include("edit_distances.jl")

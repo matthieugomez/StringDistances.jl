@@ -7,7 +7,6 @@
 ## q-gram is ∑ |v(s1, p) - v(s2, p)|
 ##############################################################################
 
-
 ##############################################################################
 ##
 ## A Bag is like Set that it allows duplicated values
@@ -52,6 +51,8 @@ end
 type QGram{T <: Integer}
     q::T
 end
+QGram() = QGram(2)
+
 
 function evaluate{T}(dist::QGram, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
@@ -80,6 +81,7 @@ qgram{T}(s1::T, s2::T; q = 2) = evaluate(QGram(q), s1, s2)
 type Cosine{T <: Integer}
     q::T
 end
+Cosine() = Cosine(2)
 
 function evaluate{T}(dist::Cosine, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
@@ -110,6 +112,7 @@ cosine{T}(s1::T, s2::T; q = 2) = evaluate(Cosine(q), s1, s2)
 type Jaccard{T <: Integer}
     q::T
 end
+Jaccard() = Jaccard(2)
 
 function evaluate{T}(dist::Jaccard, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
@@ -139,7 +142,3 @@ function evaluate{T}(dist::Jaccard, s1::T, s2::T)
 end
 
 jaccard{T}(s1::T, s2::T; q = 2) = evaluate(Jaccard(q), s1, s2)
-
-
-
-

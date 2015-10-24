@@ -159,6 +159,7 @@ type JaroWinkler{T1 <: Number, T2 <: Number, T3 <: Integer}
     boosting_threshold::T2      # boost threshold. Default to 0.7
     long_threshold::T3  # long string adjustment. Default to 5
 end
+JaroWinkler() = JaroWinkler(0.1, 0.7, 5)
 
 function evaluate{T}(dist::JaroWinkler, s1::T, s2::T) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
