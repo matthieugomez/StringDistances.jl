@@ -10,20 +10,24 @@ function f(out, t, x, y)
     end
 end
 
-# I get 0.12 vs 0.10 in stringdist
-# http://www.markvanderloo.eu/yaRb/2013/09/07/a-bit-of-benchmarking-with-string-distances/
-
+# similar
 @time f(Int, Levenshtein(), x, y)
+@time f(Float64, JaroWinkler(0.1, 0.7, 5), x, y)
+
+# all 5-10x slower
 @time f(Float64, Jaccard(2), x, y)
 @time f(Float64, Cosine(2), x, y)
 @time f(Float64, Cosine(2), x, y)
+@time f(Int QGram(2), x, y)
+
+
 #= Rcode
 library(stringdist)
 x <- sapply(sample(5:25,1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse="")) 
 y <- sapply(sample(5:25,1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse=""))
-stringdist(x,y,method='lv')
-stringdist(x,y,method='jaccard')
-stringdist(x,y,method='jaccard')
-stringdist(x,y,method='cosine')
+system.time(stringdist(x,y,method='lv'))
+system.time(stringdist(x,y,method='jaccard'))
+system.time(stringdist(x,y,method='cosine'))
+system.time(stringdist(x,y,method='qgram'))
 
 =#

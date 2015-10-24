@@ -115,15 +115,15 @@ function evaluate{T}(dist::Jaccard, s1::T, s2::T)
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
 
-    n2 = length(s2) - dist.q + 1
-    n1 = length(s1) - dist.q + 1
    
     set2 = Set{T}()
+    n2 = length(s2) - dist.q + 1
     @inbounds for i2 in 1:n2
         push!(set2, s2[i2:(i2 + dist.q - 1)])
     end
 
     set1 = Set{T}()
+    n1 = length(s1) - dist.q + 1
     @inbounds for i1 in 1:n1
         push!(set1, s1[i1:(i1 + dist.q - 1)])
     end
