@@ -75,8 +75,10 @@ end
 QGram() = QGram(2)
 
 function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString) 
-    length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 0
+    len1, len2 = length(s1), length(s2)
+    len1 > len2 && return evaluate(dist, s2, s1)
+    len2 == 0 && return 0
+
     q1 = QGramIterator(s1, dist.q)
     q2 = QGramIterator(s2, dist.q)
     bag = Bag(q2)
@@ -103,8 +105,10 @@ end
 Cosine() = Cosine(2)
 
 function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString) 
-    length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 0.0
+    len1, len2 = length(s1), length(s2)
+    len1 > len2 && return evaluate(dist, s2, s1)
+    len2 == 0 && return 0.0
+
     bag2 = Bag(QGramIterator(s2, dist.q))
     bag1 = Bag(QGramIterator(s1, dist.q))
     numerator = 0
@@ -132,8 +136,10 @@ end
 Jaccard() = Jaccard(2)
 
 function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString) 
-    length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 0.0
+    len1, len2 = length(s1), length(s2)
+    len1 > len2 && return evaluate(dist, s2, s1)
+    len2 == 0 && return 0.0
+
     set2 = Set(QGramIterator(s2, dist.q))
     set1 = Set(QGramIterator(s1, dist.q))
     numerator = 0

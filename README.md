@@ -15,7 +15,7 @@
 Support for ASCII, UTF-8 and Unicode
 
 # Syntax
-There are two possible syntaxes for each distance:
+There are two possible syntaxes for any distance:
 ```julia
 using StringDistances
 evaluate(Jaccard(2), "martha", "marhta")

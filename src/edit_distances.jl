@@ -8,8 +8,8 @@
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
     len1, len2 = length(s1), length(s2)
     len1 > len2 && return evaluate(dist, s2, s1)
-    count = 0
 
+    count = 0
     state2 = start(s2)
     for ch1 in s1
         ch2, state2 = next(s2, state2)
@@ -40,14 +40,13 @@ function common_prefix(s1::AbstractString, s2::AbstractString)
     end
     return start1, start2
 end
+
 type Levenshtein end
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     len1, len2 = length(s1), length(s2)
-
     len1 > len2 && return evaluate(dist, s2, s1)
     len2 == 0 && return 0
 
-    # common 
     start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2
 
@@ -90,19 +89,18 @@ end
 type DamerauLevenshtein end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
-    length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 0
-
-    # common 
     len1, len2 = length(s1), length(s2)
+    len1 > len2 && return evaluate(dist, s2, s1)
+    len2 == 0 && return 0
+
     start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2
 
-    v0 = Array(Int, length(s2))
+    v0 = Array(Int, len2)
     @inbounds for i2 in 1:len2
         v0[i2] = i2
     end
-    v2 = Array(Int, length(s2))
+    v2 = Array(Int, len2)
 
     ch1, = next(s1, start1)
     current = 0
