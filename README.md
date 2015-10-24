@@ -12,15 +12,13 @@
 - [x] Cosine Distance
 - [x] Jaccard Distance
 
-Supports ASCII, UTF-8 and Unicode
+Support for ASCII, UTF-8 and Unicode
 
-Examples
+# Syntax
+There are two possible syntaxes for each distance:
 ```julia
 using StringDistances
-hamming("MARTHA", "MARHTA")
-levenshtein("MARTHA", "MARHTA")
-damerau_levenshtein("MARTHA", "MARHTA")
-jaro("MARTHA", "MARHTA")
-jaro_winkler("MARTHA", "MARHTA"; scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5)
+evaluate(Jaccard(2), "martha", "marhta")
+jaccard("martha", "marhta"; q = 2)
 ```
 

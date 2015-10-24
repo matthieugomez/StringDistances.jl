@@ -2,13 +2,13 @@
 using StringDistances, Base.Test
 
 
-@test_approx_eq_eps jaro_winkler("martha", "marhta", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.9611 1e-4
-@test_approx_eq_eps jaro_winkler("dwayne", "duane", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.84 1e-4
-@test_approx_eq_eps jaro_winkler("dixon", "dicksonx", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.81333 1e-4
-@test_approx_eq_eps jaro_winkler("william", "williams", boosting_threshold = 0.0, long_threshold = 100) 1 - 0.975 1e-4
-@test_approx_eq_eps jaro_winkler("", "foo", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
-@test_approx_eq_eps jaro_winkler("a", "a", boosting_threshold = 0.0, long_threshold = 100) 0.0 1e-4
-@test_approx_eq_eps jaro_winkler("abc", "xyz", boosting_threshold = 0.0, long_threshold = 100) 1.0 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "martha", "marhta") 1 - 0.9611 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "dwayne", "duane") 1 - 0.84 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "dixon", "dicksonx") 1 - 0.81333 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "william", "williams") 1 - 0.975 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "", "foo") 1.0 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "a", "a") 0.0 1e-4
+@test_approx_eq_eps evaluate(JaroWinkler(0.1, 0.0, 100), "abc", "xyz") 1.0 1e-4
 
 
 @test evaluate(Levenshtein(), "", "") == 0
@@ -20,7 +20,7 @@ using StringDistances, Base.Test
 
 
 @test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
-@test evaluate(Levenshtein(), "alborgów", "amoniak") == 8
+@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
 
 
 @test evaluate(DamerauLevenshtein(), "", "") == 0
