@@ -21,7 +21,7 @@ function Base.done(qgram::QGramIterator, state)
     done(qgram.s, idend)
 end
 Base.eltype{S, T}(::QGramIterator{S, T}) = S
-Base.length(qgram::QGramIterator) = length(qgram.s - qgram.q + 1)
+Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
 
 ##############################################################################
 ##
@@ -79,22 +79,21 @@ end
 QGram() = QGram(2)
 
 
-function evaluate{T}(dist::QGram, s1::T, s2::T) 
+function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0
-    n2 = length(s2) - dist.q + 1
-    bag = Bag(QGramIterator(s2, dist.q))
-    count = 0
-    n1 = length(s1) - dist.q + 1
-    for ch in QGramIterator(s1, dist.q)
+    q1 = QGramIterator(s1, dist.q)
+    q2 = QGramIterator(s2, dist.q)
+    bag = Bag(q2)
+    for ch in q1
         delete!(bag, ch)
     end
     # number non matched in s1 : n1 - (n2 - length(bag)) 
     # number non matched in s2 : length(bag)
-    return n1 - n2 + 2 * length(bag)
+    return length(q1) - length(q2) + 2 * length(bag)
 end
 
-qgram{T}(s1::T, s2::T; q = 2) = evaluate(QGram(q), s1, s2)
+qgram(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
 
 ##############################################################################
 ##
@@ -107,28 +106,27 @@ type Cosine{T <: Integer}
 end
 Cosine() = Cosine(2)
 
-function evaluate{T}(dist::Cosine, s1::T, s2::T) 
+function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
-
     bag2 = Bag(QGramIterator(s2, dist.q))
     bag1 = Bag(QGramIterator(s1, dist.q))
-    count = 0
+    numerator = 0
     for (k, v1) in bag1.dict
-        count += v1 * get(bag2.dict, k, 0)
+        numerator += v1 * get(bag2.dict, k, 0)
     end
     denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
-    denominator == 0 ? 1.0 : 1.0 - count / denominator
+    denominator == 0 ? 1.0 : 1.0 - numerator / denominator
 end
 
-cosine{T}(s1::T, s2::T; q = 2) = evaluate(Cosine(q), s1, s2)
+cosine(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
 
 ##############################################################################
 ##
 ## Jaccard
 ##
 ## Denote Q(s, q) the set of tuple of length q in s
-## jaccard(s1, s2, q) = 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
+## jaccard(s1::AbstractString, s2::AbstractString, q) = 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
 ##
 ##############################################################################
 
@@ -137,22 +135,19 @@ type Jaccard{T <: Integer}
 end
 Jaccard() = Jaccard(2)
 
-function evaluate{T}(dist::Jaccard, s1::T, s2::T) 
+function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
     length(s2) == 0 && return 0.0
-
-   
     set2 = Set(QGramIterator(s2, dist.q))
     set1 = Set(QGramIterator(s1, dist.q))
-
-    n_intersect = 0
+    numerator = 0
     for x in set1
         if x in set2
-            n_intersect += 1
+            numerator += 1
         end
     end
-
-    return 1.0 - n_intersect / (length(set1) + length(set2) - n_intersect)
+    denominator = length(set1) + length(set2) - numerator
+    return 1.0 - numerator / denominator
 end
 
-jaccard{T}(s1::T, s2::T; q = 2) = evaluate(Jaccard(q), s1, s2)
+jaccard(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)

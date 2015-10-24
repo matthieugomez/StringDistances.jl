@@ -168,20 +168,31 @@ end
 JaroWinkler() = JaroWinkler(0.1, 0.7, 5)
 
 function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
-    length(s1) > length(s2) && return evaluate(dist, s2, s1)
-    length(s2) == 0 && return 1.0
+    len1, len2 = length(s1), length(s2)
+    len1 > len2 && return evaluate(dist, s2, s1)
+    len2 == 0 && return 1.0
 
-    maxdist = max(0, div(length(s2), 2) - 1)
+    maxdist = max(0, div(len2, 2) - 1)
     m = 0 # matching characters
     t = 0 # half number of transpositions
-    flag = fill(false, length(s2))
+    flag = fill(false, len2)
     prevpos = 0
-    @inbounds for i1 in 1:length(s1)
-        ch = s1[i1]
-        i2low =  max(1, i1 - maxdist)
-        i2high = min(length(s2), i1 + maxdist)
-        for i2 in i2low:i2high
-            if ch == s2[i2] && !flag[i2] 
+
+    i1 = 0
+    startstate2 = start(s2)
+    starti2 = 0
+    for ch1 in s1
+        i1 += 1
+        if starti2 < i1 - maxdist - 1
+            startstate2 = nextind(s2, startstate2)
+            starti2 += 1
+        end 
+        i2 = starti2
+        state2 = startstate2
+        while !done(s2, state2) && i2 < i1 + maxdist
+            ch2, state2 = next(s2, state2)
+            i2 += 1
+            if ch1 == ch2 && !flag[i2] 
                 m += 1
                 # if match is before the index of previous match
                 if i2 < prevpos
@@ -194,13 +205,18 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
         end
     end
     m == 0.0 && return 1.0
-    score = (m / length(s1) + m / length(s2) + (m - t) / m) / 3.0
+    score = (m / len1 + m / len2 + (m - t) / m) / 3.0
 
     # common prefix adjustment
-    if (dist.scaling_factor > 0  && score >= dist.boosting_threshold) || (length(s1) >= dist.long_threshold)
+    if (dist.scaling_factor > 0  && score >= dist.boosting_threshold) || (len1 >= dist.long_threshold)
         l = 0
-        last = min(4, length(s1))
-        while l < last && s1[l+1] == s2[l+1]
+        last = min(4, len1)
+        state1 = start(s1)
+        state2 = start(s2)
+        while l < last
+            ch1, state1 = next(s1, state1)
+            ch2, state2 = next(s2, state2)
+            ch1 != ch2 && break
             l += 1
         end
         # common prefix adjustment
@@ -208,8 +224,8 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
             score += l * (1 - score) * dist.scaling_factor
         end
         # longer string adjustment
-        if (length(s1) >= dist.long_threshold) &&  (m - l >= 2) && ((m - l) >= (length(s1) - l) / 2)
-            score += (1 - score) * (m - (l + 1)) / (length(s1) + length(s2) - (2 * (l - 1)))
+        if (len1 >= dist.long_threshold) &&  (m - l >= 2) && ((m - l) >= (len1 - l) / 2)
+            score += (1 - score) * (m - (l + 1)) / (len1 + len2 - (2 * (l - 1)))
         end
     end
     return 1 - score
@@ -221,18 +237,5 @@ function jaro_winkler(s1::AbstractString, s2::AbstractString;
 end
 
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

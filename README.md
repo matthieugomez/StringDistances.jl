@@ -14,17 +14,7 @@ ASCII
 - [x] Cosine Distance
 - [x] Jaccard Distance
 
-UTF-8 and Unicode
-
-- [x] Hamming Distance
-- [ ] Jaro Distance and Jaro-Winkler Distance
-- [x] Levenshtein Distance
-- [x] Damerau-Levenshtein Distance
-- [x] Qgram Distance
-- [x] Cosine Distance
-- [x] Jaccard Distance
-
-
+Works with ASCII, UTF-8 and Unicode
 
 Examples
 ```julia
