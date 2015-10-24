@@ -81,13 +81,14 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
 
     q1 = QGramIterator(s1, dist.q)
     q2 = QGramIterator(s2, dist.q)
-    bag = Bag(q2)
+
+    bag2 = Bag(q2)
     for ch in q1
-        delete!(bag, ch)
+        delete!(bag2, ch)
     end
     # number non matched in s1 : n1 - (n2 - length(bag)) 
     # number non matched in s2 : length(bag)
-    return length(q1) - length(q2) + 2 * length(bag)
+    return length(q1) - length(q2) + 2 * length(bag2)
 end
 
 qgram(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
@@ -109,8 +110,11 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
     len1 > len2 && return evaluate(dist, s2, s1)
     len2 == 0 && return 0.0
 
-    bag2 = Bag(QGramIterator(s2, dist.q))
-    bag1 = Bag(QGramIterator(s1, dist.q))
+    q1 = QGramIterator(s1, dist.q)
+    q2 = QGramIterator(s2, dist.q)
+
+    bag1 = Bag(q1)
+    bag2 = Bag(q2)
     numerator = 0
     for (k, v1) in bag1.dict
         numerator += v1 * get(bag2.dict, k, 0)
@@ -140,8 +144,11 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
     len1 > len2 && return evaluate(dist, s2, s1)
     len2 == 0 && return 0.0
 
-    set2 = Set(QGramIterator(s2, dist.q))
-    set1 = Set(QGramIterator(s1, dist.q))
+    q1 = QGramIterator(s1, dist.q)
+    q2 = QGramIterator(s2, dist.q)
+
+    set2 = Set(q1)
+    set1 = Set(q2)
     numerator = 0
     for x in set1
         if x in set2
