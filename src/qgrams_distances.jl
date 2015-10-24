@@ -10,23 +10,25 @@ type QGramIterator{S <: AbstractString, T <: Integer}
 end
 function Base.start(qgram::QGramIterator)
     len = length(qgram.s)
-    (1, len == 0 ? 1 : len < qgram.q ? nextind(chr2ind(qgram.s, len)) : chr2ind(qgram.s, qgram.q))
+    (1, len < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
 end
-function Base.next{S, T}(qgram::QGramIterator{S, T}, state)
+function Base.next(qgram::QGramIterator, state)
     istart, iend = state
-    convert(S, SubString(qgram.s, istart, iend)), (nextind(qgram.s, istart), nextind(qgram.s, iend))
+    element = convert(typeof(qgram.s), SubString(qgram.s, istart, iend))
+    nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
+    return element, nextstate
 end
 function Base.done(qgram::QGramIterator, state)
     istart, idend = state
     done(qgram.s, idend)
 end
-Base.eltype{S, T}(::QGramIterator{S, T}) = S
+Base.eltype(qgram::QGramIterator) = typeof(qgram.s)
 Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
 
 ##############################################################################
 ##
-## A Bag is like Set that it allows duplicated values
-## I implement it as dictionary from elements => number of duplicates
+## A Bag is a Set that allows duplicated values
+## Implemented as Dictionary from elements => number of duplicates
 ##
 ##############################################################################
 
@@ -58,18 +60,12 @@ function Bag(s)
     return bag
 end
 
-
-##############################################################################
-##
-## Define v(s) a vector on the space of q-uple which contains number of times it appears in s
-## For instance v("leila")["il"] =1 
-## cosine is 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
-## q-gram is ∑ |v(s1, p) - v(s2, p)|
-##############################################################################
-
 ##############################################################################
 ##
 ## q-gram 
+## Define v(s) a vector on the space of q-uple which contains number of times it appears in s
+## For instance v("leila")["il"] =1 
+## q-gram is ∑ |v(s1, p) - v(s2, p)|
 ##
 ##############################################################################
 
@@ -77,7 +73,6 @@ type QGram{T <: Integer}
     q::T
 end
 QGram() = QGram(2)
-
 
 function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString) 
     length(s1) > length(s2) && return evaluate(dist, s2, s1)
@@ -99,6 +94,7 @@ qgram(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(QGram(q), s1::Ab
 ##
 ## cosine 
 ##
+## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
 type Cosine{T <: Integer}
@@ -126,7 +122,7 @@ cosine(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Cosine(q), s1::
 ## Jaccard
 ##
 ## Denote Q(s, q) the set of tuple of length q in s
-## jaccard(s1::AbstractString, s2::AbstractString, q) = 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
+## 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
 ##
 ##############################################################################
 
