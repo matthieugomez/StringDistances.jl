@@ -12,7 +12,7 @@
 - [x] Cosine Distance
 - [x] Jaccard Distance
 
-Support for ASCII, UTF-8 and Unicode
+Should work with ASCII, UTF-8 and Unicode
 
 # Syntax
 There are two possible syntaxes for any distance:

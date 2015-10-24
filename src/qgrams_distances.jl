@@ -91,7 +91,7 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
     return length(q1) - length(q2) + 2 * length(bag2)
 end
 
-qgram(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
+qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
 
 ##############################################################################
 ##
@@ -123,7 +123,7 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
     denominator == 0 ? 1.0 : 1.0 - numerator / denominator
 end
 
-cosine(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
+cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
 
 ##############################################################################
 ##
@@ -159,4 +159,4 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
     return 1.0 - numerator / denominator
 end
 
-jaccard(s1::AbstractString, s2::AbstractString; q = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
+jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)

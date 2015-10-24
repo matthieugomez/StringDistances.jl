@@ -158,7 +158,7 @@ damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLe
 ##
 ##############################################################################
 
-type JaroWinkler{T1 <: Number, T2 <: Number, T3 <: Integer}
+type JaroWinkler{T1 <: Real, T2 <: Real, T3 <: Integer}
     scaling_factor::T1      # scaling factor. Default to 0.1
     boosting_threshold::T2      # boost threshold. Default to 0.7
     long_threshold::T3  # long string adjustment. Default to 5
@@ -230,7 +230,7 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
 end
 
 function jaro_winkler(s1::AbstractString, s2::AbstractString; 
-        scaling_factor = 0.1, boosting_threshold = 0.7, long_threshold = 5)
+        scaling_factor::Real = 0.1, boosting_threshold::Real = 0.7, long_threshold::Integer = 5)
     evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
 end
 
