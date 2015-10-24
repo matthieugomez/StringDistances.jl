@@ -4,8 +4,6 @@
 
 # StringDistances
 
-ASCII
-
 - [x] Hamming Distance
 - [x] Jaro Distance and Jaro-Winkler Distance
 - [x] Levenshtein Distance
@@ -14,7 +12,7 @@ ASCII
 - [x] Cosine Distance
 - [x] Jaccard Distance
 
-Works with ASCII, UTF-8 and Unicode
+Supports ASCII, UTF-8 and Unicode
 
 Examples
 ```julia
