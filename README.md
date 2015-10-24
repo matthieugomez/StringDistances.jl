@@ -14,10 +14,10 @@ ASCII
 - [x] Cosine Distance
 - [x] Jaccard Distance
 
-AbstractString
+UTF-8 and Unicode
 
 - [x] Hamming Distance
-- [] Jaro Distance and Jaro-Winkler Distance
+- [ ] Jaro Distance and Jaro-Winkler Distance
 - [x] Levenshtein Distance
 - [x] Damerau-Levenshtein Distance
 - [x] Qgram Distance
