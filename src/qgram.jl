@@ -74,9 +74,7 @@ type QGram{T <: Integer}
 end
 QGram() = QGram(2)
 
-function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString) 
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len2 == 0 && return 0
 
     q1 = QGramIterator(s1, dist.q)
@@ -105,9 +103,7 @@ type Cosine{T <: Integer}
 end
 Cosine() = Cosine(2)
 
-function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString) 
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
     len2 == 0 && return 0.0
 
     q1 = QGramIterator(s1, dist.q)
@@ -141,9 +137,7 @@ type Jaccard{T <: Integer}
 end
 Jaccard() = Jaccard(2)
 
-function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString) 
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
     len2 == 0 && return 0.0
 
     q1 = QGramIterator(s1, dist.q)
