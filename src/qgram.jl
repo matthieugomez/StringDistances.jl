@@ -116,7 +116,7 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::In
         numerator += v1 * get(bag2.dict, k, 0)
     end
     denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
-    return denominator == 0 ? convert(Float64, 1 - (s1 == s2)) : 1.0 - numerator / denominator
+    return denominator != 0 ? 1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
 cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
@@ -152,7 +152,7 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
         end
     end
     denominator = length(set1) + length(set2) - numerator
-    return denominator == 0 ?  convert(Float64, 1 - (s1 == s2)) : 1.0 - numerator / denominator
+    return denominator != 0 ?  1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
 jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
