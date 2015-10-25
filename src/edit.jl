@@ -1,3 +1,24 @@
+##############################################################################
+##
+## Find common prefixes (up to lim. -1 means Inf)
+## Assumes length(s1) <= length(s2)
+##############################################################################
+
+function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
+    start1 = start(s1)
+    start2 = start(s2)
+    l = 0
+    while !done(s1, start1) && (l < lim || lim < 0)
+        ch1, nextstart1 = next(s1, start1)
+        ch2, nextstart2 = next(s2, start2)
+        ch1 != ch2 && break
+        l += 1
+        start1, start2 = nextstart1, nextstart2
+    end
+    return l, start1, start2
+end
+
+
 
 ##############################################################################
 ##
@@ -5,9 +26,7 @@
 ##
 ##############################################################################
 
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
 
     count = 0
     state2 = start(s2)
@@ -28,27 +47,13 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 ## Source DamerauLevenshtein: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 ##
 ##############################################################################
-# prefix common to both strings can be ignored
-function common_prefix(s1::AbstractString, s2::AbstractString)
-    start1 = start(s1)
-    start2 = start(s2)
-    k = 0
-    while !done(s1, start1)
-        ch1, nextstart1 = next(s1, start1)
-        ch2, nextstart2 = next(s2, start2)
-        ch1 != ch2 && break
-        k += 1
-        start1, start2 = nextstart1, nextstart2
-    end
-    return k, start1, start2
-end
+
 
 type Levenshtein end
-function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len2 == 0 && return 0
 
+    # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2 - k
 
@@ -90,11 +95,10 @@ end
 
 type DamerauLevenshtein end
 
-function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len2 == 0 && return 0
 
+    # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2 - k
 
@@ -160,16 +164,9 @@ damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLe
 ##
 ##############################################################################
 
-type JaroWinkler{T1 <: Real, T2 <: Real, T3 <: Real}
-    scaling_factor::T1      # scaling factor. Default to 0.1
-    boosting_threshold::T2      # boost threshold. Default to 0.7
-    long_threshold::T3  # long string adjustment. Default to 5
-end
-JaroWinkler() = JaroWinkler(0.1, 0.25, 5)
+type Jaro end
 
-function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
-    len1, len2 = length(s1), length(s2)
-    len1 > len2 && return evaluate(dist, s2, s1)
+function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
     len2 == 0 && return 1.0
 
     maxdist = max(0, div(len2, 2) - 1)
@@ -207,35 +204,11 @@ function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString)
     m == 0.0 && return 1.0
     score = (m / len1 + m / len2 + (m - t) / m) / 3.0
 
-    # common prefix adjustment
-    if (dist.scaling_factor > 0  && score >= dist.boosting_threshold) || (len1 >= dist.long_threshold)
-        l = 0
-        last = min(4, len1)
-        state1 = start(s1)
-        state2 = start(s2)
-        while l < last
-            ch1, state1 = next(s1, state1)
-            ch2, state2 = next(s2, state2)
-            ch1 != ch2 && break
-            l += 1
-        end
-        # common prefix adjustment
-        if (dist.scaling_factor > 0  && score >= dist.boosting_threshold)
-            score += l * (1 - score) * dist.scaling_factor
-        end
-        # longer string adjustment
-        if (len1 >= dist.long_threshold) &&  (m - l >= 2) && ((m - l) >= (len1 - l) / 2)
-            score += (1 - score) * (m - (l + 1)) / (len1 + len2 - (2 * (l - 1)))
-        end
-    end
     return 1 - score
 end
 
-function jaro_winkler(s1::AbstractString, s2::AbstractString; 
-        scaling_factor::Real = 0.1, boosting_threshold::Real = 0.7, long_threshold::Integer = 5)
-    evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
-end
+jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)
 
-jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.1, 0.0, Inf), s1, s2)
+
 
 
