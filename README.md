@@ -40,6 +40,6 @@ StringDistances allow to compute various distances between strings. It works wit
 	evaluate(Winkler(Jaro()), "martha", "marhta")
 	evaluate(Winkler(Qgram(2)), "martha", "marhta")
 	```
-	While the Winkler adjustment was originally defined in the context of the Jaro distance, it's helpful with other distances. Note: a distance is automatically normalized between 0 and 1 when used with a Winkler adjustment.
+	While the Winkler adjustment was originally defined in the context of the Jaro distance, it can be helpful with other distances too. Note: a distance is automatically normalized between 0 and 1 when used with a Winkler adjustment.
 
 
