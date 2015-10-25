@@ -5,7 +5,7 @@
 # StringDistances
 
 - [x] Hamming Distance
-- [x] Jaro Distance and Jaro-Winkler Distance
+- [x] Jaro-Winkler Distance
 - [x] Levenshtein Distance
 - [x] Damerau-Levenshtein Distance
 - [x] Qgram Distance

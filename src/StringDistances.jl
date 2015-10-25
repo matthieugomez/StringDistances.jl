@@ -12,8 +12,8 @@ import Distances: evaluate, Hamming, hamming
 export evaluate,
 Hamming, hamming,
 Levenshtein, levenshtein,
-JaroWinkler, jaro_winkler, jaro,
 DamerauLevenshtein, damerau_levenshtein,
+JaroWinkler, jaro_winkler,
 QGram, qgram,
 Cosine, cosine,
 Jaccard, jaccard

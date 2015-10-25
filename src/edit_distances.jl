@@ -32,13 +32,15 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 function common_prefix(s1::AbstractString, s2::AbstractString)
     start1 = start(s1)
     start2 = start(s2)
+    k = 0
     while !done(s1, start1)
         ch1, nextstart1 = next(s1, start1)
         ch2, nextstart2 = next(s2, start2)
         ch1 != ch2 && break
+        k += 1
         start1, start2 = nextstart1, nextstart2
     end
-    return start1, start2
+    return k, start1, start2
 end
 
 type Levenshtein end
@@ -47,13 +49,13 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     len1 > len2 && return evaluate(dist, s2, s1)
     len2 == 0 && return 0
 
-    start1, start2 = common_prefix(s1, s2)
-    done(s1, start1) && return len2
+    k, start1, start2 = common_prefix(s1, s2)
+    done(s1, start1) && return len2 - k
 
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
-    v0 = Array(Int, len2)
-    @inbounds for i2 in 1:len2
+    v0 = Array(Int, len2 - k)
+    @inbounds for i2 in 1:(len2 - k)
         v0[i2] = i2 
     end
     current = zero(0)
@@ -93,14 +95,14 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     len1 > len2 && return evaluate(dist, s2, s1)
     len2 == 0 && return 0
 
-    start1, start2 = common_prefix(s1, s2)
-    done(s1, start1) && return len2
+    k, start1, start2 = common_prefix(s1, s2)
+    done(s1, start1) && return len2 - k
 
-    v0 = Array(Int, len2)
-    @inbounds for i2 in 1:len2
+    v0 = Array(Int, len2 - k)
+    @inbounds for i2 in 1:(len2 - k)
         v0[i2] = i2
     end
-    v2 = Array(Int, len2)
+    v2 = Array(Int, len2 - k)
 
     ch1, = next(s1, start1)
     current = 0
@@ -158,12 +160,12 @@ damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLe
 ##
 ##############################################################################
 
-type JaroWinkler{T1 <: Real, T2 <: Real, T3 <: Integer}
+type JaroWinkler{T1 <: Real, T2 <: Real, T3 <: Real}
     scaling_factor::T1      # scaling factor. Default to 0.1
     boosting_threshold::T2      # boost threshold. Default to 0.7
     long_threshold::T3  # long string adjustment. Default to 5
 end
-JaroWinkler() = JaroWinkler(0.1, 0.7, 5)
+JaroWinkler() = JaroWinkler(0.1, 0.25, 5)
 
 function evaluate(dist::JaroWinkler, s1::AbstractString, s2::AbstractString) 
     len1, len2 = length(s1), length(s2)
@@ -234,6 +236,6 @@ function jaro_winkler(s1::AbstractString, s2::AbstractString;
     evaluate(JaroWinkler(scaling_factor, boosting_threshold, long_threshold), s1, s2)
 end
 
-jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.0, 0.0, 0), s1, s2)
+jaro(s1::AbstractString, s2::AbstractString) = evaluate(JaroWinkler(0.1, 0.0, Inf), s1, s2)
 
 

@@ -42,7 +42,7 @@ function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     return bag
 end
 
-function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
+function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x)
     v = get(bag.dict, x, zero(Ti))
     if v > zero(Ti)
         bag.dict[x] = v - one(Ti)
@@ -120,7 +120,7 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
         numerator += v1 * get(bag2.dict, k, 0)
     end
     denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
-    denominator == 0 ? 1.0 : 1.0 - numerator / denominator
+    return denominator == 0 ? convert(Float64, 1 - (s1 == s2)) : 1.0 - numerator / denominator
 end
 
 cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
@@ -131,6 +131,8 @@ cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine
 ##
 ## Denote Q(s, q) the set of tuple of length q in s
 ## 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
+##
+## return 1.0 if smaller than qgram
 ##
 ##############################################################################
 
@@ -156,7 +158,7 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
         end
     end
     denominator = length(set1) + length(set2) - numerator
-    return 1.0 - numerator / denominator
+    return denominator == 0 ?  convert(Float64, 1 - (s1 == s2)) : 1.0 - numerator / denominator
 end
 
 jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
