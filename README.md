@@ -43,3 +43,6 @@ StringDistances allow to compute various distances between strings. It works wit
 	While the Winkler adjustment was originally defined in the context of the Jaro distance, it can be helpful with other distances too. Note: a distance is automatically normalized between 0 and 1 when used with a Winkler adjustment.
 
 
+## References
+A good reference for these string distances is an article written for the R package `stringdist`:
+*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo

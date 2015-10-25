@@ -22,7 +22,7 @@ end
 function evaluate{T <: QGram}(normalized::Normalized{T}, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
     distance = evaluate(normalized.dist, s1, s2, len1, len2)
-    if len1 == normalized.dist.q - 1
+    len1 != (normalized.dist.q - 1) : 
     	return s1 == s2 ? 0.0 : 1.0
     else 
     	return distance / (len1 + len2 - 2 * normalized.dist.q + 2)
