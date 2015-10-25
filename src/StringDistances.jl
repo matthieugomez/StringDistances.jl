@@ -8,7 +8,7 @@ module StringDistances
 ##
 ##############################################################################
 
-import Distances: evaluate, Hamming, hamming
+import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 export evaluate,
 Hamming, hamming,
 Levenshtein, levenshtein,
@@ -23,7 +23,7 @@ Winkler
 
 # 1. only do the switch once
 # 2. precomputes length(s1), length(s2)
-function evaluate(dist, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::PreMetric, s1::AbstractString, s2::AbstractString)
 	len1, len2 = length(s1), length(s2)
 	if len1 > len2
 		return evaluate(dist, s2, s1, len2, len1)

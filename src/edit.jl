@@ -46,7 +46,7 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 ##############################################################################
 
 
-type Levenshtein end
+type Levenshtein <: SemiMetric end
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len2 == 0 && return 0
 
@@ -90,7 +90,7 @@ function levenshtein(s1::AbstractString, s2::AbstractString)
     evaluate(Levenshtein(), s1, s2)
 end
 
-type DamerauLevenshtein end
+type DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len2 == 0 && return 0
@@ -161,7 +161,7 @@ damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLe
 ##
 ##############################################################################
 
-type Jaro end
+type Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
     len2 == 0 && return 1.0

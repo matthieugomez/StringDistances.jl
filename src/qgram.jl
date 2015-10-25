@@ -69,7 +69,7 @@ end
 ##
 ##############################################################################
 
-type QGram{T <: Integer}
+type QGram{T <: Integer} <: SemiMetric
     q::T
 end
 QGram() = QGram(2)
@@ -98,7 +98,7 @@ qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(QGram(q
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-type Cosine{T <: Integer}
+type Cosine{T <: Integer} <: SemiMetric
     q::T
 end
 Cosine() = Cosine(2)
@@ -132,7 +132,7 @@ cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine
 ##
 ##############################################################################
 
-type Jaccard{T <: Integer}
+type Jaccard{T <: Integer} <: SemiMetric
     q::T
 end
 Jaccard() = Jaccard(2)

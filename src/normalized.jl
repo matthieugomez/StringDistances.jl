@@ -4,7 +4,7 @@
 ##
 ##############################################################################
 
-type Normalized{T}
+type Normalized{T <: PreMetric} <: PreMetric
 	dist::T
 end
 
