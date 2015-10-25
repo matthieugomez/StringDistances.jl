@@ -18,8 +18,6 @@ function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1
     return l, start1, start2
 end
 
-
-
 ##############################################################################
 ##
 ## Hamming
@@ -27,7 +25,6 @@ end
 ##############################################################################
 
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-
     count = 0
     state2 = start(s2)
     for ch1 in s1
@@ -203,7 +200,6 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Inte
     end
     m == 0.0 && return 1.0
     score = (m / len1 + m / len2 + (m - t) / m) / 3.0
-
     return 1 - score
 end
 
