@@ -37,7 +37,7 @@ StringDistances allow to compute various distances between strings. It works wit
 - Add a [Winkler adjustment](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) with `Winkler`
 
 	```julia
-	evaluate(Winkler(Jaro), "martha", "marhta")
+	evaluate(Winkler(Jaro()), "martha", "marhta")
 	evaluate(Winkler(Qgram(2)), "martha", "marhta")
 	```
 	While the Winkler adjustment was originally defined in the context of the Jaro distance, it's helpful with other distances. Note: a distance is automatically normalized between 0 and 1 when used with a Winkler adjustment.
