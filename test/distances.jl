@@ -51,9 +51,15 @@ using StringDistances, Base.Test
 
 
 
+
+
 @test evaluate(QGram(1), "", "abc") == 3
 @test evaluate(QGram(1), "abc", "cba") == 0
 @test evaluate(QGram(1), "abc", "ccc") == 4
+
+@test_approx_eq_eps evaluate(Normalized(QGram(1)), "", "abc") 1.0 1e-4
+@test_approx_eq_eps evaluate(Normalized(QGram(1)), "abc", "cba") 0.0 1e-4
+@test_approx_eq_eps evaluate(Normalized(QGram(1)), "abc", "ccc") 2/3 1e-4
 
 
 @test_approx_eq_eps evaluate(Jaccard(1), "", "abc") 1.0 1e-4
