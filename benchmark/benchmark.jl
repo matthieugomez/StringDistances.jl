@@ -14,11 +14,13 @@ end
 @time f(Int, Levenshtein(), x, y)
 @time f(Float64, Jaro(), x, y)
 
-# all 5-10x slower
-@time f(Float64, Jaccard(2), x, y)
-@time f(Float64, Cosine(2), x, y)
-@time f(Float64, Cosine(2), x, y)
+# all 5-10x slower compared to StringDist
 @time f(Int, QGram(2), x, y)
+@time f(Float64, Cosine(2), x, y)
+@time f(Float64, Jaccard(2), x, y)
+
+
+
 
 
 

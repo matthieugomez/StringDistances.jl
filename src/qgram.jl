@@ -33,14 +33,15 @@ Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
 ##############################################################################
 
 type Bag{Tv, Ti <: Integer}
-    dict::OrderedDict{Tv, Ti}
-    Bag() = new(OrderedDict{Tv, Ti}())
+    dict::Dict{Tv, Ti}
+    Bag() = new(Dict{Tv, Ti}())
 end
 
 function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
     bag.dict[x] = get(bag.dict, x, zero(Ti)) + one(Ti)
     return bag
 end
+Base.sizehint!(bag::Bag, i::Integer) = sizehint!(bag.dict, i)
 
 function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x)
     v = get(bag.dict, x, zero(Ti))
@@ -52,12 +53,22 @@ end
 
 Base.length(bag::Bag) = convert(Int, sum(values(bag.dict)))
 
-function Bag(s)
+function Bag(s::QGramIterator)
     bag = Bag{eltype(s), UInt}()
+    sizehint!(bag, length(s))
     for x in s
         push!(bag, x)
     end
     return bag
+end
+
+function Base.Set(s::QGramIterator)
+    set = Set{eltype(s)}()
+    sizehint!(set, length(s))
+    for x in s
+        push!(set, x)
+    end
+    return set
 end
 
 ##############################################################################
@@ -143,8 +154,8 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
     q1 = QGramIterator(s1, dist.q)
     q2 = QGramIterator(s2, dist.q)
 
-    set2 = OrderedSet(q1)
-    set1 = OrderedSet(q2)
+    set2 = Set(q1)
+    set1 = Set(q2)
     numerator = 0
     for x in set1
         if x in set2
