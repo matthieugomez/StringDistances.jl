@@ -154,8 +154,8 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
     q1 = QGramIterator(s1, dist.q)
     q2 = QGramIterator(s2, dist.q)
 
-    set2 = Set(q1)
-    set1 = Set(q2)
+    set1 = Set(q1)
+    set2 = Set(q2)
     numerator = 0
     for x in set1
         if x in set2
