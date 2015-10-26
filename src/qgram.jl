@@ -2,6 +2,7 @@
 ##
 ## Gram Iterator iterates through q-grams of a string
 ##
+## TODO: use Trie? SearchTree?
 ##############################################################################
 
 type QGramIterator{S <: AbstractString, T <: Integer}
@@ -14,7 +15,7 @@ function Base.start(qgram::QGramIterator)
 end
 function Base.next(qgram::QGramIterator, state)
     istart, iend = state
-    element = convert(typeof(qgram.s), SubString(qgram.s, istart, iend))
+    element = SubString(qgram.s, istart, iend)
     nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
     return element, nextstate
 end
@@ -22,9 +23,8 @@ function Base.done(qgram::QGramIterator, state)
     istart, idend = state
     done(qgram.s, idend)
 end
-Base.eltype(qgram::QGramIterator) = typeof(qgram.s)
+Base.eltype(qgram::QGramIterator) = SubString{typeof(qgram.s)}
 Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
-
 ##############################################################################
 ##
 ## A Bag is a Set that allows duplicated values
@@ -33,8 +33,8 @@ Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
 ##############################################################################
 
 type Bag{Tv, Ti <: Integer}
-    dict::Dict{Tv, Ti}
-    Bag() = new(Dict{Tv, Ti}())
+    dict::OrderedDict{Tv, Ti}
+    Bag() = new(OrderedDict{Tv, Ti}())
 end
 
 function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
@@ -143,8 +143,8 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
     q1 = QGramIterator(s1, dist.q)
     q2 = QGramIterator(s2, dist.q)
 
-    set2 = Set(q1)
-    set1 = Set(q2)
+    set2 = OrderedSet(q1)
+    set1 = OrderedSet(q2)
     numerator = 0
     for x in set1
         if x in set2

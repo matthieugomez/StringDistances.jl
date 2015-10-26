@@ -9,6 +9,7 @@ module StringDistances
 ##############################################################################
 
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
+import DataStructures: OrderedSet, OrderedDict, Trie, TrieIterator, path
 export evaluate,
 Hamming, hamming,
 Levenshtein, levenshtein,
