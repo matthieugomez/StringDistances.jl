@@ -1,71 +1,82 @@
 ##############################################################################
 ##
-## Gram Iterator iterates through q-grams of a string
+## Define QGram Distance type
 ##
-## TODO: use Trie? SearchTree?
+##############################################################################
+abstract AbstractQGram <: SemiMetric
+
+##############################################################################
+##
+## Define a type that iterates through q-grams of a string
+##
 ##############################################################################
 
 type QGramIterator{S <: AbstractString, T <: Integer}
-    s::S
-    q::T
+	s::S
+	q::T
 end
 function Base.start(qgram::QGramIterator)
-    len = length(qgram.s)
-    (1, len < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
+	len = length(qgram.s)
+	(1, len < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
 end
 function Base.next(qgram::QGramIterator, state)
-    istart, iend = state
-    element = SubString(qgram.s, istart, iend)
-    nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
-    return element, nextstate
+	istart, iend = state
+	element = SubString(qgram.s, istart, iend)
+	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
+	return element, nextstate
 end
 function Base.done(qgram::QGramIterator, state)
-    istart, idend = state
-    done(qgram.s, idend)
+	istart, idend = state
+	done(qgram.s, idend)
 end
 Base.eltype(qgram::QGramIterator) = SubString{typeof(qgram.s)}
 Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
-
 function Base.collect(qiter::QGramIterator)
 	x = Array(eltype(qiter), length(qiter))
 	i = 0
-	@inbounds for q in qiter
+	for q in qiter
 		i += 1
-		x[i] = q
+		@inbounds x[i] = q
 	end
 	return x
 end
+Base.sort(qiter::QGramIterator) = sort!(collect(qiter), alg = QuickSort)
 
 ##############################################################################
 ##
-## Define some operations on sorted vector that represent qgrams
+## Define a type that iterates through a pair of sorted vector
+## At each iteration, output number of times it appears in v1, number of times it appears in v2
 ##
 ##############################################################################
 
-function _norm2(v::AbstractVector)
-	out = 0
-	len = length(v)
-	istart = 1
-	while istart <= len
-		x = v[istart]
-		iend = searchsortedlast(v, x, istart, len, Base.Forward)
-	    out += (iend - istart + 1)^2
-	    istart = iend + 1
+type PairSortedIterator{T1 <: AbstractVector, T2 <: AbstractVector}
+	v1::T1
+	v2::T2
+end
+Base.start(s::PairSortedIterator) = (1, 1)
+
+function Base.next(s::PairSortedIterator, state)
+	state1, state2 = state
+	iter1 = done(s.v2, state2)
+	iter2 = done(s.v1, state1)
+	if iter1
+		@inbounds x1 = s.v1[state1]
+	elseif iter2
+		@inbounds x2 = s.v2[state2]
+	else
+		@inbounds x1 = s.v1[state1]
+		@inbounds x2 = s.v2[state2]
+		iter1 = x1 <= x2
+		iter2 = x2 <= x1
 	end
-	return sqrt(out)
+	nextstate1 = iter1 ? searchsortedlast(s.v1, x1, state1, length(s.v1), Base.Forward) + 1 : state1
+	nextstate2 = iter2 ? searchsortedlast(s.v2, x2, state2, length(s.v2), Base.Forward) + 1 : state2
+	return ((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
 end
 
-function _ndistinct(v::AbstractVector)
-	out = 0
-	len = length(v)
-	istart = 1
-	while istart <= len
-		x = v[istart]
-		iend = searchsortedlast(v, x, istart, len, Base.Forward)
-		out += 1
-		istart = iend + 1
-	end
-	return out
+function Base.done(s::PairSortedIterator, state) 
+	state1, state2 = state
+	done(s.v2, state2) && done(s.v1, state1)
 end
 ##############################################################################
 ##
@@ -76,39 +87,25 @@ end
 ##
 ##############################################################################
 
-type QGram{T <: Integer} <: SemiMetric
-    q::T
+type QGram{T <: Integer} <: AbstractQGram
+	q::T
 end
 QGram() = QGram(2)
 
 function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-    len2 == 0 && return 0
-
-    q1 = QGramIterator(s1, dist.q)
-    sort1 = sort!(collect(q1))
-    lenq1 = length(sort1)
-
-    q2 = QGramIterator(s2, dist.q)
-    sort2 = sort!(collect(q2))
-	lenq2 = length(sort2)
-
-	numerator = 0
-	i1start = 1
-	i2start = 1
-	while i1start <= lenq1
-		ch1 = sort1[i1start]
-		i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
-		i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
-		numerator += first(i2range) - i2start
-		numerator += abs((i1end - i1start + 1) - length(i2range))
-		i1start = i1end + 1
-		i2start = last(i2range) + 1
+	len2 == 0 && return 0
+	sort1 = sort(QGramIterator(s1, dist.q))
+	sort2 = sort(QGramIterator(s2, dist.q))
+	n = 0
+	for (n1, n2) in PairSortedIterator(sort1, sort2)
+		n += abs(n1 - n2)
 	end
-	numerator += lenq2 - i2start + 1
-    return numerator
+	return n
 end
 
-qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
+function qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2)
+	evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
+end
 
 ##############################################################################
 ##
@@ -117,42 +114,28 @@ qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(QGram(q
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-type Cosine{T <: Integer} <: SemiMetric
-    q::T
+type Cosine{T <: Integer} <: AbstractQGram
+	q::T
 end
 Cosine() = Cosine(2)
 
-
-function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
-    len2 == 0 && return 0.0
-
-    q1 = QGramIterator(s1, dist.q)
-    sort1 = sort!(collect(q1))
-    lenq1 = length(sort1)
-
-    q2 = QGramIterator(s2, dist.q)
-	sort2 = sort!(collect(q2))
-	lenq2 = length(sort2)
-
-    numerator = 0
-    norm1 = 0
-    i1start = 1
-    i2start = 1
-    while i1start <= lenq1
-    	ch1 = sort1[i1start]
-    	i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
-    	i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
-        numerator += (i1end - i1start + 1) * length(i2range)
-        norm1 += (i1end - i1start + 1)^2
-        i1start = i1end + 1
-        i2start = last(i2range) + 1
-    end
-
-    denominator = sqrt(norm1) * _norm2(sort2)
-    return denominator != 0 ? 1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
+function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	len2 == 0 && return 0
+	sort1 = sort(QGramIterator(s1, dist.q))
+	sort2 = sort(QGramIterator(s2, dist.q))
+	norm1, norm2, prodnorm = 0, 0, 0
+	for (n1, n2) in PairSortedIterator(sort1, sort2)
+		norm1 += n1^2
+		norm2 += n2^2
+		prodnorm += n1 * n2
+	end
+	denominator = sqrt(norm1) * sqrt(norm2)
+	return denominator != 0 ? 1.0 - prodnorm / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
-cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
+function cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2)
+	evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
+end
 
 ##############################################################################
 ##
@@ -164,39 +147,27 @@ cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine
 ## return 1.0 if smaller than qgram
 ##
 ##############################################################################
-type Jaccard{T <: Integer} <: SemiMetric
-    q::T
+
+type Jaccard{T <: Integer} <: AbstractQGram
+	q::T
 end
 Jaccard() = Jaccard(2)
 
-function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
-    len2 == 0 && return 0.0
+function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	len2 == 0 && return 0
 
-    q1 = QGramIterator(s1, dist.q)
-    sort1 = sort!(collect(q1))
-    lenq1 = length(q1)
-
-    q2 = QGramIterator(s2, dist.q)
-    sort2 = sort!(collect(q2))
-    lenq2 = length(q2)
-
-    numerator = 0
-    i1start = 1
-    i2start = 1
-    norm1 = 0
-    while i1start <= lenq1
-    	ch1 = sort1[i1start]
-    	i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
-    	i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
-       	numerator += length(i2range) > 0
-       	norm1 += 1
-       	i1start = i1end + 1
-       	i2start = last(i2range) + 1
-    end
-
-    norm2 = _ndistinct(sort2)
-    denominator = norm1 + norm2 - numerator
-    return denominator != 0 ?  1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
+	sort1 = sort(QGramIterator(s1, dist.q))
+	sort2 = sort(QGramIterator(s2, dist.q))
+	ndistinct1, ndistinct2, nintersect = 0, 0, 0
+	for (n1, n2) in PairSortedIterator(sort1, sort2)
+		ndistinct1 += n1 > 0
+		ndistinct2 += n2 > 0
+		nintersect += (n1 > 0) & (n2 > 0)
+	end
+	denominator = ndistinct1 + ndistinct2 - nintersect
+	return denominator != 0 ? 1.0 - nintersect / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
-jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
+function jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2)
+	evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
+end

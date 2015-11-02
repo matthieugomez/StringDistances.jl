@@ -39,9 +39,8 @@ hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 
 ##############################################################################
 ##
-## Levenshtein and Damerau Levenshtein
-## Source Levenshtein: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-## Source DamerauLevenshtein: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+## Levenshtein
+## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 ##
 ##############################################################################
 
@@ -89,6 +88,13 @@ end
 function levenshtein(s1::AbstractString, s2::AbstractString)
     evaluate(Levenshtein(), s1, s2)
 end
+
+##############################################################################
+##
+## Damerau Levenshtein
+## Source: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+##
+##############################################################################
 
 type DamerauLevenshtein <: SemiMetric end
 

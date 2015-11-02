@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/matthieugomez/StringDistances.jl/badge.svg?branch=master)](https://coveralls.io/r/matthieugomez/StringDistances.jl?branch=master)
 [![StringDistances](http://pkg.julialang.org/badges/StringDistances_0.4.svg)](http://pkg.julialang.org/?pkg=StringDistances)
 
-StringDistances allow to compute various distances between strings. It works with any string of type `AbstractString` (in particular ASCII and UTF-8)
+StringDistances allow to compute various distances between strings. The package should work with any `AbstractString` (in particular ASCII and UTF-8)
 
 
 ## Distances

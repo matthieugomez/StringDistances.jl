@@ -61,15 +61,14 @@ using StringDistances, Base.Test
 @test_approx_eq_eps evaluate(Normalized(QGram(1)), "abc", "cba") 0.0 1e-4
 @test_approx_eq_eps evaluate(Normalized(QGram(1)), "abc", "ccc") 2/3 1e-4
 
+@test_approx_eq_eps evaluate(Cosine(2), "", "abc") 1 1e-4
+@test_approx_eq_eps evaluate(Cosine(2), "abc", "ccc") 1 1e-4
+@test_approx_eq_eps evaluate(Cosine(2), "leia", "leela") 0.7113249 1e-4
+
 
 @test_approx_eq_eps evaluate(Jaccard(1), "", "abc") 1.0 1e-4
 @test_approx_eq_eps evaluate(Jaccard(1), "abc", "ccc") .666666 1e-4
 @test_approx_eq_eps evaluate(Jaccard(2), "leia", "leela") 0.83333 1e-4
-
-
-@test_approx_eq_eps evaluate(Cosine(2), "", "abc") 1 1e-4
-@test_approx_eq_eps evaluate(Cosine(2), "abc", "ccc") 1 1e-4
-@test_approx_eq_eps evaluate(Cosine(2), "leia", "leela") 0.7113249 1e-4
 
 
 
