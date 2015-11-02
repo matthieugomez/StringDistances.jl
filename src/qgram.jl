@@ -24,53 +24,49 @@ function Base.done(qgram::QGramIterator, state)
     done(qgram.s, idend)
 end
 Base.eltype(qgram::QGramIterator) = SubString{typeof(qgram.s)}
-Base.length(qgram::QGramIterator) = length(qgram.s) - qgram.q + 1
+Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
+
+function Base.collect(qiter::QGramIterator)
+	x = Array(eltype(qiter), length(qiter))
+	i = 0
+	@inbounds for q in qiter
+		i += 1
+		x[i] = q
+	end
+	return x
+end
+
 ##############################################################################
 ##
-## A Bag is a Set that allows duplicated values
-## Implemented as Dictionary from elements => number of duplicates
+## Define some operations on sorted vector that represent qgrams
 ##
 ##############################################################################
 
-type Bag{Tv, Ti <: Integer}
-    dict::Dict{Tv, Ti}
-    Bag() = new(Dict{Tv, Ti}())
+function _norm2(v::AbstractVector)
+	out = 0
+	len = length(v)
+	istart = 1
+	while istart <= len
+		x = v[istart]
+		iend = searchsortedlast(v, x, istart, len, Base.Forward)
+	    out += (iend - istart + 1)^2
+	    istart = iend + 1
+	end
+	return sqrt(out)
 end
 
-function Base.push!{Tv, Ti}(bag::Bag{Tv, Ti}, x::Tv)
-    bag.dict[x] = get(bag.dict, x, zero(Ti)) + one(Ti)
-    return bag
+function _ndistinct(v::AbstractVector)
+	out = 0
+	len = length(v)
+	istart = 1
+	while istart <= len
+		x = v[istart]
+		iend = searchsortedlast(v, x, istart, len, Base.Forward)
+		out += 1
+		istart = iend + 1
+	end
+	return out
 end
-Base.sizehint!(bag::Bag, i::Integer) = sizehint!(bag.dict, i)
-
-function Base.delete!{Tv, Ti}(bag::Bag{Tv, Ti}, x)
-    v = get(bag.dict, x, zero(Ti))
-    if v > zero(Ti)
-        bag.dict[x] = v - one(Ti)
-    end
-    return x
-end
-
-Base.length(bag::Bag) = convert(Int, sum(values(bag.dict)))
-
-function Bag(s::QGramIterator)
-    bag = Bag{eltype(s), UInt}()
-    sizehint!(bag, length(s))
-    for x in s
-        push!(bag, x)
-    end
-    return bag
-end
-
-function Base.Set(s::QGramIterator)
-    set = Set{eltype(s)}()
-    sizehint!(set, length(s))
-    for x in s
-        push!(set, x)
-    end
-    return set
-end
-
 ##############################################################################
 ##
 ## q-gram 
@@ -89,15 +85,27 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Int
     len2 == 0 && return 0
 
     q1 = QGramIterator(s1, dist.q)
-    q2 = QGramIterator(s2, dist.q)
+    sort1 = sort!(collect(q1))
+    lenq1 = length(sort1)
 
-    bag2 = Bag(q2)
-    for ch in q1
-        delete!(bag2, ch)
-    end
-    # number non matched in s1 : n1 - (n2 - length(bag)) 
-    # number non matched in s2 : length(bag)
-    return length(q1) - length(q2) + 2 * length(bag2)
+    q2 = QGramIterator(s2, dist.q)
+    sort2 = sort!(collect(q2))
+	lenq2 = length(sort2)
+
+	numerator = 0
+	i1start = 1
+	i2start = 1
+	while i1start <= lenq1
+		ch1 = sort1[i1start]
+		i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
+		i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
+		numerator += first(i2range) - i2start
+		numerator += abs((i1end - i1start + 1) - length(i2range))
+		i1start = i1end + 1
+		i2start = last(i2range) + 1
+	end
+	numerator += lenq2 - i2start + 1
+    return numerator
 end
 
 qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
@@ -114,19 +122,33 @@ type Cosine{T <: Integer} <: SemiMetric
 end
 Cosine() = Cosine(2)
 
+
 function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
     len2 == 0 && return 0.0
 
     q1 = QGramIterator(s1, dist.q)
-    q2 = QGramIterator(s2, dist.q)
+    sort1 = sort!(collect(q1))
+    lenq1 = length(sort1)
 
-    bag1 = Bag(q1)
-    bag2 = Bag(q2)
+    q2 = QGramIterator(s2, dist.q)
+	sort2 = sort!(collect(q2))
+	lenq2 = length(sort2)
+
     numerator = 0
-    for (k, v1) in bag1.dict
-        numerator += v1 * get(bag2.dict, k, 0)
+    norm1 = 0
+    i1start = 1
+    i2start = 1
+    while i1start <= lenq1
+    	ch1 = sort1[i1start]
+    	i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
+    	i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
+        numerator += (i1end - i1start + 1) * length(i2range)
+        norm1 += (i1end - i1start + 1)^2
+        i1start = i1end + 1
+        i2start = last(i2range) + 1
     end
-    denominator = sqrt(sumabs2(values(bag1.dict))) * sqrt(sumabs2(values(bag2.dict)))
+
+    denominator = sqrt(norm1) * _norm2(sort2)
     return denominator != 0 ? 1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
@@ -142,7 +164,6 @@ cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2) = evaluate(Cosine
 ## return 1.0 if smaller than qgram
 ##
 ##############################################################################
-
 type Jaccard{T <: Integer} <: SemiMetric
     q::T
 end
@@ -152,17 +173,29 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
     len2 == 0 && return 0.0
 
     q1 = QGramIterator(s1, dist.q)
-    q2 = QGramIterator(s2, dist.q)
+    sort1 = sort!(collect(q1))
+    lenq1 = length(q1)
 
-    set1 = Set(q1)
-    set2 = Set(q2)
+    q2 = QGramIterator(s2, dist.q)
+    sort2 = sort!(collect(q2))
+    lenq2 = length(q2)
+
     numerator = 0
-    for x in set1
-        if x in set2
-            numerator += 1
-        end
+    i1start = 1
+    i2start = 1
+    norm1 = 0
+    while i1start <= lenq1
+    	ch1 = sort1[i1start]
+    	i1end = searchsortedlast(sort1, ch1, i1start, lenq1, Base.Forward)
+    	i2range = searchsorted(sort2, ch1, i2start, lenq2, Base.Forward)
+       	numerator += length(i2range) > 0
+       	norm1 += 1
+       	i1start = i1end + 1
+       	i2start = last(i2range) + 1
     end
-    denominator = length(set1) + length(set2) - numerator
+
+    norm2 = _ndistinct(sort2)
+    denominator = norm1 + norm2 - numerator
     return denominator != 0 ?  1.0 - numerator / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
