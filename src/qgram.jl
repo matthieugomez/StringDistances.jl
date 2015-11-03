@@ -45,40 +45,61 @@ Base.sort(qgram::QGramIterator) = sort!(collect(qgram), alg = QuickSort)
 
 ##############################################################################
 ##
-## Define a type that iterates through a pair of sorted vector
-## For each element in either v1 or v2, output number of times it appears in v1 and the number of times it appears in v2
+## Define a Tree
 ##
 ##############################################################################
 
-type PairSortedIterator{T1 <: AbstractVector, T2 <: AbstractVector}
-	v1::T1
-	v2::T2
+abstract Tree{K, V}
+type EmptyTree{K,V} <: Tree{K, V}
 end
-Base.start(s::PairSortedIterator) = (1, 1)
 
-function Base.next(s::PairSortedIterator, state)
-	state1, state2 = state
-	iter1 = done(s.v2, state2)
-	iter2 = done(s.v1, state1)
-	if iter1
-		@inbounds x1 = s.v1[state1]
-	elseif iter2
-		@inbounds x2 = s.v2[state2]
-	else
-		@inbounds x1 = s.v1[state1]
-		@inbounds x2 = s.v2[state2]
-		iter1 = x1 <= x2
-		iter2 = x2 <= x1
+type TreeNode{K,V} <: Tree{K, V}
+    key::  K
+    data::Tuple{V, V}
+    left:: Tree{K,V}
+    right::Tree{K,V}
+end
+
+add1!{K,V}(t::EmptyTree{K,V}, k) = TreeNode{K,V}(k, (one(V), zero(V)), t, t)
+function add1!{K, V}(t::TreeNode{K, V}, k)
+    if t.key == k
+    	a, b = t.data
+        t.data = (a + one(V), b)
+    elseif k < t.key
+        t.left = add1!(t.left, k)
+    else
+        t.right = add1!(t.right, k)
+    end
+    return t
+end
+
+add2!{K,V}(t::EmptyTree{K,V}, k) = TreeNode{K,V}(k, (zero(V), one(V)), t, t)
+function add2!{K, V}(t::TreeNode{K, V}, k)
+    if t.key == k
+        a, b = t.data
+        t.data = (a, b + one(V))
+    elseif k < t.key
+        t.left = add2!(t.left, k)
+    else
+        t.right = add2!(t.right, k)
+    end
+    return t
+end
+
+function Tree{S}(dist, s1::S, s2::S, len1::Integer, len2::Integer)
+	qgram1 = QGramIterator(s1, len1, dist.q)
+	qgram2 = QGramIterator(s2, len2, dist.q)
+	t = EmptyTree{SubString{S}, UInt}()
+	for x in qgram1
+		t = add1!(t, x)
 	end
-	nextstate1 = iter1 ? searchsortedlast(s.v1, x1, state1, length(s.v1), Base.Forward) + 1 : state1
-	nextstate2 = iter2 ? searchsortedlast(s.v2, x2, state2, length(s.v2), Base.Forward) + 1 : state2
-	return ((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
+	for x in qgram2
+		t = add2!(t, x) 
+	end
+	return t
 end
 
-function Base.done(s::PairSortedIterator, state) 
-	state1, state2 = state
-	done(s.v2, state2) && done(s.v1, state1)
-end
+
 ##############################################################################
 ##
 ## q-gram 
@@ -93,19 +114,23 @@ type QGram{T <: Integer} <: AbstractQGram
 end
 QGram() = QGram(2)
 
-function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	isempty(s2) && return 0
-	sort1 = sort(QGramIterator(s1, len1, dist.q))
-	sort2 = sort(QGramIterator(s2, len2, dist.q))
-	n = 0
-	for (n1, n2) in PairSortedIterator(sort1, sort2)
-		n += abs(n1 - n2)
-	end
-	return n
+type QGramAccumulator
+	n::Int
 end
 
-function qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2)
-	evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
+function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	isempty(s2) && return 0
+	t = Tree(dist, s1, s2, len1, len2)
+	acc = QGramAccumulator(0)
+	evalans(dist, t, acc)
+	return acc.n
+end
+evalans(dist::QGram, t::EmptyTree, acc::QGramAccumulator) = nothing
+function evalans{K, V}(dist::QGram, t::TreeNode{K, V}, acc::QGramAccumulator)
+	n1, n2 = t.data
+	acc.n += n1 > n2 ? n1 - n2 : n2 - n1
+	evalans(dist, t.left, acc)
+	evalans(dist, t.right, acc)
 end
 
 ##############################################################################
@@ -120,20 +145,29 @@ type Cosine{T <: Integer} <: AbstractQGram
 end
 Cosine() = Cosine(2)
 
+type CosineAccumulator
+	norm1::Int
+	norm2::Int
+	prodnorm::Int
+end
 function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	isempty(s2) && return 0
-	sort1 = sort(QGramIterator(s1, len1, dist.q))
-	sort2 = sort(QGramIterator(s2, len2, dist.q))
-	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in PairSortedIterator(sort1, sort2)
-		norm1 += n1^2
-		norm2 += n2^2
-		prodnorm += n1 * n2
-	end
-	denominator = sqrt(norm1) * sqrt(norm2)
-	return denominator != 0 ? 1.0 - prodnorm / denominator : s1 == s2 ? 0.0 : 1.0
+	isempty(s2) && return 0.0
+	t = Tree(dist, s1, s2, len1, len2)
+	acc = CosineAccumulator(0, 0, 0)
+	evalans(dist, t, acc)	
+	denominator = sqrt(acc.norm1) * sqrt(acc.norm2)
+	return denominator != 0 ? 1.0 - acc.prodnorm / denominator : s1 == s2 ? 0.0 : 1.0
 end
 
+evalans(dist::Cosine, t::EmptyTree, acc::CosineAccumulator) = nothing
+function evalans{K, V}(dist::Cosine, t::TreeNode{K, V}, acc::CosineAccumulator)
+	n1, n2 = t.data
+	acc.norm1 += n1^2
+	acc.norm2 += n2^2
+	acc.prodnorm += n1 * n2
+	evalans(dist, t.left, acc)
+	evalans(dist, t.right, acc)
+end
 function cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2)
 	evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
 end
@@ -148,26 +182,39 @@ end
 ## return 1.0 if smaller than qgram
 ##
 ##############################################################################
-
 type Jaccard{T <: Integer} <: AbstractQGram
 	q::T
 end
 Jaccard() = Jaccard(2)
 
+type JaccardAccumulator
+	ndistinct1::Int
+	ndistinct2::Int
+	nintersect::Int
+end
+
 function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	isempty(s2) && return 0
-	sort1 = sort(QGramIterator(s1, len1, dist.q))
-	sort2 = sort(QGramIterator(s2, len2, dist.q))
-	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in PairSortedIterator(sort1, sort2)
-		ndistinct1 += n1 > 0
-		ndistinct2 += n2 > 0
-		nintersect += (n1 > 0) & (n2 > 0)
-	end
-	denominator = ndistinct1 + ndistinct2 - nintersect
-	return denominator != 0 ? 1.0 - nintersect / denominator : s1 == s2 ? 0.0 : 1.0
+	isempty(s2) && return 0.0
+	t = Tree(dist, s1, s2, len1, len2)
+	acc = JaccardAccumulator(0, 0, 0)
+	evalans(dist, t, acc)
+	denominator = acc.ndistinct1 + acc.ndistinct2 - acc.nintersect
+	return denominator != 0 ? 1.0 - acc.nintersect / denominator : s1 == s2 ? 0.0 : 1.0
+end
+
+
+evalans(dist::Jaccard, t::EmptyTree, acc::JaccardAccumulator) = nothing
+function evalans{K, V}(dist::Jaccard, t::TreeNode{K, V}, acc::JaccardAccumulator)
+	n1, n2 = t.data
+	acc.ndistinct1 += (n1 > zero(V))
+	acc.ndistinct2 += (n2 > zero(V))
+	acc.nintersect += ((n1 > zero(V)) & (n2 > zero(V)))
+	evalans(dist, t.left, acc)
+	evalans(dist, t.right, acc)
 end
 
 function jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2)
 	evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
 end
+
+
