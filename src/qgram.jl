@@ -45,7 +45,7 @@ Base.sort(qiter::QGramIterator) = sort!(collect(qiter), alg = QuickSort)
 ##############################################################################
 ##
 ## Define a type that iterates through a pair of sorted vector
-## At each iteration, output number of times it appears in v1, number of times it appears in v2
+## For each element in either v1 or v2, output number of times it appears in v1 and the number of times it appears in v2
 ##
 ##############################################################################
 

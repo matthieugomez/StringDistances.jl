@@ -7,15 +7,17 @@ StringDistances allow to compute various distances between strings. The package 
 
 ## Distances
 
-- [x] Hamming Distance
-- [x] Jaro Distance
-- [x] Levenshtein Distance
-- [x] Damerau-Levenshtein Distance
-- [x] QGram Distance
-- [x] Cosine Distance
-- [x] Jaccard Distance
+- Hamming Distance
+- Jaro Distance
+- Levenshtein Distance
+- Damerau-Levenshtein Distance
+- QGram Distance
+- Cosine Distance
+- Jaccard Distance
 
 
+A good reference about string distances is the article written for the R package `stringdist`:
+*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo
 
 ## Syntax
 - The basic syntax follows the [Distances](https://github.com/JuliaStats/Distances.jl) package:
@@ -25,8 +27,6 @@ StringDistances allow to compute various distances between strings. The package 
 	evaluate(Hamming(), "martha", "marhta")
 	evaluate(QGram(2), "martha", "marhta")
 	```
-
-
 
 - Normalize a distance between 0-1 with `Normalized`
 
@@ -42,8 +42,3 @@ StringDistances allow to compute various distances between strings. The package 
 	evaluate(Winkler(Qgram(2)), "martha", "marhta")
 	```
 	While the Winkler adjustment was originally defined in the context of the Jaro distance, it can be helpful with other distances too. Note: a distance is automatically normalized between 0 and 1 when used with a Winkler adjustment.
-
-
-## References
-A good reference for these string distances is an article written for the R package `stringdist`:
-*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo
