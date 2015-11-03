@@ -26,9 +26,7 @@ end
 
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     count = 0
-    state2 = start(s2)
-    for ch1 in s1
-        ch2, state2 = next(s2, state2)
+    for (ch1, ch2) in zip(s1, s2)
         count += ch1 != ch2
     end
     count += len2 - len1

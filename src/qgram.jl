@@ -12,8 +12,9 @@ abstract AbstractQGram <: SemiMetric
 ##############################################################################
 
 type QGramIterator{S <: AbstractString, T <: Integer}
-	s::S
-	q::T
+	s::S # string
+	l::Int # length of string
+	q::T # length of q-grams
 end
 function Base.start(qgram::QGramIterator)
 	len = length(qgram.s)
@@ -30,17 +31,17 @@ function Base.done(qgram::QGramIterator, state)
 	done(qgram.s, idend)
 end
 Base.eltype(qgram::QGramIterator) = SubString{typeof(qgram.s)}
-Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
-function Base.collect(qiter::QGramIterator)
-	x = Array(eltype(qiter), length(qiter))
+Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
+function Base.collect(qgram::QGramIterator)
+	x = Array(eltype(qgram), length(qgram))
 	i = 0
-	for q in qiter
+	for q in qgram
 		i += 1
 		@inbounds x[i] = q
 	end
 	return x
 end
-Base.sort(qiter::QGramIterator) = sort!(collect(qiter), alg = QuickSort)
+Base.sort(qgram::QGramIterator) = sort!(collect(qgram), alg = QuickSort)
 
 ##############################################################################
 ##
@@ -93,9 +94,9 @@ end
 QGram() = QGram(2)
 
 function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0
-	sort1 = sort(QGramIterator(s1, dist.q))
-	sort2 = sort(QGramIterator(s2, dist.q))
+	isempty(s2) && return 0
+	sort1 = sort(QGramIterator(s1, len1, dist.q))
+	sort2 = sort(QGramIterator(s2, len2, dist.q))
 	n = 0
 	for (n1, n2) in PairSortedIterator(sort1, sort2)
 		n += abs(n1 - n2)
@@ -120,9 +121,9 @@ end
 Cosine() = Cosine(2)
 
 function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0
-	sort1 = sort(QGramIterator(s1, dist.q))
-	sort2 = sort(QGramIterator(s2, dist.q))
+	isempty(s2) && return 0
+	sort1 = sort(QGramIterator(s1, len1, dist.q))
+	sort2 = sort(QGramIterator(s2, len2, dist.q))
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in PairSortedIterator(sort1, sort2)
 		norm1 += n1^2
@@ -154,10 +155,9 @@ end
 Jaccard() = Jaccard(2)
 
 function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0
-
-	sort1 = sort(QGramIterator(s1, dist.q))
-	sort2 = sort(QGramIterator(s2, dist.q))
+	isempty(s2) && return 0
+	sort1 = sort(QGramIterator(s1, len1, dist.q))
+	sort2 = sort(QGramIterator(s2, len2, dist.q))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in PairSortedIterator(sort1, sort2)
 		ndistinct1 += n1 > 0
