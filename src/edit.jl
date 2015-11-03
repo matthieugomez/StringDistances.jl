@@ -168,7 +168,7 @@ damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLe
 type Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
-    len2 == 0 && return 1.0
+    len2 == 0 && return 0.0
 
     maxdist = max(0, div(len2, 2) - 1)
     m = 0 # matching characters
@@ -204,7 +204,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Inte
     end
     m == 0.0 && return 1.0
     score = (m / len1 + m / len2 + (m - t) / m) / 3.0
-    return 1 - score
+    return 1.0 - score
 end
 
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)
