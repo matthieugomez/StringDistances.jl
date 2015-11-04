@@ -19,6 +19,9 @@ end
 @time f(Float64, Cosine(2), x, y)
 @time f(Float64, Jaccard(2), x, y)
 
+#
+@time f(Float64, RatcliffObershelp(), x, y)
+
 
 
 

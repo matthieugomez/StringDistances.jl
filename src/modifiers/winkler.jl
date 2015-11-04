@@ -7,18 +7,18 @@
 type Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
     dist::T1
     scaling_factor::T2      # scaling factor. Default to 0.1
-    boosting_limit::T3      # boost threshold. Default to 1.0 
+    boosting_limit::T3      # boost threshold. Default to 0.7
 end
 
 # restrict to distance between 0 and 1
-Winkler(x) = Winkler(x, 0.1, 1.0)
+Winkler(x) = Winkler(x, 0.1, 0.7)
 
-function evaluate(dist::Winkler, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-    distance = evaluate(Normalized(dist.dist), s1, s2, len1, len2)
+function compare(dist::Winkler, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+    score = compare(dist.dist, s1, s2, len1, len2)
     l = common_prefix(s1, s2, 4)[1]
     # common prefix adjustment
-    if distance <= dist.boosting_limit
-        distance -= distance * l * dist.scaling_factor
+    if score >= dist.boosting_limit
+        score += l * dist.scaling_factor * (1 - score)
     end
-    return distance
+    return score
 end

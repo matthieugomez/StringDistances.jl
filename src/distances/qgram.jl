@@ -41,7 +41,7 @@ function Base.collect(qgram::QGramIterator)
 	end
 	return x
 end
-Base.sort(qgram::QGramIterator) = sort!(collect(qgram), alg = QuickSort)
+Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 
 ##############################################################################
 ##
@@ -94,13 +94,12 @@ end
 ##
 ##############################################################################
 
-type QGram{T <: Integer} <: AbstractQGram
+immutable QGram{T <: Integer} <: AbstractQGram
 	q::T
 end
 QGram() = QGram(2)
 
 function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0
 	n = 0
 	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
 		n += abs(n1 - n2)
@@ -119,14 +118,13 @@ end
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-type Cosine{T <: Integer} <: AbstractQGram
+immutable Cosine{T <: Integer} <: AbstractQGram
 	q::T
 end
 Cosine() = Cosine(2)
 
 function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0.0
-	(len1 <= (dist.q - 1)) && return convert(Float64, s1 != s2)
+	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
 		norm1 += n1^2
@@ -147,18 +145,15 @@ end
 ## Denote Q(s, q) the set of tuple of length q in s
 ## 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
 ##
-## return 1.0 if smaller than qgram
-##
 ##############################################################################
 
-type Jaccard{T <: Integer} <: AbstractQGram
+immutable Jaccard{T <: Integer} <: AbstractQGram
 	q::T
 end
 Jaccard() = Jaccard(2)
 
 function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len2 == 0 && return 0.0
-	(len1 <= (dist.q - 1)) && return convert(Float64, s1 != s2)
+	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
 		ndistinct1 += n1 > 0

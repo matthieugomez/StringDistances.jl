@@ -24,7 +24,7 @@ end
 ##
 ##############################################################################
 
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2:: Integer)
     count = 0
     for (ch1, ch2) in zip(s1, s2)
         count += ch1 != ch2
@@ -32,8 +32,6 @@ function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::I
     count += len2 - len1
     return count
 end
-
-hamming(s1::AbstractString, s2::AbstractString) = evaluate(Hamming(), s1, s2)
 
 ##############################################################################
 ##
@@ -82,9 +80,6 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString, len
         end
     end
     return current
-end
-function levenshtein(s1::AbstractString, s2::AbstractString)
-    evaluate(Levenshtein(), s1, s2)
 end
 
 ##############################################################################
@@ -157,11 +152,9 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     return current
 end
 
-damerau_levenshtein(s1::AbstractString, s2::AbstractString) = evaluate(DamerauLevenshtein(), s1, s2)
-
 ##############################################################################
 ##
-## JaroWinkler
+## Jaro
 ##
 ##############################################################################
 
@@ -208,7 +201,3 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Inte
 end
 
 jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)
-
-
-
-
