@@ -9,25 +9,23 @@ This Julia package computes various distances between strings.
 ## Distances
 
 #### Edit Distances
-- Hamming Distance
-- Jaro Distance
-- Levenshtein Distance
-- Damerau-Levenshtein Distance
-- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) (similar to the Python library [difflib](https://docs.python.org/2/library/difflib.html))
+- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance)
+- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
+- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)
 
 #### Q-Grams Distances
+Q-gram distances compare the set of all substrings of length `q` in each
 - QGram Distance
-- Cosine Distance
-- Jaccard Distance
+- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity)
+- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index)
+- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient)
+- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient)
 
-A good reference for q-gram distances is the article written for the R package `stringdist`:
-*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo
-
+#### Others
+- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
+- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) is based on the length of matching subsequences. It is used in the Python library [difflib](https://docs.python.org/2/library/difflib.html).
 
 ## Syntax
-
-
-
 #### evaluate
 The function `evaluate` returns the litteral distance between two strings (a value of 0 being identical). While some distances are bounded by 1, other distances like `Hamming`, `Levenshtein`, `Damerau-Levenshtein`,  `Jaccard` can be higher than 1.
 
@@ -52,7 +50,7 @@ compare(QGram(2), "martha", "marhta")
 
 ## Modifiers
 
-The package defines a number of types to modify string metrics:
+The package defines a number of ways to modify string metrics:
 
 - [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes
 
@@ -76,13 +74,17 @@ The package defines a number of types to modify string metrics:
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in string lengths. The function returns the maximal similarity score between the shorter string and all substrings of the longer string. 	
 
 		```julia
-		compare(Partial(Hamming()), "New York Yankees", "Yankees")
+		compare(Levenshtein(), "New York Yankees", "Yankees")
+		#> 0.4375
+		compare(Partial(Levenshtein()), "New York Yankees", "Yankees")
 		#> 1.0
 		```
 
 	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by reording words alphabetically.
 
 		```julia
+		compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
+		#> 0.44444
 		compare(TokenSort(RatcliffObershelp()),"mariners vs angels", "angels vs mariners")
 		#> 1.0
 		```
@@ -90,7 +92,23 @@ The package defines a number of types to modify string metrics:
 	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers.
 
 		```julia
-		compare(TokenSet(RatcliffObershelp()),"mariners vs angels", "los angeles angels of anaheim at seattle mariners")
+		compare(Jaro(),"mariners vs angels", "los angeles angels at seattle mariners")
+		#> 0.559904
+		compare(TokenSet(Jaro()),"mariners vs angels", "los angeles angels at seattle mariners")
+		#> 0.944444
 		```
+
+
+You can compose multiple modifiers:
+```julia
+compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners")
+#> 0.7378917378917379
+compare(TokenSet(Partial(RatcliffObershel())),"mariners vs angels", "los angeles angels at seattle mariners")
+#> 1.0
+```
+
+## References
+A good reference for some distances in this package is the article written for the R package `stringdist`:
+*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo
 
 

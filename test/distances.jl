@@ -47,6 +47,17 @@ using StringDistances, Base.Test
 @test_approx_eq_eps evaluate(Jaccard(1), "abc", "ccc") .666666 1e-4
 @test_approx_eq_eps evaluate(Jaccard(2), "leia", "leela") 0.83333 1e-4
 
+@test_approx_eq_eps evaluate(Jaccard(1), "", "abc") 1.0 1e-4
+@test_approx_eq_eps evaluate(Jaccard(1), "abc", "ccc") .666666 1e-4
+@test_approx_eq_eps evaluate(Jaccard(2), "leia", "leela") 0.83333 1e-4
+
+@test_approx_eq_eps evaluate(SorensenDice(1), "night", "nacht") 0.4 1e-4
+@test_approx_eq_eps evaluate(SorensenDice(2), "night", "nacht") 0.75 1e-4
+
+@test_approx_eq_eps evaluate(Overlap(1), "night", "nacht") 0.4 1e-4
+@test_approx_eq_eps evaluate(Overlap(1), "context", "contact") .2 1e-4
+
+
 
 strings = [
 ("martha", "marhta"),

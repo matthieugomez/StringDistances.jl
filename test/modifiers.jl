@@ -47,6 +47,11 @@ end
 @test_approx_eq compare(Partial(RatcliffObershelp()), "New York Yankees",  "Yankees") 1.0
 @test_approx_eq compare(Partial(RatcliffObershelp()), "New York Yankees",  "") 0.0
 
+s = "HSINCHUANG"
+@test_approx_eq compare(Partial(RatcliffObershelp()), s, "SINJHUAN") 0.875
+@test_approx_eq compare(Partial(RatcliffObershelp()), s, "LSINJHUANG DISTRIC") 0.8
+@test_approx_eq compare(Partial(RatcliffObershelp()), s, "SINJHUANG DISTRICT") 0.8
+@test_approx_eq compare(Partial(RatcliffObershelp()), s,  "SINJHUANG") 0.8888888888888
 
 @test_approx_eq compare(Partial(Hamming()), "New York Yankees",  "Yankees") 1
 @test_approx_eq compare(Partial(Hamming()), "New York Yankees",  "") 1

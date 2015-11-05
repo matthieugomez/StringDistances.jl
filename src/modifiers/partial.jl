@@ -31,7 +31,7 @@ function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::Abstr
     out = 0.0
     result = matching_blocks(s1, s2)
     for r in result
-        s2_start = max(1, r[2] - r[1] + 1)
+        s2_start = max(0, r[2] - r[1]) + 1
         s2_end = s2_start + len1 - 1
         i2_start =  chr2ind(s2, s2_start)
         i2_end = s2_end == len2 ? endof(s2) : (chr2ind(s2, s2_end + 1) - 1)

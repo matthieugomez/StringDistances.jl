@@ -107,10 +107,6 @@ function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Int
 	return n
 end
 
-function qgram(s1::AbstractString, s2::AbstractString; q::Integer = 2)
-	evaluate(QGram(q), s1::AbstractString, s2::AbstractString)
-end
-
 ##############################################################################
 ##
 ## cosine 
@@ -134,9 +130,7 @@ function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::In
 	return 1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
 end
 
-function cosine(s1::AbstractString, s2::AbstractString; q::Integer = 2)
-	evaluate(Cosine(q), s1::AbstractString, s2::AbstractString)
-end
+
 
 ##############################################################################
 ##
@@ -163,6 +157,50 @@ function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::I
 	return 1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
 
-function jaccard(s1::AbstractString, s2::AbstractString; q::Integer = 2)
-	evaluate(Jaccard(q), s1::AbstractString, s2::AbstractString)
+
+##############################################################################
+##
+## SorensenDice
+##
+## 1 - 2 * |intersect(Q(s1, q), Q(s2, q))| / (|Q(s1, q)| + |Q(s2, q))|)
+##############################################################################
+
+immutable SorensenDice{T <: Integer} <: AbstractQGram
+	q::T
 end
+SorensenDice() = SorensenDice(2)
+
+function evaluate(dist::SorensenDice, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+	ndistinct1, ndistinct2, nintersect = 0, 0, 0
+	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+		ndistinct1 += n1 > 0
+		ndistinct2 += n2 > 0
+		nintersect += (n1 > 0) & (n2 > 0)
+	end
+	return 1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
+end
+
+##############################################################################
+##
+## overlap
+##
+## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
+##############################################################################
+
+immutable Overlap{T <: Integer} <: AbstractQGram
+	q::T
+end
+Overlap() = Overlap(2)
+
+function evaluate(dist::Overlap, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+	ndistinct1, ndistinct2, nintersect = 0, 0, 0
+	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+		ndistinct1 += n1 > 0
+		ndistinct2 += n2 > 0
+		nintersect += (n1 > 0) & (n2 > 0)
+	end
+	return 1.0 - nintersect / min(ndistinct1, ndistinct2)
+end
+
