@@ -1,6 +1,7 @@
 ##############################################################################
 ##
 ## TokenSort
+## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
 type TokenSort{T <: PreMetric} <: PreMetric
@@ -16,6 +17,7 @@ end
 ##############################################################################
 ##
 ## TokenSet
+## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
 type TokenSet{T <: PreMetric} <: PreMetric

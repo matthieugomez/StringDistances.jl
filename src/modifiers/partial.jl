@@ -1,7 +1,6 @@
 ##############################################################################
 ##
 ## Partial
-## From the Python module fuzzywuzzy
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
@@ -26,7 +25,7 @@ function compare(dist::Partial, s1::AbstractString, s2::AbstractString, len1::In
 end
 
 # Specialization for RatcliffObershelp distance
-# Code: https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/fuzz.py
+# Code follows https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/fuzz.py
 function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len1 == len2 && return compare(dist.dist, s1, s2, len1, len2)
     out = 0.0
