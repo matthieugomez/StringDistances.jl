@@ -14,7 +14,7 @@ This Julia package computes various distances between strings.
 - [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)
 
 #### Q-Grams Distances
-Q-gram distances compare the set of all substrings of length `q` in each
+Q-gram distances compare the set of all substrings of length `q` in each string.
 - QGram Distance
 - [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity)
 - [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index)
@@ -69,7 +69,7 @@ The package defines a number of ways to modify string metrics:
 	#> 0.9538461538461539
 	```
 
-- For strings composed of several words, the Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` distance. This package defines them for any string distance:
+- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` distance. This package defines them for any string distance:
 
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in string lengths. The function returns the maximal similarity score between the shorter string and all substrings of the longer string. 	
 
@@ -99,16 +99,36 @@ The package defines a number of ways to modify string metrics:
 		```
 
 
-You can compose multiple modifiers:
-```julia
-compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners")
-#> 0.7378917378917379
-compare(TokenSet(Partial(RatcliffObershel())),"mariners vs angels", "los angeles angels at seattle mariners")
-#> 1.0
-```
+- You can compose multiple modifiers:
+	```julia
+	compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners")
+	#> 0.7378917378917379
+	compare(TokenSet(Partial(RatcliffObershel())),"mariners vs angels", "los angeles angels at seattle mariners")
+	#> 1.0
+	```
+
+
+## Tips
+In case you're wondering which distance to use:
+
+- Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words with fluctuating orderings.
+- When comparing company or individual names, each string is composed of multiple words and their ordering is mostly irrelevant. Edit distances will perform poorly in this situation. Use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort` or `TokenSet`, which reorder the words alphabetically.
+
+	```julia
+	compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
+	#> 0.44444
+	compare(TokenSort(RatcliffObershelp()),"mariners vs angels", "angels vs mariners")
+	#> 1.0
+	compare(Cosine(3), "mariners vs angels", "angels vs mariners")
+	#> 0.8125
+	```
+
+- Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
+
+
 
 ## References
-A good reference for some distances in this package is the article written for the R package `stringdist`:
-*The stringdist Package for Approximate String Matching* Mark P.J. van der Loo
+- [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
+- [fuzzywuzzy blog post](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 
 
