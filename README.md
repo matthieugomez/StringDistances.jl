@@ -27,7 +27,7 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 
 ## Syntax
 #### evaluate
-The function `evaluate` returns the litteral distance between two strings (a value of 0 being identical). While some distances are bounded by 1, other distances like `Hamming`, `Levenshtein`, `Damerau-Levenshtein`,  `Jaccard` can be higher than 1.
+The function `evaluate` returns the litteral *distance* between two strings (a value of 0 being identical). While some distances are bounded by 1, other distances like `Hamming`, `Levenshtein`, `Damerau-Levenshtein`,  `Jaccard` can be higher than 1.
 
 ```julia
 using StringDistances
@@ -38,7 +38,7 @@ evaluate(QGram(2), "martha", "marhta")
 ```
 
 #### compare
-The higher level function `compare` directly computes for any distance a similarity score between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+The higher level function `compare` directly computes *a similarity score* between 0 and 1, based on the inverse distance between two strings. A value of 0 being completely different and a value of 1 being completely similar.
 ```julia
 using StringDistances
 compare(Hamming(), "martha", "marhta")
