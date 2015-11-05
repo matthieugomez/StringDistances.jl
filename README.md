@@ -109,7 +109,6 @@ The package defines a number of ways to modify string metrics:
 
 
 ## Tips
-In case you're wondering which distance to use:
 
 - Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words with fluctuating orderings.
 - When comparing company or individual names, each string is composed of multiple words and their ordering is mostly irrelevant. Edit distances will perform poorly in this situation. Use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort` or `TokenSet`, which reorder the words alphabetically.
