@@ -61,8 +61,12 @@ end
 
 function compare(dist::TokenSort, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
-    s1 = join(sort!(split(s1)), " ")
-    s2 = join(sort!(split(s2)), " ")
+    if search(s1, Base._default_delims) > 0
+        s1 = join(sort!(split(s1)), " ")
+    end
+    if search(s2, Base._default_delims) > 0
+        s2 = join(sort!(split(s2)), " ")
+    end
     compare(dist.dist, s1, s2)
 end
 
@@ -117,7 +121,7 @@ end
 
 ##############################################################################
 ##
-## TokenSort
+## TokenMax
 ##
 ##############################################################################
 type TokenMax{T <: PreMetric} <: PreMetric

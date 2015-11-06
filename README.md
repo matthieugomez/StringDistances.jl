@@ -23,7 +23,7 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 
 #### Others
 - [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
-- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) is based on the length of matching subsequences. It is used in the Python library [difflib](https://docs.python.org/2/library/difflib.html).
+- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html)
 
 ## Syntax
 #### evaluate
@@ -68,9 +68,9 @@ The package defines a number of ways to modify string metrics:
 	#> 0.9538461538461539
 	```
 
-- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` distance. This package defines them for any string distance:
+- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` distance. This package replicates them and extends them to any string distance:
 
-	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in string lengths. The function returns the maximal similarity score between the shorter string and all substrings of the longer string. 	
+	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the maximal similarity score between the shorter string and substrings of the longer string.
 
 		```julia
 		compare(Levenshtein(), "New York Yankees", "Yankees")
@@ -79,7 +79,7 @@ The package defines a number of ways to modify string metrics:
 		#> 1.0
 		```
 
-	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by reording words alphabetically.
+	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by reording words alphabetically. 
 
 		```julia
 		compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
@@ -88,7 +88,7 @@ The package defines a number of ways to modify string metrics:
 		#> 1.0
 		```
 
-	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers.
+	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
 
 		```julia
 		compare(Jaro(),"mariners vs angels", "los angeles angels at seattle mariners")
@@ -98,10 +98,9 @@ The package defines a number of ways to modify string metrics:
 		```
 
 
-	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the max of the base similarity score, penalized `TokenSort` and `TokenSet` similarity scores.
-
+	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths.
 		```julia
-		compare(TokenMax(Jaro()),"mariners vs angels", "los angeles angels at seattle mariners")
+		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
 		#> 0.855
 		```
 
@@ -132,6 +131,8 @@ The package defines a number of ways to modify string metrics:
 		#> 0.8125
 		```
 	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bank" -> "bk", "company" -> "co"). Another solution is to use the `Overlap` distance, which compares common qgrams to the length of the shorter strings. Another solution is to use the `Partial` or `TokenSet` modifiers. 
+
+	`TokenMax(RatcliffObershelp())`, corresponding to the `WRatio` function in the Python library `fuzzywuzzy`, combines these two behaviors and may work best in this situation.
 
 - Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
 
