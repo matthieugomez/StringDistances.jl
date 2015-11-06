@@ -111,10 +111,9 @@ The package defines a number of ways to modify string metrics:
 ## Tips
 
 - Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words with fluctuating orderings.
-- Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
-- Most distances will perform poorly when comparing company or individual names, where each string is composed of multiple words.
+- Most distances perform poorly when comparing company or individual names, where each string is composed of multiple words.
 
-	- While word ordering is mostly irrelevant in this situation, edit distances heavily penalize different word orders. Instead, use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
+	- While word ordering is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
 
 		```julia
 		compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
@@ -125,6 +124,7 @@ The package defines a number of ways to modify string metrics:
 		#> 0.8125
 		```
 	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names first to diminish their importance (ie "bk" "co"). Another solution is to use something like the `Partial` or `TokenSet` modifiers.
+- Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
 
 
 

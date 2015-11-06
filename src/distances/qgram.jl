@@ -85,6 +85,17 @@ function PairIterator(s1::AbstractString, s2::AbstractString, len1::Integer, len
 	sort2 = sort(QGramIterator(s2, len2, q))
 	PairIterator(sort1, sort2)
 end
+
+##############################################################################
+##
+## Evaluate Qgram distance on strings calls evaluate on space of qgrams
+##
+##############################################################################
+
+function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+	evaluate(dist, PairIterator(s1, s2, len1, len2, dist.q))
+end
+
 ##############################################################################
 ##
 ## q-gram 
@@ -99,9 +110,9 @@ immutable QGram{T <: Integer} <: AbstractQGram
 end
 QGram() = QGram(2)
 
-function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::QGram, setiterator)
 	n = 0
-	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+	for (n1, n2) in setiterator
 		n += abs(n1 - n2)
 	end
 	return n
@@ -119,10 +130,9 @@ immutable Cosine{T <: Integer} <: AbstractQGram
 end
 Cosine() = Cosine(2)
 
-function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+function evaluate(dist::Cosine, setiterator)
 	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+	for (n1, n2) in setiterator
 		norm1 += n1^2
 		norm2 += n2^2
 		prodnorm += n1 * n2
@@ -146,17 +156,15 @@ immutable Jaccard{T <: Integer} <: AbstractQGram
 end
 Jaccard() = Jaccard(2)
 
-function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+function evaluate(dist::Jaccard, setiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+	for (n1, n2) in setiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
 	end
 	return 1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
-
 
 ##############################################################################
 ##
@@ -170,10 +178,9 @@ immutable SorensenDice{T <: Integer} <: AbstractQGram
 end
 SorensenDice() = SorensenDice(2)
 
-function evaluate(dist::SorensenDice, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+function evaluate(dist::SorensenDice, setiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+	for (n1, n2) in setiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -193,10 +200,9 @@ immutable Overlap{T <: Integer} <: AbstractQGram
 end
 Overlap() = Overlap(2)
 
-function evaluate(dist::Overlap, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	len1 <= (dist.q - 1) && return convert(Float64, s1 != s2)
+function evaluate(dist::Overlap, setiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in PairIterator(s1, s2, len1, len2, dist.q)
+		for (n1, n2) in setiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
