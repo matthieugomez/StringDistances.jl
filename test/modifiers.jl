@@ -46,6 +46,8 @@ end
 
 @test_approx_eq compare(Partial(RatcliffObershelp()), "New York Yankees",  "Yankees") 1.0
 @test_approx_eq compare(Partial(RatcliffObershelp()), "New York Yankees",  "") 0.0
+@test_approx_eq compare(Partial(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners") 0.444444444444
+
 
 s = "HSINCHUANG"
 @test_approx_eq compare(Partial(RatcliffObershelp()), s, "SINJHUAN") 0.875
@@ -65,3 +67,6 @@ s = "HSINCHUANG"
 
 @test_approx_eq compare(TokenSort(RatcliffObershelp()), "New York Mets vs Atlanta Braves", "")  0.0
 @test_approx_eq compare(TokenSet(RatcliffObershelp()),"mariners vs angels", "") 0.0
+
+
+@test_approx_eq compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "") 0.0

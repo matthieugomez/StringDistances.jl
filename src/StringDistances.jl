@@ -28,15 +28,15 @@ RatcliffObershelp,
 Winkler,
 Partial,
 TokenSort,
-TokenSet
+TokenSet,
+TokenMax
 
 include("distances/edit.jl")
 include("distances/qgram.jl")
 include("distances/RatcliffObershelp.jl")
 
 include("modifiers/winkler.jl")
-include("modifiers/tokenize.jl")
-include("modifiers/partial.jl")
+include("modifiers/fuzzywuzzy.jl")
 
 ##############################################################################
 ##

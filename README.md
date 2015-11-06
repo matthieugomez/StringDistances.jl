@@ -98,6 +98,15 @@ The package defines a number of ways to modify string metrics:
 		```
 
 
+	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the max of the base similarity score, penalized `TokenSort` and `TokenSet` similarity scores.
+
+		```julia
+		compare(TokenMax(Jaro()),"mariners vs angels", "los angeles angels at seattle mariners")
+		#> 0.855
+		```
+
+
+
 - You can compose multiple modifiers:
 	```julia
 	compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners")
