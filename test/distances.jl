@@ -44,7 +44,6 @@ using StringDistances, Base.Test
 @test_approx_eq_eps evaluate(Overlap(1), "night", "nacht") 0.4 1e-4
 @test_approx_eq_eps evaluate(Overlap(1), "context", "contact") .2 1e-4
 
-Set([(1,1,3) (4,5,1) (6,6,1)])
 @test matching_blocks("dwayne", "duane") ==
 Set([(5,4,2) (1,1,1) (3,3,1)])
 @test matching_blocks("dixon", "dicksonx") ==
@@ -79,9 +78,7 @@ strings = [
 ("leia", "leela"),
 ]
 
-
-# Test with R package StringDist
-for x in ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
+solutions = ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
 		(DamerauLevenshtein(), [1  2  4  1  3  0  3  2  3  3  4  6 17  2  2  2]),
 		(Jaro(), [0.05555556 0.17777778 0.23333333 0.04166667 1.00000000 0.00000000 1.00000000 0.44444444 0.25396825 0.24722222 0.16190476 0.48809524 0.49166667 0.07407407 0.16666667 0.21666667]),
 		(QGram(1), [0   3   3   1 3  0   6   4   5   4   4  11  14   0   0   3]),
@@ -89,6 +86,8 @@ for x in ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
 		(Jaccard(1), [0.0 0.4285714 0.3750000 0.1666667       1.0 0.0 1.0000000 0.6666667 0.5714286 0.3750000 0.2000000 0.8333333 0.5000000 0.0 0.0 0.2500000]),
 		(Jaccard(2),  [ 0.7500000 0.8750000 0.7777778 0.1428571       1.0     NaN 1.0000000 1.0000000 0.7777778 0.8000000 0.3076923 1.0000000 0.9696970 0.6666667 1.0000000 0.8333333]),
 		(Cosine(2), [0.6000000 0.7763932 0.6220355 0.0741799  NaN  NaN 1.0000000 1.0000000 0.6348516 0.6619383 0.1679497 1.0000000 0.9407651 0.5000000 1.0000000 0.7113249]))
+# Test with R package StringDist
+for x in solutions
 	t, solution = x
 	for i in 1:length(solution)
 		@test_approx_eq_eps evaluate(t, strings[i]...) solution[i] 1e-4
@@ -124,4 +123,30 @@ stringdist(strings[1,], strings[2,], method = "qgram", q = 1)
 =#
 
 
+# grapheme
+strings = [
+(graphemes2("martha"), graphemes2("marhta")),
+(graphemes2("dwayne"), graphemes2("duane") ),
+(graphemes2("dixon"), graphemes2("dicksonx")),
+(graphemes2("william"), graphemes2("williams")),
+(graphemes2(""), graphemes2("foo")),
+(graphemes2("a"), graphemes2("a")),
+(graphemes2("abc"), graphemes2("xyz")),
+(graphemes2("abc"), graphemes2("ccc")),
+(graphemes2("kitten"), graphemes2("sitting")),
+(graphemes2("saturday"), graphemes2("sunday")),
+(graphemes2("hi, my name is"), graphemes2("my name is")),
+(graphemes2("alborgów"), graphemes2("amoniak")),
+(graphemes2("cape sand recycling "), graphemes2("edith ann graham")),
+(graphemes2( "jellyifhs"), graphemes2("jellyfish")),
+(graphemes2("ifhs"), graphemes2("fish")),
+(graphemes2("leia"), graphemes2("leela")),
+]
 
+
+for x in solutions
+	t, solution = x
+	for i in 1:length(solution)
+		@test_approx_eq_eps evaluate(t, strings[i]...) solution[i] 1e-4
+	end
+end

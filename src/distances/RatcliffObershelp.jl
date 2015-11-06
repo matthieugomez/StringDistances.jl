@@ -28,7 +28,7 @@ function longest_common_substring(s1::AbstractString, s2::AbstractString)
     return start1, start2, size
 end
 
-function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::AbstractString, start1::Integer, start2::Integer)
+function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::GraphemeOrString, s2::GraphemeOrString, start1::Integer, start2::Integer)
     a = longest_common_substring(s1, s2)
     if a[3] > 0
         push!(x, (a[1] + start1 - 1, a[2] + start2 - 1, a[3]))
@@ -43,14 +43,14 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     end
 end
 
-function matching_blocks(s1::AbstractString, s2::AbstractString)
+function matching_blocks(s1::GraphemeOrString, s2::GraphemeOrString)
     x = Set{Tuple{Int, Int, Int}}()
     matching_blocks!(x, s1, s2, 1, 1)
     return x
 end
 
 type RatcliffObershelp <: PreMetric end
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::RatcliffObershelp, s1::GraphemeOrString, s2::GraphemeOrString, len1::Integer, len2::Integer)
     result = matching_blocks(s1, s2)
     matched = 0
     for x in result
@@ -58,3 +58,16 @@ function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractStrin
     end
     1.0 - 2 * matched / (len1 + len2)
 end
+
+#function buildref(s::GraphemeOrString, len)
+#    ref = Array(Int, len)
+#    state = start(s)
+#    i = 0
+#    while !done(s, state)
+#        i += 1
+#        ref[i] = state
+#        ch, state = next(s, state)
+#    end
+#    return ref
+#end
+

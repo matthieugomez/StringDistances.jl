@@ -4,14 +4,14 @@
 ##
 ##############################################################################
 
-type QGramIterator{S <: AbstractString, T <: Integer}
-	s::S # string
+immutable QGramIterator{S, T <: Integer}
+	s::S # grapheorstring
 	l::Int # length of string
 	q::T # length of q-grams
 end
+
 function Base.start(qgram::QGramIterator)
-	len = length(qgram.s)
-	(1, len < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
+	(1, qgram.l < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
 end
 function Base.next(qgram::QGramIterator, state)
 	istart, iend = state
@@ -23,7 +23,8 @@ function Base.done(qgram::QGramIterator, state)
 	istart, idend = state
 	done(qgram.s, idend)
 end
-Base.eltype(qgram::QGramIterator) = SubString{typeof(qgram.s)}
+Base.eltype{S <: AbstractString, T}(qgram::QGramIterator{S, T}) = SubString{S}
+Base.eltype{S, T}(qgram::QGramIterator{GraphemeIterator2{S}, T}) = SubString{S}
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 function Base.collect(qgram::QGramIterator)
 	x = Array(eltype(qgram), length(qgram))
@@ -80,7 +81,7 @@ end
 ##############################################################################
 abstract AbstractQGram <: SemiMetric
 
-function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::AbstractQGram, s1::GraphemeOrString, s2::GraphemeOrString, len1::Integer, len2::Integer)
 	sort1 = sort(QGramIterator(s1, len1, dist.q))
 	sort2 = sort(QGramIterator(s2, len2, dist.q))
 	evaluate(dist, CountInterator(sort1, sort2))
