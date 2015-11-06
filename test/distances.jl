@@ -9,10 +9,8 @@ using StringDistances, Base.Test
 @test evaluate(Levenshtein(), "kitten", "sitting") == 3
 @test evaluate(Levenshtein(), "saturday", "sunday") == 3
 
-
 @test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
 @test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
-
 
 @test evaluate(DamerauLevenshtein(), "", "") == 0
 @test evaluate(DamerauLevenshtein(), "abc", "") == 3
@@ -23,7 +21,6 @@ using StringDistances, Base.Test
 @test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
 @test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
 
-
 @test evaluate(Hamming(), "", "") == 0
 @test evaluate(Hamming(), "", "abc") == 3
 @test evaluate(Hamming(), "abc", "abc") == 0
@@ -32,7 +29,6 @@ using StringDistances, Base.Test
 @test evaluate(Hamming(), "abc", "abcd") == 1
 @test evaluate(Hamming(), "testing", "this is a test") == 13
 @test evaluate(Hamming(), "saturday", "sunday") == 7
-
 
 @test evaluate(QGram(1), "", "abc") == 3
 @test evaluate(QGram(1), "abc", "cba") == 0
@@ -47,8 +43,6 @@ using StringDistances, Base.Test
 @test_approx_eq_eps evaluate(SorensenDice(2), "night", "nacht") 0.75 1e-4
 @test_approx_eq_eps evaluate(Overlap(1), "night", "nacht") 0.4 1e-4
 @test_approx_eq_eps evaluate(Overlap(1), "context", "contact") .2 1e-4
-
-
 
 Set([(1,1,3) (4,5,1) (6,6,1)])
 @test matching_blocks("dwayne", "duane") ==

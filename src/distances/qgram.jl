@@ -24,7 +24,7 @@ function Base.next(qgram::QGramIterator, state)
 	istart, iend = state
 	element = SubString(qgram.s, istart, iend)
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
-	return element, nextstate
+	element, nextstate
 end
 function Base.done(qgram::QGramIterator, state)
 	istart, idend = state
@@ -39,24 +39,24 @@ function Base.collect(qgram::QGramIterator)
 		i += 1
 		@inbounds x[i] = q
 	end
-	return x
+	x
 end
 Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 
 ##############################################################################
 ##
-## Define a type that iterates through a pair of sorted vector
-## For each element in either v1 or v2, output number of times it appears in v1 and the number of times it appears in v2
+## For each element in union{v1, v2}, this iterator output numbers of times it appears in v1 and the number of times it appears in v2
+## v1 and v2 must be sorted vectors
 ##
 ##############################################################################
 
-type PairIterator{T1 <: AbstractVector, T2 <: AbstractVector}
+type CountInterator{T1 <: AbstractVector, T2 <: AbstractVector}
 	v1::T1
 	v2::T2
 end
-Base.start(s::PairIterator) = (1, 1)
+Base.start(s::CountInterator) = (1, 1)
 
-function Base.next(s::PairIterator, state)
+function Base.next(s::CountInterator, state)
 	state1, state2 = state
 	iter1 = done(s.v2, state2)
 	iter2 = done(s.v1, state1)
@@ -72,28 +72,24 @@ function Base.next(s::PairIterator, state)
 	end
 	nextstate1 = iter1 ? searchsortedlast(s.v1, x1, state1, length(s.v1), Base.Forward) + 1 : state1
 	nextstate2 = iter2 ? searchsortedlast(s.v2, x2, state2, length(s.v2), Base.Forward) + 1 : state2
-	return ((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
+	((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
 end
 
-function Base.done(s::PairIterator, state) 
+function Base.done(s::CountInterator, state) 
 	state1, state2 = state
 	done(s.v2, state2) && done(s.v1, state1)
 end
 
-function PairIterator(s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer, q::Integer)
-	sort1 = sort(QGramIterator(s1, len1, q))
-	sort2 = sort(QGramIterator(s2, len2, q))
-	PairIterator(sort1, sort2)
-end
-
 ##############################################################################
 ##
-## Evaluate Qgram distance on strings calls evaluate on space of qgrams
+## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-	evaluate(dist, PairIterator(s1, s2, len1, len2, dist.q))
+	sort1 = sort(QGramIterator(s1, len1, dist.q))
+	sort2 = sort(QGramIterator(s2, len2, dist.q))
+	evaluate(dist, CountInterator(sort1, sort2))
 end
 
 ##############################################################################
@@ -110,12 +106,12 @@ immutable QGram{T <: Integer} <: AbstractQGram
 end
 QGram() = QGram(2)
 
-function evaluate(dist::QGram, setiterator)
+function evaluate(dist::QGram, countiterator)
 	n = 0
-	for (n1, n2) in setiterator
+	for (n1, n2) in countiterator
 		n += abs(n1 - n2)
 	end
-	return n
+	n
 end
 
 ##############################################################################
@@ -130,17 +126,15 @@ immutable Cosine{T <: Integer} <: AbstractQGram
 end
 Cosine() = Cosine(2)
 
-function evaluate(dist::Cosine, setiterator)
+function evaluate(dist::Cosine, countiterator)
 	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in setiterator
+	for (n1, n2) in countiterator
 		norm1 += n1^2
 		norm2 += n2^2
 		prodnorm += n1 * n2
 	end
-	return 1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
+	1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
 end
-
-
 
 ##############################################################################
 ##
@@ -156,14 +150,14 @@ immutable Jaccard{T <: Integer} <: AbstractQGram
 end
 Jaccard() = Jaccard(2)
 
-function evaluate(dist::Jaccard, setiterator)
+function evaluate(dist::Jaccard, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in setiterator
+	for (n1, n2) in countiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
 	end
-	return 1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
+	1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
 
 ##############################################################################
@@ -178,14 +172,14 @@ immutable SorensenDice{T <: Integer} <: AbstractQGram
 end
 SorensenDice() = SorensenDice(2)
 
-function evaluate(dist::SorensenDice, setiterator)
+function evaluate(dist::SorensenDice, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in setiterator
+	for (n1, n2) in countiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
 	end
-	return 1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
+	1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
 end
 
 ##############################################################################
@@ -200,13 +194,13 @@ immutable Overlap{T <: Integer} <: AbstractQGram
 end
 Overlap() = Overlap(2)
 
-function evaluate(dist::Overlap, setiterator)
+function evaluate(dist::Overlap, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-		for (n1, n2) in setiterator
+	for (n1, n2) in countiterator
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
 	end
-	return 1.0 - nintersect / min(ndistinct1, ndistinct2)
+	1.0 - nintersect / min(ndistinct1, ndistinct2)
 end
 
