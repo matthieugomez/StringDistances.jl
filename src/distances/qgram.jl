@@ -1,12 +1,5 @@
 ##############################################################################
 ##
-## Define QGram Distance type
-##
-##############################################################################
-abstract AbstractQGram <: SemiMetric
-
-##############################################################################
-##
 ## Define a type that iterates through q-grams of a string
 ##
 ##############################################################################
@@ -85,6 +78,7 @@ end
 ## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
+abstract AbstractQGram <: SemiMetric
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
 	sort1 = sort(QGramIterator(s1, len1, dist.q))

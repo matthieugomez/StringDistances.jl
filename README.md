@@ -28,7 +28,6 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 ## Syntax
 #### evaluate
 The function `evaluate` returns the litteral *distance* between two strings (a value of 0 being identical). While some distances are bounded by 1, other distances like `Hamming`, `Levenshtein`, `Damerau-Levenshtein`,  `Jaccard` can be higher than 1.
-
 ```julia
 using StringDistances
 evaluate(Hamming(), "martha", "marhta")
@@ -38,7 +37,7 @@ evaluate(QGram(2), "martha", "marhta")
 ```
 
 #### compare
-The higher level function `compare` directly computes *a similarity score* between 0 and 1, based on the inverse distance between two strings. A value of 0 being completely different and a value of 1 being completely similar.
+The higher level function `compare` returns *a similarity score* between two strings, based on the inverse of the distance between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
 ```julia
 using StringDistances
 compare(Hamming(), "martha", "marhta")
@@ -110,7 +109,7 @@ The package defines a number of ways to modify string metrics:
 
 ## Tips
 
-- Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words with fluctuating orderings.
+- Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words and fluctuating orderings.
 - Most distances perform poorly when comparing company or individual names, where each string is composed of multiple words.
 
 	- While word ordering is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
@@ -123,7 +122,8 @@ The package defines a number of ways to modify string metrics:
 		compare(Cosine(3), "mariners vs angels", "angels vs mariners")
 		#> 0.8125
 		```
-	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names first to diminish their importance (ie "bk" "co"). Another solution is to use something like the `Partial` or `TokenSet` modifiers.
+	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bk", "co"). Another solution is to use the `Overlap` distance, which compares common qgrams to the length of the shorter strings. Another solution is to use the `Partial` modifier or `TokenSet` modifiers. 
+
 - Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
 
 

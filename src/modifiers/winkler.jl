@@ -4,7 +4,7 @@
 ##
 ##############################################################################
 
-type Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
+immutable Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
     dist::T1
     scaling_factor::T2      # scaling factor. Default to 0.1
     boosting_limit::T3      # boost threshold. Default to 0.7

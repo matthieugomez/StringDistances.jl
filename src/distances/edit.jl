@@ -43,7 +43,6 @@ end
 
 type Levenshtein <: SemiMetric end
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-    len2 == 0 && return 0
 
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
@@ -92,7 +91,6 @@ end
 type DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-    len2 == 0 && return 0
 
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
@@ -161,6 +159,7 @@ end
 type Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
+    # if len2 == 0, m = 0 so should be 1.0 according to wikipedia. Nope.
     len2 == 0 && return 0.0
 
     maxdist = max(0, div(len2, 2) - 1)
