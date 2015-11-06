@@ -112,7 +112,7 @@ The package defines a number of ways to modify string metrics:
 - Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words and fluctuating orderings.
 - Most distances perform poorly when comparing company or individual names, where each string is composed of multiple words.
 
-	- While word ordering is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, use either a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
+	- While word order is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, either use a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
 
 		```julia
 		compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
@@ -122,7 +122,7 @@ The package defines a number of ways to modify string metrics:
 		compare(Cosine(3), "mariners vs angels", "angels vs mariners")
 		#> 0.8125
 		```
-	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bk", "co"). Another solution is to use the `Overlap` distance, which compares common qgrams to the length of the shorter strings. Another solution is to use the `Partial` modifier or `TokenSet` modifiers. 
+	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bank" -> "bk", "company" -> "co"). Another solution is to use the `Overlap` distance, which compares common qgrams to the length of the shorter strings. Another solution is to use the `Partial` or `TokenSet` modifiers. 
 
 - Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
 
