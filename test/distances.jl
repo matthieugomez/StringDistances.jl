@@ -150,3 +150,6 @@ for x in solutions
 		@test_approx_eq_eps evaluate(t, strings[i]...) solution[i] 1e-4
 	end
 end
+
+@test evaluate(Hamming(), "b\u0300", "a") == 2
+@test evaluate(Hamming(), graphemes("b\u0300"), graphemes("a")) == 1

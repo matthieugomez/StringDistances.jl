@@ -68,7 +68,7 @@ function Base.chr2ind(s::GraphemeIterator, i::Integer)
     end
 end
 Base.endof(g::GraphemeIterator) = endof(g.s)
-Base.SubString(x::GraphemeIterator, i, j) = SubString(x.s, i, j)
+Base.SubString(x::GraphemeIterator, i, j) = graphemes(SubString(x.s, i, j))
 
 
 typealias GraphemeOrString Union{GraphemeIterator, AbstractString}
