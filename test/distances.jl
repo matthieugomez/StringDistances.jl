@@ -125,22 +125,22 @@ stringdist(strings[1,], strings[2,], method = "qgram", q = 1)
 
 # grapheme
 strings = [
-(graphemes2("martha"), graphemes2("marhta")),
-(graphemes2("dwayne"), graphemes2("duane") ),
-(graphemes2("dixon"), graphemes2("dicksonx")),
-(graphemes2("william"), graphemes2("williams")),
-(graphemes2(""), graphemes2("foo")),
-(graphemes2("a"), graphemes2("a")),
-(graphemes2("abc"), graphemes2("xyz")),
-(graphemes2("abc"), graphemes2("ccc")),
-(graphemes2("kitten"), graphemes2("sitting")),
-(graphemes2("saturday"), graphemes2("sunday")),
-(graphemes2("hi, my name is"), graphemes2("my name is")),
-(graphemes2("alborgów"), graphemes2("amoniak")),
-(graphemes2("cape sand recycling "), graphemes2("edith ann graham")),
-(graphemes2( "jellyifhs"), graphemes2("jellyfish")),
-(graphemes2("ifhs"), graphemes2("fish")),
-(graphemes2("leia"), graphemes2("leela")),
+(graphemes("martha"), graphemes("marhta")),
+(graphemes("dwayne"), graphemes("duane") ),
+(graphemes("dixon"), graphemes("dicksonx")),
+(graphemes("william"), graphemes("williams")),
+(graphemes(""), graphemes("foo")),
+(graphemes("a"), graphemes("a")),
+(graphemes("abc"), graphemes("xyz")),
+(graphemes("abc"), graphemes("ccc")),
+(graphemes("kitten"), graphemes("sitting")),
+(graphemes("saturday"), graphemes("sunday")),
+(graphemes("hi, my name is"), graphemes("my name is")),
+(graphemes("alborgów"), graphemes("amoniak")),
+(graphemes("cape sand recycling "), graphemes("edith ann graham")),
+(graphemes( "jellyifhs"), graphemes("jellyfish")),
+(graphemes("ifhs"), graphemes("fish")),
+(graphemes("leia"), graphemes("leela")),
 ]
 
 

@@ -7,6 +7,7 @@ module StringDistances
 ## Export
 ##
 ##############################################################################
+import Base.UTF8proc.GraphemeIterator
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 import Iterators: chain
 export
@@ -33,40 +34,17 @@ graphemes2
 
 ##############################################################################
 ##
-## Iterator
+## Extend methods of GraphemeIterator
 ##
 ##############################################################################
-
-isgraphemebreak(c1::Char, c2::Char) =
-    ccall(:utf8proc_grapheme_break, Bool, (UInt32, UInt32), c1, c2)
-
-immutable GraphemeIterator2{S<:AbstractString}
-    s::S # original string (for generation of SubStrings)
-end
-graphemes2(s::AbstractString) = GraphemeIterator2{typeof(s)}(s)
-
-Base.eltype{S}(::Type{GraphemeIterator2{S}}) = SubString{S}
-
-function Base.length(g::GraphemeIterator2)
-    c0 = Char(0x00ad) # soft hyphen (grapheme break always allowed after this)
-    n = 0
-    for c in g.s
-        n += isgraphemebreak(c0, c)
-        c0 = c
-    end
-    return n
-end
-
-Base.start(g::GraphemeIterator2) = start(g.s)
-Base.done(g::GraphemeIterator2, i) = done(g.s, i)
-
-function Base.next(g::GraphemeIterator2, i)
+# retwrite next
+function Base.next(g::GraphemeIterator, i)
     s = g.s
     j = i
     c0, k = next(s, i)
     while !done(s, k) # loop until next grapheme is s[i:j]
         c, ℓ = next(s, k)
-        isgraphemebreak(c0, c) && break
+        Base.UTF8proc.isgraphemebreak(c0, c) && break
         j = k
         k = ℓ
         c0 = c
@@ -74,21 +52,26 @@ function Base.next(g::GraphemeIterator2, i)
     return (SubString(s, i, j), k)
 end
 
-# functions not defined in base
-Base.nextind(g::GraphemeIterator2, state::Integer) = next(g, state)[2]
-function Base.chr2ind(g::GraphemeIterator2, idx::Integer)
-    state = start(g)
-    i = 0
-    while !done(g, state)
-        i += 1
-        i == idx && return state
-        ch, state = next(g, state)
+# add the following methods
+Base.nextind(g::GraphemeIterator, state::Integer) = next(g, state)[2]
+function Base.chr2ind(s::GraphemeIterator, i::Integer)
+    i < start(s) && throw(BoundsError(s.s, i))
+    j = 1
+    k = start(s)
+    while true
+        c, l = next(s,k)
+        if i == j
+            return k
+        end
+        j += 1
+        k = l
     end
 end
-Base.endof(g::GraphemeIterator2) = endof(g.s)
+Base.endof(g::GraphemeIterator) = endof(g.s)
+Base.SubString(x::GraphemeIterator, i, j) = SubString(x.s, i, j)
 
-typealias GraphemeOrString Union{GraphemeIterator2, AbstractString}
-Base.SubString(x::GraphemeIterator2, i, j) = SubString(x.s, i, j)
+
+typealias GraphemeOrString Union{GraphemeIterator, AbstractString}
 ##############################################################################
 ##
 ## include

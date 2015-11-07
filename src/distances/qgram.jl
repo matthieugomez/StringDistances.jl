@@ -24,7 +24,7 @@ function Base.done(qgram::QGramIterator, state)
 	done(qgram.s, idend)
 end
 Base.eltype{S <: AbstractString, T}(qgram::QGramIterator{S, T}) = SubString{S}
-Base.eltype{S, T}(qgram::QGramIterator{GraphemeIterator2{S}, T}) = SubString{S}
+Base.eltype{S, T}(qgram::QGramIterator{GraphemeIterator{S}, T}) = SubString{S}
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 function Base.collect(qgram::QGramIterator)
 	x = Array(eltype(qgram), length(qgram))
