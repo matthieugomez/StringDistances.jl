@@ -29,14 +29,14 @@ Winkler,
 Partial,
 TokenSort,
 TokenSet,
-TokenMax,
-graphemes2
-
+TokenMax
 ##############################################################################
 ##
 ## Extend methods of GraphemeIterator
 ##
 ##############################################################################
+typealias GraphemeOrString Union{GraphemeIterator, AbstractString}
+
 # retwrite next
 function Base.next(g::GraphemeIterator, i)
     s = g.s
@@ -70,14 +70,11 @@ end
 Base.endof(g::GraphemeIterator) = endof(g.s)
 Base.SubString(x::GraphemeIterator, i, j) = graphemes(SubString(x.s, i, j))
 
-
-typealias GraphemeOrString Union{GraphemeIterator, AbstractString}
 ##############################################################################
 ##
 ## include
 ##
 ##############################################################################
-
 include("distances/edit.jl")
 include("distances/qgram.jl")
 include("distances/RatcliffObershelp.jl")
@@ -90,7 +87,6 @@ include("modifiers/fuzzywuzzy.jl")
 ## Higher level functions
 ##
 ##############################################################################
-
 
 function evaluate(dist::PreMetric, s1::GraphemeOrString, s2::GraphemeOrString)
     len1, len2 = length(s1), length(s2)
