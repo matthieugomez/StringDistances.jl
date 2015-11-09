@@ -37,7 +37,7 @@ evaluate(QGram(2), "martha", "marhta")
 ```
 
 #### compare
-The higher level function `compare` returns *a similarity score* between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+The higher level function `compare` returns *a similarity score* between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar. The output of compare is generally 1 - normalized distance, with some care for `NaN` values.
 ```julia
 using StringDistances
 compare(Hamming(), "martha", "marhta")
