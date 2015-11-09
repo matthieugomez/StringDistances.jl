@@ -37,7 +37,7 @@ evaluate(QGram(2), "martha", "marhta")
 ```
 
 #### compare
-The higher level function `compare` returns *a similarity score* between two strings, based on the inverse of the distance between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+The higher level function `compare` returns *a similarity score* between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
 ```julia
 using StringDistances
 compare(Hamming(), "martha", "marhta")
@@ -49,7 +49,7 @@ compare(QGram(2), "martha", "marhta")
 
 ## Modifiers
 
-The package defines a number of ways to modify string metrics:
+The package defines a number of ways to modify similarity scores:
 
 - [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes
 
@@ -59,7 +59,7 @@ The package defines a number of ways to modify string metrics:
 	compare(Winkler(Jaro()), "martha", "marhta")
 	#> 0.9611111111111111
 	```
-	The Winkler adjustment was originally defined for the Jaro distance but this package defines it for any string distance.
+	The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
 
 	```julia
 	compare(QGram(2), "william", "williams")
@@ -68,7 +68,7 @@ The package defines a number of ways to modify string metrics:
 	#> 0.9538461538461539
 	```
 
-- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` distance. This package replicates them and extends them to any string distance:
+- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` similarity score. This package replicates them and extends them to any string distance:
 
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the maximal similarity score between the shorter string and substrings of the longer string.
 
@@ -118,7 +118,7 @@ The package defines a number of ways to modify string metrics:
 ## Tips
 
 - Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words and fluctuating orderings.
-- Most distances perform poorly when comparing company or individual names, where each string is composed of multiple words.
+- Most distances perform poorly when comparing company or individual names, where each string is composed of a few words.
 
 	- While word order is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, either use a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
 
@@ -130,14 +130,11 @@ The package defines a number of ways to modify string metrics:
 		compare(Cosine(3), "mariners vs angels", "angels vs mariners")
 		#> 0.8125
 		```
-	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bank" -> "bk", "company" -> "co"). Another solution is to use the `Overlap` distance, which compares common qgrams to the length of the shorter strings. Another solution is to use the `Partial` or `TokenSet` modifiers. 
+	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bank" -> "bk", "company" -> "co"). Another solution is to use the `Overlap` distance, which compares the number of common qgrams with the length of the shorter strings. Another solution is to use the `Partial` or `TokenSet` modifiers. 
 
-	`TokenMax(RatcliffObershelp())`, corresponding to the `WRatio` function in the Python library `fuzzywuzzy`, combines these two behaviors and may work best in this situation.
+	`TokenMax(RatcliffObershelp())`, corresponding to the `WRatio` function in the Python library `fuzzywuzzy`, solves these two issues and may work best in this situation.
 
 - Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
-
-
-
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
