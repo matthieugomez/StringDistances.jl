@@ -44,10 +44,7 @@ using StringDistances, Base.Test
 @test_approx_eq_eps evaluate(Overlap(1), "night", "nacht") 0.4 1e-4
 @test_approx_eq_eps evaluate(Overlap(1), "context", "contact") .2 1e-4
 
-@test matching_blocks("dwayne", "duane") ==
-Set([(5,4,2) (1,1,1) (3,3,1)])
-@test matching_blocks("dixon", "dicksonx") ==
-Set([(1,1,2) (4,6,2)])
+
 @test_approx_eq evaluate(RatcliffObershelp(), "dixon", "dicksonx") 1 - 0.6153846153846154
 @test_approx_eq evaluate(RatcliffObershelp(), "alexandre", "aleksander") 1 - 0.7368421052631579
 @test_approx_eq evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") 1 - 0.6666666666666
