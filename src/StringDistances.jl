@@ -37,21 +37,6 @@ TokenMax
 ##############################################################################
 typealias GraphemeOrString Union{GraphemeIterator, AbstractString}
 
-# retwrite next
-function Base.next(g::GraphemeIterator, i)
-    s = g.s
-    j = i
-    c0, k = next(s, i)
-    while !done(s, k) # loop until next grapheme is s[i:j]
-        c, ℓ = next(s, k)
-        Base.UTF8proc.isgraphemebreak(c0, c) && break
-        j = k
-        k = ℓ
-        c0 = c
-    end
-    return (SubString(s, i, j), k)
-end
-
 # add the following methods
 Base.nextind(g::GraphemeIterator, state::Integer) = next(g, state)[2]
 function Base.chr2ind(s::GraphemeIterator, i::Integer)
