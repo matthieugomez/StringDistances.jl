@@ -36,8 +36,14 @@ graphemeiterator
 ##
 ## Define GraphemeIterator as AbstractString
 ##
-## Argument for non inheritance: AbstractString is generally something that gives char as individual. 
-## Argument for inheritance: prevind, nextind, chr2ind are defined once start, next, done, isvalid, endof are defined. Also this allows to define functions with AbstractString signature & having SubString work.
+## Argument for AbstractString inheritance: 
+## (i) prevind, nextind, chr2ind, are defined once start, next, done, isvalid, endof are defined
+## (ii) SubString(x::GraphemeIterator, i, j) works
+## (ii) I can define functions with AbstractString signature in this package (but I could also just define a union type)
+## Argument for non inheritance:
+## (i) AbstractString gives char as individual. Important for print_escaped & search.
+## (ii) How to make split return GraphemeIterator rather than strings? How to join multiple GraphemeIterator w/o rewriting join?
+##
 ##############################################################################
 # from Base. I redefine it because I want AbstractStringinheritance
 immutable GraphemeIterator{S<:AbstractString} <: AbstractString
