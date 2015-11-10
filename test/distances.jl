@@ -122,22 +122,22 @@ stringdist(strings[1,], strings[2,], method = "qgram", q = 1)
 
 # grapheme
 strings = [
-(graphemes("martha"), graphemes("marhta")),
-(graphemes("dwayne"), graphemes("duane") ),
-(graphemes("dixon"), graphemes("dicksonx")),
-(graphemes("william"), graphemes("williams")),
-(graphemes(""), graphemes("foo")),
-(graphemes("a"), graphemes("a")),
-(graphemes("abc"), graphemes("xyz")),
-(graphemes("abc"), graphemes("ccc")),
-(graphemes("kitten"), graphemes("sitting")),
-(graphemes("saturday"), graphemes("sunday")),
-(graphemes("hi, my name is"), graphemes("my name is")),
-(graphemes("alborgów"), graphemes("amoniak")),
-(graphemes("cape sand recycling "), graphemes("edith ann graham")),
-(graphemes( "jellyifhs"), graphemes("jellyfish")),
-(graphemes("ifhs"), graphemes("fish")),
-(graphemes("leia"), graphemes("leela")),
+(graphemeiterator("martha"), graphemeiterator("marhta")),
+(graphemeiterator("dwayne"), graphemeiterator("duane") ),
+(graphemeiterator("dixon"), graphemeiterator("dicksonx")),
+(graphemeiterator("william"), graphemeiterator("williams")),
+(graphemeiterator(""), graphemeiterator("foo")),
+(graphemeiterator("a"), graphemeiterator("a")),
+(graphemeiterator("abc"), graphemeiterator("xyz")),
+(graphemeiterator("abc"), graphemeiterator("ccc")),
+(graphemeiterator("kitten"), graphemeiterator("sitting")),
+(graphemeiterator("saturday"), graphemeiterator("sunday")),
+(graphemeiterator("hi, my name is"), graphemeiterator("my name is")),
+(graphemeiterator("alborgów"), graphemeiterator("amoniak")),
+(graphemeiterator("cape sand recycling "), graphemeiterator("edith ann graham")),
+(graphemeiterator( "jellyifhs"), graphemeiterator("jellyfish")),
+(graphemeiterator("ifhs"), graphemeiterator("fish")),
+(graphemeiterator("leia"), graphemeiterator("leela")),
 ]
 
 
@@ -149,4 +149,4 @@ for x in solutions
 end
 
 @test evaluate(Hamming(), "b\u0300", "a") == 2
-@test evaluate(Hamming(), graphemes("b\u0300"), graphemes("a")) == 1
+@test evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) == 1

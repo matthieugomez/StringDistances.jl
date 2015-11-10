@@ -9,7 +9,7 @@ type Partial{T <: PreMetric} <: PreMetric
 end
 
 # general
-function compare(dist::Partial, s1::StringIterator, s2::StringIterator, len1::Integer, len2::Integer)
+function compare(dist::Partial, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len1 == len2 && return compare(dist.dist, s1, s2, len1, len2)
     len1 == 0 && return compare(dist.dist, "", "", 0, 0)
     iter = QGramIterator(s2, len2, len1)
@@ -26,7 +26,7 @@ end
 
 # Specialization for RatcliffObershelp distance
 # Code follows https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/fuzz.py
-function compare(dist::Partial{RatcliffObershelp}, s1::StringIterator, s2::StringIterator, len1::Integer, len2::Integer)
+function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     len1 == len2 && return compare(dist.dist, s1, s2, len1, len2)
     out = 0.0
     result = matching_blocks(s1, s2)
@@ -59,14 +59,15 @@ type TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenSort, s1::StringIterator, s2::StringIterator, 
+function compare(dist::TokenSort, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
-    if search(s1.s, Base._default_delims) > 0
-        s1 = iteratortype(s1)(join(sort!(split(s1.s)), " "))
+    if search(s1, Base._default_delims) > 0
+        s1 = iterator(typeof(s1), join(sort!(split(s1)), " "))
     end
-    if search(s2.s, Base._default_delims) > 0
-        s2 = iteratortype(s2)(join(sort!(split(s2.s)), " "))
+    if search(s2, Base._default_delims) > 0
+        s2 = iterator(typeof(s2), join(sort!(split(s2)), " "))
     end
+    @show s1, s2
     compare(dist.dist, s1, s2)
 end
 
@@ -80,12 +81,12 @@ type TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenSet, s1::StringIterator, s2::StringIterator, 
+function compare(dist::TokenSet, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
-    v0, v1, v2 = _separate!(split(s1.s), split(s2.s))
-    s0 = iteratortype(s1)(join(v0, " "))
-    s1 = iteratortype(s1)(join(chain(v0, v1), " "))
-    s2 = iteratortype(s1)(join(chain(v0, v2), " "))
+    v0, v1, v2 = _separate!(split(s1), split(s2))
+    s0 = iterator(typeof(s1), join(v0, " "))
+    s1 = iterator(typeof(s1), join(chain(v0, v1), " "))
+    s2 = iterator(typeof(s2), join(chain(v0, v2), " "))
     if isempty(s0)
         # otherwise compare(dist, "", "a")== 1.0 
         compare(dist.dist, s1, s2)
@@ -128,7 +129,7 @@ type TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenMax, s1::StringIterator, s2::StringIterator, 
+function compare(dist::TokenMax, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
     base = compare(dist.dist, s1, s2, len1, len2)
     unbase_scale = 0.95

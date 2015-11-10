@@ -7,7 +7,8 @@ module StringDistances
 ## Export
 ##
 ##############################################################################
-import Base.UTF8proc.GraphemeIterator
+import Base: eltype, length, start, done, next, ==, hash, isless, convert, show, endof
+import Base.UTF8proc: isgraphemebreak
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 import Iterators: chain
 export
@@ -29,57 +30,78 @@ Winkler,
 Partial,
 TokenSort,
 TokenSet,
-TokenMax
+TokenMax,
+graphemeiterator
 ##############################################################################
 ##
-## Define 2 iterators. One on character one on Grapheme.
+## Define GraphemeIterator as AbstractString
 ##
+## Argument for non inheritance: AbstractString is generally something that gives char as individual. 
+## Argument for inheritance: prevind, nextind, chr2ind are defined once start, next, done, isvalid, endof are defined. Also this allows to define functions with AbstractString signature & having SubString work.
 ##############################################################################
-
-immutable CharacterIterator{T <: AbstractString}
-    s::T
+# from Base. I redefine it because I want AbstractStringinheritance
+immutable GraphemeIterator{S<:AbstractString} <: AbstractString
+    s::S # original string (for generation of SubStrings)
 end
-Base.start(x::CharacterIterator) = start(x.s)
-Base.next(x::CharacterIterator, i::Integer) = next(x.s, i)
-Base.done(x::CharacterIterator, i::Integer) = done(x.s, i)
-Base.length(x::CharacterIterator) = length(x.s)
+graphemeiterator(s::AbstractString) = GraphemeIterator{typeof(s)}(s)
+eltype{S}(::Type{GraphemeIterator{S}}) = SubString{S}
+function length(g::GraphemeIterator)
+    c0 = Char(0x00ad) # soft hyphen (grapheme break always allowed after this)
+    n = 0
+    for c in g.s
+        n += isgraphemebreak(c0, c)
+        c0 = c
+    end
+    return n
+end
+start(g::GraphemeIterator) = start(g.s)
+done(g::GraphemeIterator, i::Int) = done(g.s, i)
+function next(g::GraphemeIterator, i::Int)
+    s = g.s
+    j = i
+    c0, k = next(s, i)
+    while !done(s, k) # loop until next grapheme is s[i:j]
+        c, ℓ = next(s, k)
+        isgraphemebreak(c0, c) && break
+        j = k
+        k = ℓ
+        c0 = c
+    end
+    return (SubString(s, i, j), k)
+end
+==(g1::GraphemeIterator, g2::GraphemeIterator) = g1.s == g2.s
+hash(g::GraphemeIterator, h::UInt) = hash(g.s, h)
+isless(g1::GraphemeIterator, g2::GraphemeIterator) = isless(g1.s, g2.s)
+show{S}(io::IO, g::GraphemeIterator{S}) = print(io, "length-$(length(g)) GraphemeIterator{$S} for \"$(g.s)\"")
 
-Base.nextind(x::CharacterIterator, i::Integer) = nextind(x.s, i)
-Base.chr2ind(x::CharacterIterator, i::Integer) = chr2ind(x.s, i::Integer)
-iteratortype{T <: CharacterIterator}(::Type{T}) = CharacterIterator
-Base.convert{T}(::Type{CharacterIterator{T}}, x::T) = CharacterIterator(x)
 
-# add the following methods
-Base.nextind(g::GraphemeIterator, state::Integer) = next(g, state)[2]
-function Base.chr2ind(s::GraphemeIterator, i::Integer)
-    i < start(s) && throw(BoundsError(s.s, i))
-    j = 1
-    k = start(s)
-    while true
-        c, l = next(s,k)
-        if i == j
-            return k
-        end
-        j += 1
-        k = l
+# added
+#used in prevind nextind
+function Base.isvalid(s::GraphemeIterator, i::Integer)
+    if !isvalid(s.s, i) 
+        return false
+    else
+        i0 = prevind(s.s, i)
+        return i0 < start(s.s) || isgraphemebreak(s.s[i0], s.s[i])
     end
 end
-iteratortype{T <: GraphemeIterator}(::Type{T}) = GraphemeIterator
-Base.convert{T}(::Type{GraphemeIterator{T}}, x::T) = GraphemeIterator(x)
+function endof(s::GraphemeIterator)
+    c0 = Char(0x00ad)
+    i = endof(s.s)
+    i0 = start(s.s)
+    while i >= i0 && !isgraphemebreak(s.s[i], c0)
+        i = prevind(s.s, i)
+        c0 = s.s[i]
+    end
+    i
+end
 
-
-typealias StringIterator{T} Union{GraphemeIterator{T}, CharacterIterator{T}}
-Base.endof(g::StringIterator) = endof(g.s)
-Base.SubString(x::StringIterator, i, j) = iteratortype(x)(SubString(x.s, i, j))
-Base.string(x::StringIterator) = x.s
-Base.isempty(x::StringIterator) = isempty(x.s)
-Base.eltype{T}(x::StringIterator{T}) = T
-Base.isless(x::StringIterator, y::StringIterator) = isless(x.s, y.s)
-Base.search(x::StringIterator, args...) = search(x.s, args...)
-Base.searchsortedfirst(x::StringIterator, args...) = searchsortedfirst(x.s, args...)
-Base.searchsortedlast(x::StringIterator, args...) = searchsortedlast(x.s, args...)
-Base.searchsorted(x::StringIterator, args...) = searchsorted(x.s, args...)
-iteratortype(x::StringIterator) = iteratortype(typeof(x))
+# 1. issues with stuff like search  or print_escaped where character iteration vs string iteration matters. I need to pass the original string for now
+Base.search(x::GraphemeIterator, s::Vector{Char}) = search(x.s, s)
+# 2. issue with keeping iterator property for stuff like split, join. for now, I decide to loose the enumerator property but add it back after join. But SubString for instance does not loose the property
+Base.split(x::GraphemeIterator, args...) = split(x.s, args...)
+iterator{T <: GraphemeIterator}(::Type{T}, x::AbstractString) = graphemeiterator(x)
+iterator{T <: AbstractString}(::Type{T}, x::AbstractString) = x
 
 ##############################################################################
 ##
@@ -101,14 +123,6 @@ include("modifiers/fuzzywuzzy.jl")
 for x in (:evaluate, :compare)
     @eval begin
         function $x(dist::PreMetric, s1::AbstractString, s2::AbstractString)
-            $x(dist, CharacterIterator(s1), CharacterIterator(s2))
-        end
-
-        function $x(dist::PreMetric, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
-            $x(dist, CharacterIterator(s1), CharacterIterator(s2), len1, len2)
-        end
-
-        function $x(dist::PreMetric, s1::StringIterator, s2::StringIterator)
             len1, len2 = length(s1), length(s2)
             if len1 > len2
                 return $x(dist, s2, s1, len2, len1)
@@ -125,13 +139,13 @@ end
 ##
 ##############################################################################
 
-function compare(dist::PreMetric, s1::StringIterator, s2::StringIterator, 
+function compare(dist::PreMetric, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
     1.0 - evaluate(dist, s1, s2, len1, len2)
 end
 
 function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein}, 
-    s1::StringIterator, s2::StringIterator,
+    s1::AbstractString, s2::AbstractString,
     len1::Integer, len2::Integer)
     distance = evaluate(dist, s1, s2, len1, len2)
     len2 == 0 ? 1.0 : 1.0 - distance / len2
@@ -140,14 +154,14 @@ end
 # compare always return a value between 0 and 1. 
 # When string length < q for qgram distance, returns s1 == s2
 function compare(dist::AbstractQGram, 
-    s1::StringIterator, s2::StringIterator, 
+    s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     evaluate(dist, s1, s2, len1, len2)
 end
 
 function compare(dist::QGram, 
-    s1::StringIterator, s2::StringIterator, 
+    s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     distance = evaluate(dist, s1, s2, len1, len2)

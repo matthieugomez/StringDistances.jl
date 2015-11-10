@@ -70,3 +70,13 @@ s = "HSINCHUANG"
 
 
 @test_approx_eq compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "") 0.0
+
+
+
+@test_approx_eq compare(TokenSort(RatcliffObershelp()), graphemeiterator("New York Mets vs Atlanta Braves"), graphemeiterator("Atlanta Braves vs New York Mets"))  1.0
+@test_approx_eq compare(TokenSet(RatcliffObershelp()),graphemeiterator("mariners vs angels"), graphemeiterator("los angeles angels of anaheim at seattle mariners")) 1.0 - 0.09090909090909094
+@test_approx_eq compare(TokenSort(RatcliffObershelp()), graphemeiterator("New York Mets vs Atlanta Braves"), graphemeiterator(""))  0.0
+@test_approx_eq compare(TokenSet(RatcliffObershelp()),graphemeiterator("mariners vs angels"), graphemeiterator("")) 0.0
+
+
+
