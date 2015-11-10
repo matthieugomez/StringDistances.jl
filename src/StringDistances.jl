@@ -82,7 +82,7 @@ show{S}(io::IO, g::GraphemeIterator{S}) = print(io, "length-$(length(g)) Graphem
 
 
 # added
-#used in prevind nextind
+#these 2 functions allow to define prevind nextind, chr2ind, prevind etc
 function Base.isvalid(s::GraphemeIterator, i::Integer)
     if !isvalid(s.s, i) 
         return false
