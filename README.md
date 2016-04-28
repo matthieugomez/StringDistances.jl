@@ -26,18 +26,9 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html)
 
 ## Syntax
-#### evaluate
-The function `evaluate` returns the litteral *distance* between two strings (a value of 0 being identical). While some distances are bounded by 1, other distances like `Hamming`, `Levenshtein`, `Damerau-Levenshtein`,  `Jaccard` can be higher than 1.
-```julia
-using StringDistances
-evaluate(Hamming(), "martha", "marhta")
-#> 2
-evaluate(QGram(2), "martha", "marhta")
-#> 6
-```
+The function `compare` returns  *a similarity score* between two strings, based on their distance. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
 
-#### compare
-The higher level function `compare` returns *a similarity score* between two strings. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar. The output of compare is generally 1 - normalized distance, with some care for `NaN` values.
+
 ```julia
 using StringDistances
 compare(Hamming(), "martha", "marhta")
@@ -47,7 +38,7 @@ compare(QGram(2), "martha", "marhta")
 ```
 ## Modifiers
 
-The package defines a number of ways to modify similarity scores:
+The package includes distance modifiers:
 
 - [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes
 
@@ -101,38 +92,6 @@ The package defines a number of ways to modify similarity scores:
 		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
 		#> 0.855
 		```
-
-
-
-- You can compose multiple modifiers:
-	```julia
-	compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners")
-	#> 0.7378917378917379
-	compare(TokenSet(Partial(RatcliffObershel())),"mariners vs angels", "los angeles angels at seattle mariners")
-	#> 1.0
-	```
-
-
-## Tips
-
-- Each distance is tailored to a specific problem. Edit distances works well with local spelling errors, the Ratcliff-Obsershelp distance works well with edited texts, the Jaro Winkler distance was invented for short strings such as person names, the QGrams distances works well with strings composed of multiple words and fluctuating orderings.
-- Most distances perform poorly when comparing company or individual names, where each string is composed of a few words.
-
-	- While word order is mostly irrelevant in this situation, edit distances heavily penalize different orderings. Instead, either use a distance robust to word order (like QGram distances), or compose a distance with `TokenSort`, which reorders the words alphabetically.
-
-		```julia
-		compare(RatcliffObershelp(), "mariners vs angels", "angels vs mariners")
-		#> 0.44444
-		compare(TokenSort(RatcliffObershelp()),"mariners vs angels", "angels vs mariners")
-		#> 1.0
-		compare(Cosine(3), "mariners vs angels", "angels vs mariners")
-		#> 0.8125
-		```
-	- General words (like "bank", "company") may appear in one string but no the other. One solution is to abbreviate these common names to diminish their importance (ie "bank" -> "bk", "company" -> "co"). Another solution is to use the `Overlap` distance, which compares the number of common qgrams with the length of the shorter strings. Another solution is to use the `Partial` or `TokenSet` modifiers. 
-
-	`TokenMax(RatcliffObershelp())`, corresponding to the `WRatio` function in the Python library `fuzzywuzzy`, solves these two issues and may work best in this situation.
-
-- Standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo

@@ -80,3 +80,5 @@ s = "HSINCHUANG"
 
 
 
+@test_approx_eq compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners") 0.7378917378917379
+@test_approx_eq compare(TokenSet(Partial(RatcliffObershelp())),"mariners vs angels", "los angeles angels at seattle mariners") 1.0
