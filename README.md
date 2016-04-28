@@ -36,6 +36,8 @@ compare(Hamming(), "martha", "marhta")
 compare(QGram(2), "martha", "marhta")
 #> 0.4
 ```
+
+To return the *litteral distance* between two strings, use `evaluate`
 ## Modifiers
 
 The package includes distance modifiers:
@@ -88,6 +90,7 @@ The package includes distance modifiers:
 
 
 	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths.
+
 		```julia
 		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
 		#> 0.855

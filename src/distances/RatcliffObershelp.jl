@@ -58,16 +58,3 @@ function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractStrin
     end
     1.0 - 2 * matched / (len1 + len2)
 end
-
-#function buildref(s::AbstractString, len)
-#    ref = Array(Int, len)
-#    state = start(s)
-#    i = 0
-#    while !done(s, state)
-#        i += 1
-#        ref[i] = state
-#        ch, state = next(s, state)
-#    end
-#    return ref
-#end
-
