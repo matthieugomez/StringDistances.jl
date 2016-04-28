@@ -41,7 +41,7 @@ graphemeiterator
 ## (ii) SubString(x::GraphemeIterator, i, j) works
 ## (ii) I can define functions with AbstractString signature in this package (but I could also just define a union type)
 ## Argument for non inheritance:
-## (i) AbstractString gives char as individual. Important for print_escaped & search.
+## (i) All existing types <: AbstractString gives char as individual, which is important for print_escaped & search.
 ## (ii) How to make split return GraphemeIterator rather than strings? How to join multiple GraphemeIterator w/o rewriting join?
 ##
 ##############################################################################

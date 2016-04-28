@@ -148,8 +148,8 @@ function compare(dist::TokenMax, s1::AbstractString, s2::AbstractString,
         ptsor = compare(TokenSort(dist.dist), s1, s2, len1, len2) 
         ptser = compare(TokenSet(dist.dist), s1, s2, len1, len2) 
         return max(base, 
-                tsor * unbase_scale, 
-                tser * unbase_scale)
+                ptsor * unbase_scale, 
+                ptser * unbase_scale)
     end
 end
 
