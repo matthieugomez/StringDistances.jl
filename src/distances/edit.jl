@@ -4,7 +4,7 @@
 ## Assumes length(s1) <= length(s2)
 ##############################################################################
 
-function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
+function common_prefix(s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, lim::Integer = -1)
     start1 = start(s1)
     start2 = start(s2)
     l = 0
@@ -24,7 +24,7 @@ end
 ##
 ##############################################################################
 
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString, len1::Integer, len2:: Integer)
+function evaluate(dist::Hamming, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2:: Integer)
     count = 0
     for (ch1, ch2) in zip(s1, s2)
         count += ch1 != ch2
@@ -42,7 +42,7 @@ end
 
 
 type Levenshtein <: SemiMetric end
-function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::Levenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
 
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
@@ -90,7 +90,7 @@ end
 
 type DamerauLevenshtein <: SemiMetric end
 
-function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function evaluate(dist::DamerauLevenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
 
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
@@ -158,7 +158,7 @@ end
 
 type Jaro <: SemiMetric end
 
-function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer) 
+function evaluate(dist::Jaro, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer) 
     # if len2 == 0, m = 0 so should be 1.0 according to wikipedia. Nope.
     len2 == 0 && return 0.0
 
@@ -199,4 +199,4 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString, len1::Inte
     return 1.0 - score
 end
 
-jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)
+jaro(s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator) = evaluate(Jaro(), s1, s2)

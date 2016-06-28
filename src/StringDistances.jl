@@ -32,54 +32,26 @@ TokenSort,
 TokenSet,
 TokenMax,
 graphemeiterator
-##############################################################################
-##
-## Define GraphemeIterator as AbstractString
-##
-## Argument for AbstractString inheritance: 
-## (i) prevind, nextind, chr2ind, are defined once start, next, done, isvalid, endof are defined
-## (ii) SubString(x::GraphemeIterator, i, j) works
-## (ii) I can define functions with AbstractString signature in this package (but I could also just define a union type)
-## Argument for non inheritance:
-## (i) All existing types <: AbstractString gives char as individual, which is important for print_escaped & search.
-## (ii) How to make split return GraphemeIterator rather than strings? How to join multiple GraphemeIterator w/o rewriting join?
-##
-##############################################################################
-# from Base. I redefine it because I want AbstractStringinheritance
-immutable GraphemeIterator{S<:AbstractString} <: AbstractString
-    s::S # original string (for generation of SubStrings)
-end
-graphemeiterator(s::AbstractString) = GraphemeIterator{typeof(s)}(s)
-eltype{S}(::Type{GraphemeIterator{S}}) = SubString{S}
-function length(g::GraphemeIterator)
-    c0 = Char(0x00ad) # soft hyphen (grapheme break always allowed after this)
-    n = 0
-    for c in g.s
-        n += isgraphemebreak(c0, c)
-        c0 = c
-    end
-    return n
-end
-start(g::GraphemeIterator) = start(g.s)
-done(g::GraphemeIterator, i::Int) = done(g.s, i)
-function next(g::GraphemeIterator, i::Int)
-    s = g.s
-    j = i
-    c0, k = next(s, i)
-    while !done(s, k) # loop until next grapheme is s[i:j]
-        c, ℓ = next(s, k)
-        isgraphemebreak(c0, c) && break
-        j = k
-        k = ℓ
-        c0 = c
-    end
-    return (SubString(s, i, j), k)
-end
-==(g1::GraphemeIterator, g2::GraphemeIterator) = g1.s == g2.s
-hash(g::GraphemeIterator, h::UInt) = hash(g.s, h)
-isless(g1::GraphemeIterator, g2::GraphemeIterator) = isless(g1.s, g2.s)
-show{S}(io::IO, g::GraphemeIterator{S}) = print(io, "length-$(length(g)) GraphemeIterator{$S} for \"$(g.s)\"")
 
+##############################################################################
+##
+## TypeAlias
+##
+##############################################################################
+
+typealias GraphemeIterator Base.UTF8proc.GraphemeIterator
+typealias AbstractStringorGraphemeIterator Union{AbstractString, Base.UTF8proc.GraphemeIterator}
+
+##############################################################################
+##
+## GraphemeIterator iterates on Grapheme
+##
+##############################################################################
+Base.prevind(x::GraphemeIterator, i::Integer) = prevind(x.s, i)
+Base.nextind(x::GraphemeIterator, i::Integer) = nextind(x.s, i)
+Base.chr2ind(x::GraphemeIterator, i::Integer) = chr2ind(x.s, i)
+Base.SubString(x::GraphemeIterator, i::Integer, j::Integer) = graphemeiterator(SubString(x.s, i::Integer, j::Integer))
+graphemeiterator(s::AbstractString) = GraphemeIterator{typeof(s)}(s)
 
 # added
 #these 2 functions allow to define prevind nextind, chr2ind, prevind etc
@@ -91,7 +63,7 @@ function Base.isvalid(s::GraphemeIterator, i::Integer)
         return i0 < start(s.s) || isgraphemebreak(s.s[i0], s.s[i])
     end
 end
-function endof(s::GraphemeIterator)
+function Base.endof(s::GraphemeIterator)
     c0 = Char(0x00ad)
     i = endof(s.s)
     i0 = start(s.s)
@@ -128,7 +100,7 @@ include("modifiers/fuzzywuzzy.jl")
 ##############################################################################
 for x in (:evaluate, :compare)
     @eval begin
-        function $x(dist::PreMetric, s1::AbstractString, s2::AbstractString)
+        function $x(dist::PreMetric, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator)
             len1, len2 = length(s1), length(s2)
             if len1 > len2
                 return $x(dist, s2, s1, len2, len1)
@@ -139,19 +111,20 @@ for x in (:evaluate, :compare)
     end
 end
 
+
 ##############################################################################
 ##
 ## compare
 ##
 ##############################################################################
 
-function compare(dist::PreMetric, s1::AbstractString, s2::AbstractString, 
+function compare(dist::PreMetric, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
     len1::Integer, len2::Integer)
     1.0 - evaluate(dist, s1, s2, len1, len2)
 end
 
 function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein}, 
-    s1::AbstractString, s2::AbstractString,
+    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator,
     len1::Integer, len2::Integer)
     distance = evaluate(dist, s1, s2, len1, len2)
     len2 == 0 ? 1.0 : 1.0 - distance / len2
@@ -160,14 +133,14 @@ end
 # compare always return a value between 0 and 1. 
 # When string length < q for qgram distance, returns s1 == s2
 function compare(dist::AbstractQGram, 
-    s1::AbstractString, s2::AbstractString, 
+    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     evaluate(dist, s1, s2, len1, len2)
 end
 
 function compare(dist::QGram, 
-    s1::AbstractString, s2::AbstractString, 
+    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     distance = evaluate(dist, s1, s2, len1, len2)

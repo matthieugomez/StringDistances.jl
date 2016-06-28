@@ -13,7 +13,7 @@ end
 # restrict to distance between 0 and 1
 Winkler(x) = Winkler(x, 0.1, 0.7)
 
-function compare(dist::Winkler, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function compare(dist::Winkler, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
     score = compare(dist.dist, s1, s2, len1, len2)
     l = common_prefix(s1, s2, 4)[1]
     # common prefix adjustment

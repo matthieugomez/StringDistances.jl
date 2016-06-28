@@ -96,6 +96,15 @@ The package includes distance modifiers:
 		#> 0.855
 		```
 
+## Unicode
+To iterate on graphemes rather than characters, use `graphemeiterator`:
+
+```julia
+evaluate(Hamming(), "b\u0300", "a")
+#> 2
+evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) 
+#> 1
+```
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
 - [fuzzywuzzy blog post](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
