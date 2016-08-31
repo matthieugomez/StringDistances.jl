@@ -84,7 +84,7 @@ typealias AbstractStringorGraphemeIterator AbstractString
 ## 2. issue with keeping iterator property for stuff like split, join. for now, I decide to loose the #enumerator property but add it back after join. But SubString for instance does not loose the property
 #Base.split(x::GraphemeIterator, args...) = split(x.s, args...)
 #iterator{T <: GraphemeIterator}(::Type{T}, x::AbstractString) = graphemeiterator(x)
-#iterator{T <: AbstractString}(::Type{T}, x::AbstractString) = x
+iterator{T <: AbstractString}(::Type{T}, x::AbstractString) = x
 #
 ##############################################################################
 ##
