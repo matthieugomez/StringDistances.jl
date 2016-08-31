@@ -40,26 +40,23 @@ compare(QGram(2), "martha", "marhta")
 To return the *litteral distance* between two strings, use `evaluate`
 ## Modifiers
 
-The package includes distance modifiers:
+The package includes distance "modifiers", that can be applied to any distance. Read below for more details.
 
-- [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes
+- [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes. 	The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
 
 	```julia
 	compare(Jaro(), "martha", "marhta")
 	#> 0.9444444444444445
 	compare(Winkler(Jaro()), "martha", "marhta")
 	#> 0.9611111111111111
-	```
-	The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
 
-	```julia
 	compare(QGram(2), "william", "williams")
 	#> 0.9230769230769231
 	compare(Winkler(QGram(2)), "william", "williams")
 	#> 0.9538461538461539
 	```
 
-- The Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) defines a few modifiers for the `RatcliffObershelp` similarity score. This package replicates them and extends them to any string distance:
+- Modifiers from the Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) .
 
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the maximal similarity score between the shorter string and substrings of the longer string.
 
@@ -96,7 +93,13 @@ The package includes distance modifiers:
 		#> 0.855
 		```
 
-```
+## Which distance should I use?
+
+It depends on your specific problem. As a rule of thumb, 
+- standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
+- if the order of words does not matter, avoid edit distances.
+
+
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
 - [fuzzywuzzy blog post](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
