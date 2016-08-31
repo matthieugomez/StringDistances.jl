@@ -120,33 +120,5 @@ stringdist(strings[1,], strings[2,], method = "qgram", q = 1)
 =#
 
 
-# grapheme
-strings = [
-(graphemeiterator("martha"), graphemeiterator("marhta")),
-(graphemeiterator("dwayne"), graphemeiterator("duane") ),
-(graphemeiterator("dixon"), graphemeiterator("dicksonx")),
-(graphemeiterator("william"), graphemeiterator("williams")),
-(graphemeiterator(""), graphemeiterator("foo")),
-(graphemeiterator("a"), graphemeiterator("a")),
-(graphemeiterator("abc"), graphemeiterator("xyz")),
-(graphemeiterator("abc"), graphemeiterator("ccc")),
-(graphemeiterator("kitten"), graphemeiterator("sitting")),
-(graphemeiterator("saturday"), graphemeiterator("sunday")),
-(graphemeiterator("hi, my name is"), graphemeiterator("my name is")),
-(graphemeiterator("alborgów"), graphemeiterator("amoniak")),
-(graphemeiterator("cape sand recycling "), graphemeiterator("edith ann graham")),
-(graphemeiterator( "jellyifhs"), graphemeiterator("jellyfish")),
-(graphemeiterator("ifhs"), graphemeiterator("fish")),
-(graphemeiterator("leia"), graphemeiterator("leela")),
-]
 
-
-for x in solutions
-	t, solution = x
-	for i in 1:length(solution)
-		@test_approx_eq_eps evaluate(t, strings[i]...) solution[i] 1e-4
-	end
-end
-
-@test evaluate(Hamming(), "b\u0300", "a") == 2
 #@test evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) == 1
