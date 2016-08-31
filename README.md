@@ -1,6 +1,6 @@
+[![StringDistances](http://pkg.julialang.org/badges/StringDistances_0.5.svg)](http://pkg.julialang.org/?pkg=StringDistances)
 [![Build Status](https://travis-ci.org/matthieugomez/StringDistances.jl.svg?branch=master)](https://travis-ci.org/matthieugomez/StringDistances.jl)
 [![Coverage Status](https://coveralls.io/repos/matthieugomez/StringDistances.jl/badge.svg?branch=master)](https://coveralls.io/r/matthieugomez/StringDistances.jl?branch=master)
-[![StringDistances](http://pkg.julialang.org/badges/StringDistances_0.4.svg)](http://pkg.julialang.org/?pkg=StringDistances)
 
 This Julia package computes various distances between strings.
 
@@ -96,14 +96,6 @@ The package includes distance modifiers:
 		#> 0.855
 		```
 
-## Unicode
-To iterate on graphemes rather than characters, use `graphemeiterator`:
-
-```julia
-evaluate(Hamming(), "b\u0300", "a")
-#> 2
-evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) 
-#> 1
 ```
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo

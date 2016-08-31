@@ -149,4 +149,4 @@ for x in solutions
 end
 
 @test evaluate(Hamming(), "b\u0300", "a") == 2
-@test evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) == 1
+#@test evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) == 1

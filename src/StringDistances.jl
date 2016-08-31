@@ -40,47 +40,52 @@ graphemeiterator
 ##############################################################################
 
 typealias GraphemeIterator Base.UTF8proc.GraphemeIterator
-typealias AbstractStringorGraphemeIterator Union{AbstractString, Base.UTF8proc.GraphemeIterator}
+#typealias AbstractStringorGraphemeIterator Union{AbstractString, Base.UTF8proc.GraphemeIterator}
+typealias AbstractStringorGraphemeIterator AbstractString
 
 ##############################################################################
 ##
-## GraphemeIterator iterates on Grapheme
+## GraphemeIterator. Unicode iteration broken because Unicode 9 has different iteration properties.
 ##
 ##############################################################################
-Base.prevind(x::GraphemeIterator, i::Integer) = prevind(x.s, i)
-Base.nextind(x::GraphemeIterator, i::Integer) = nextind(x.s, i)
-Base.chr2ind(x::GraphemeIterator, i::Integer) = chr2ind(x.s, i)
-Base.SubString(x::GraphemeIterator, i::Integer, j::Integer) = graphemeiterator(SubString(x.s, i::Integer, j::Integer))
-graphemeiterator(s::AbstractString) = GraphemeIterator{typeof(s)}(s)
-
-# added
-#these 2 functions allow to define prevind nextind, chr2ind, prevind etc
-function Base.isvalid(s::GraphemeIterator, i::Integer)
-    if !isvalid(s.s, i) 
-        return false
-    else
-        i0 = prevind(s.s, i)
-        return i0 < start(s.s) || isgraphemebreak(s.s[i0], s.s[i])
-    end
-end
-function Base.endof(s::GraphemeIterator)
-    c0 = Char(0x00ad)
-    i = endof(s.s)
-    i0 = start(s.s)
-    while i >= i0 && !isgraphemebreak(s.s[i], c0)
-        i = prevind(s.s, i)
-        c0 = s.s[i]
-    end
-    i
-end
-
-# 1. issues with stuff like search  or print_escaped where character iteration vs string iteration matters. I need to pass the original string for now
-Base.search(x::GraphemeIterator, s::Vector{Char}) = search(x.s, s)
-# 2. issue with keeping iterator property for stuff like split, join. for now, I decide to loose the enumerator property but add it back after join. But SubString for instance does not loose the property
-Base.split(x::GraphemeIterator, args...) = split(x.s, args...)
-iterator{T <: GraphemeIterator}(::Type{T}, x::AbstractString) = graphemeiterator(x)
-iterator{T <: AbstractString}(::Type{T}, x::AbstractString) = x
-
+#Base.prevind(x::GraphemeIterator, i::Integer) = prevind(x.s, i)
+#Base.nextind(x::GraphemeIterator, i::Integer) = nextind(x.s, i)
+#Base.chr2ind(x::GraphemeIterator, i::Integer) = chr2ind(x.s, i)
+#Base.SubString(x::GraphemeIterator, i::Integer, j::Integer) = graphemeiterator(SubString(x.s, i::Integer, j:#:Integer))
+#graphemeiterator(s::AbstractString) = GraphemeIterator{typeof(s)}(s)
+#
+## added
+##these 2 functions allow to define prevind nextind, chr2ind, prevind etc
+#function Base.isvalid(s::GraphemeIterator, i::Integer)
+#    if !isvalid(s.s, i) 
+#        return false
+#    else
+#        k = start(s)
+#        while !done(s, k)
+#            j = k[1]
+#            if j == i
+#                return true
+#            end
+#        end
+#        return false
+#    end
+#end
+#function Base.endof(s::GraphemeIterator)
+#    k = start(s)
+#    while !done(s, k)
+#        i = k[1]
+#        c, k = next(s, k)
+#    end
+#    return i
+#end
+#
+## 1. issues with stuff like search  or print_escaped where character iteration vs string iteration matters. #I need to pass the original string for now
+#Base.search(x::GraphemeIterator, s::Vector{Char}) = search(x.s, s)
+## 2. issue with keeping iterator property for stuff like split, join. for now, I decide to loose the #enumerator property but add it back after join. But SubString for instance does not loose the property
+#Base.split(x::GraphemeIterator, args...) = split(x.s, args...)
+#iterator{T <: GraphemeIterator}(::Type{T}, x::AbstractString) = graphemeiterator(x)
+#iterator{T <: AbstractString}(::Type{T}, x::AbstractString) = x
+#
 ##############################################################################
 ##
 ## include
