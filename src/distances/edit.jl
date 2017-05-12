@@ -41,16 +41,16 @@ end
 ##############################################################################
 
 
-type Levenshtein <: SemiMetric end
-function evaluate(dist::Levenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
+struct Levenshtein <: SemiMetric end
 
+function evaluate(dist::Levenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2 - k
 
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
-    v0 = Array(Int, len2 - k)
+    v0 = Array{Int}(len2 - k)
     @inbounds for i2 in 1:(len2 - k)
         v0[i2] = i2 
     end
@@ -88,7 +88,7 @@ end
 ##
 ##############################################################################
 
-type DamerauLevenshtein <: SemiMetric end
+struct DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
 
@@ -96,11 +96,11 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractStringorGraphemeIterator
     k, start1, start2 = common_prefix(s1, s2)
     done(s1, start1) && return len2 - k
 
-    v0 = Array(Int, len2 - k)
+    v0 = Array{Int}(len2 - k)
     @inbounds for i2 in 1:(len2 - k)
         v0[i2] = i2
     end
-    v2 = Array(Int, len2 - k)
+    v2 = Array{Int}(len2 - k)
 
     ch1, = next(s1, start1)
     current = 0
@@ -156,7 +156,7 @@ end
 ##
 ##############################################################################
 
-type Jaro <: SemiMetric end
+struct Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer) 
     # if len2 == 0, m = 0 so should be 1.0 according to wikipedia. Nope.

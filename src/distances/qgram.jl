@@ -4,7 +4,7 @@
 ##
 ##############################################################################
 
-immutable QGramIterator{S <: AbstractStringorGraphemeIterator, T <: Integer}
+struct QGramIterator{S <: AbstractStringorGraphemeIterator, T <: Integer}
 	s::S # grapheme
 	l::Int # length of string
 	q::T # length of q-grams
@@ -27,7 +27,7 @@ Base.eltype{S <: AbstractString, T}(qgram::QGramIterator{S, T}) = SubString{type
 Base.eltype{S <: GraphemeIterator, T}(qgram::QGramIterator{S, T}) = SubString{typeof(qgram.s.s)}
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 function Base.collect(qgram::QGramIterator)
-	x = Array(eltype(qgram), length(qgram))
+	x = Array{eltype(qgram)}(length(qgram))
 	i = 0
 	for q in qgram
 		i += 1
@@ -44,7 +44,7 @@ Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 ##
 ##############################################################################
 
-type CountInterator{T1 <: AbstractVector, T2 <: AbstractVector}
+struct CountInterator{T1 <: AbstractVector, T2 <: AbstractVector}
 	v1::T1
 	v2::T2
 end
@@ -79,7 +79,7 @@ end
 ## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
-abstract AbstractQGram <: SemiMetric
+abstract type AbstractQGram <: SemiMetric end
 
 function evaluate(dist::AbstractQGram, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
 	sort1 = sort(QGramIterator(s1, len1, dist.q))
@@ -96,7 +96,7 @@ end
 ##
 ##############################################################################
 
-immutable QGram{T <: Integer} <: AbstractQGram
+struct QGram{T <: Integer} <: AbstractQGram
 	q::T
 end
 QGram() = QGram(2)
@@ -116,7 +116,7 @@ end
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-immutable Cosine{T <: Integer} <: AbstractQGram
+struct Cosine{T <: Integer} <: AbstractQGram
 	q::T
 end
 Cosine() = Cosine(2)
@@ -140,7 +140,7 @@ end
 ##
 ##############################################################################
 
-immutable Jaccard{T <: Integer} <: AbstractQGram
+struct Jaccard{T <: Integer} <: AbstractQGram
 	q::T
 end
 Jaccard() = Jaccard(2)
@@ -162,7 +162,7 @@ end
 ## 1 - 2 * |intersect(Q(s1, q), Q(s2, q))| / (|Q(s1, q)| + |Q(s2, q))|)
 ##############################################################################
 
-immutable SorensenDice{T <: Integer} <: AbstractQGram
+struct SorensenDice{T <: Integer} <: AbstractQGram
 	q::T
 end
 SorensenDice() = SorensenDice(2)
@@ -184,7 +184,7 @@ end
 ## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
 ##############################################################################
 
-immutable Overlap{T <: Integer} <: AbstractQGram
+struct Overlap{T <: Integer} <: AbstractQGram
 	q::T
 end
 Overlap() = Overlap(2)

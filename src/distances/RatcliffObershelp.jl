@@ -49,7 +49,8 @@ function matching_blocks(s1::AbstractStringorGraphemeIterator, s2::AbstractStrin
     return x
 end
 
-type RatcliffObershelp <: PreMetric end
+struct RatcliffObershelp <: PreMetric end
+
 function evaluate(dist::RatcliffObershelp, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
     result = matching_blocks(s1, s2)
     matched = 0

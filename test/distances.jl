@@ -34,24 +34,24 @@ using StringDistances, Base.Test
 @test evaluate(QGram(1), "abc", "cba") == 0
 @test evaluate(QGram(1), "abc", "ccc") == 4
 @test isnan(evaluate(Cosine(2), "", "abc"))
-@test_approx_eq_eps evaluate(Cosine(2), "abc", "ccc") 1 1e-4
-@test_approx_eq_eps evaluate(Cosine(2), "leia", "leela") 0.7113249 1e-4
-@test_approx_eq evaluate(Jaccard(1), "", "abc") 1.0
-@test_approx_eq_eps evaluate(Jaccard(1), "abc", "ccc") .666666 1e-4
-@test_approx_eq_eps evaluate(Jaccard(2), "leia", "leela") 0.83333 1e-4
-@test_approx_eq_eps evaluate(SorensenDice(1), "night", "nacht") 0.4 1e-4
-@test_approx_eq_eps evaluate(SorensenDice(2), "night", "nacht") 0.75 1e-4
-@test_approx_eq_eps evaluate(Overlap(1), "night", "nacht") 0.4 1e-4
-@test_approx_eq_eps evaluate(Overlap(1), "context", "contact") .2 1e-4
+@test evaluate(Cosine(2), "abc", "ccc") ≈ 1 atol = 1e-4
+@test evaluate(Cosine(2), "leia", "leela") ≈ 0.7113249 atol = 1e-4
+@test evaluate(Jaccard(1), "", "abc") ≈ 1.0
+@test evaluate(Jaccard(1), "abc", "ccc") ≈ .666666 atol = 1e-4
+@test evaluate(Jaccard(2), "leia", "leela") ≈ 0.83333 atol = 1e-4
+@test evaluate(SorensenDice(1), "night", "nacht") ≈ 0.4 atol = 1e-4
+@test evaluate(SorensenDice(2), "night", "nacht") ≈ 0.75 atol = 1e-4
+@test evaluate(Overlap(1), "night", "nacht") ≈ 0.4 atol = 1e-4
+@test evaluate(Overlap(1), "context", "contact") ≈ .2 atol = 1e-4
 
 
-@test_approx_eq evaluate(RatcliffObershelp(), "dixon", "dicksonx") 1 - 0.6153846153846154
-@test_approx_eq evaluate(RatcliffObershelp(), "alexandre", "aleksander") 1 - 0.7368421052631579
-@test_approx_eq evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") 1 - 0.6666666666666
-@test_approx_eq evaluate(RatcliffObershelp(), "",  "pencilvaneya") 1.0
-@test_approx_eq evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") 1 -  0.962962962963
-@test_approx_eq evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") 0.3913043478260869
-@test_approx_eq evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") 0.24137931034482762
+@test evaluate(RatcliffObershelp(), "dixon", "dicksonx") ≈ 1 - 0.6153846153846154
+@test evaluate(RatcliffObershelp(), "alexandre", "aleksander") ≈ 1 - 0.7368421052631579
+@test evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
+@test evaluate(RatcliffObershelp(), "",  "pencilvaneya") ≈ 1.0
+@test evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
+@test evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") ≈ 0.3913043478260869
+@test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
 
 
 
@@ -87,7 +87,11 @@ solutions = ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
 for x in solutions
 	t, solution = x
 	for i in 1:length(solution)
-		@test_approx_eq_eps evaluate(t, strings[i]...) solution[i] 1e-4
+		if isnan(evaluate(t, strings[i]...))
+			@test isnan(solution[i])
+		else
+			@test evaluate(t, strings[i]...) ≈ solution[i] atol = 1e-4
+		end
 	end
 end
 

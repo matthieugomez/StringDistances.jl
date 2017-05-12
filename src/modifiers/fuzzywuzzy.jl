@@ -4,7 +4,7 @@
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
-type Partial{T <: PreMetric} <: PreMetric
+struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
 
@@ -55,7 +55,7 @@ end
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
-type TokenSort{T <: PreMetric} <: PreMetric
+struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
@@ -77,7 +77,7 @@ end
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
-type TokenSet{T <: PreMetric} <: PreMetric
+struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
@@ -125,7 +125,7 @@ end
 ## TokenMax
 ##
 ##############################################################################
-type TokenMax{T <: PreMetric} <: PreMetric
+struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 

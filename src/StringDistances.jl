@@ -39,9 +39,9 @@ graphemeiterator
 ##
 ##############################################################################
 
-typealias GraphemeIterator Base.UTF8proc.GraphemeIterator
-#typealias AbstractStringorGraphemeIterator Union{AbstractString, Base.UTF8proc.GraphemeIterator}
-typealias AbstractStringorGraphemeIterator AbstractString
+const GraphemeIterator = Base.UTF8proc.GraphemeIterator
+#const AbstractStringorGraphemeIterator = Union{AbstractString, Base.UTF8proc.GraphemeIterator}
+const AbstractStringorGraphemeIterator = AbstractString
 
 ##############################################################################
 ##

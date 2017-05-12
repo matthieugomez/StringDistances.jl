@@ -97,7 +97,7 @@ The package includes distance "modifiers", that can be applied to any distance. 
 
 It depends on your specific problem. As a rule of thumb, 
 - standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
-- if the order of words does not matter, avoid edit distances.
+- if word order does not matter, avoid edit distances.
 
 
 ## References
