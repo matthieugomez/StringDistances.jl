@@ -67,7 +67,6 @@ function compare(dist::TokenSort, s1::AbstractStringorGraphemeIterator, s2::Abst
     if search(s2, Base._default_delims) > 0
         s2 = iterator(typeof(s2), join(sort!(split(s2)), " "))
     end
-    @show s1, s2
     compare(dist.dist, s1, s2)
 end
 
