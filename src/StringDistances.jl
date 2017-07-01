@@ -10,7 +10,7 @@ module StringDistances
 import Base: eltype, length, start, done, next, ==, hash, isless, convert, show, endof
 import Base.UTF8proc: isgraphemebreak
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
-import Iterators: chain
+import IterTools: chain
 export
 evaluate,
 compare,
@@ -57,7 +57,7 @@ const AbstractStringorGraphemeIterator = AbstractString
 ## added
 ##these 2 functions allow to define prevind nextind, chr2ind, prevind etc
 #function Base.isvalid(s::GraphemeIterator, i::Integer)
-#    if !isvalid(s.s, i) 
+#    if !isvalid(s.s, i)
 #        return false
 #    else
 #        k = start(s)
@@ -123,29 +123,29 @@ end
 ##
 ##############################################################################
 
-function compare(dist::PreMetric, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
+function compare(dist::PreMetric, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator,
     len1::Integer, len2::Integer)
     1.0 - evaluate(dist, s1, s2, len1, len2)
 end
 
-function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein}, 
+function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein},
     s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator,
     len1::Integer, len2::Integer)
     distance = evaluate(dist, s1, s2, len1, len2)
     len2 == 0 ? 1.0 : 1.0 - distance / len2
 end
 
-# compare always return a value between 0 and 1. 
+# compare always return a value between 0 and 1.
 # When string length < q for qgram distance, returns s1 == s2
-function compare(dist::AbstractQGram, 
-    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
+function compare(dist::AbstractQGram,
+    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator,
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     evaluate(dist, s1, s2, len1, len2)
 end
 
-function compare(dist::QGram, 
-    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, 
+function compare(dist::QGram,
+    s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator,
     len1::Integer, len2::Integer)
     len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     distance = evaluate(dist, s1, s2, len1, len2)
@@ -156,4 +156,4 @@ end
 
 
 
-end 
+end
