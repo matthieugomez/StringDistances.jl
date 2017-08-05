@@ -164,13 +164,16 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
-    m = 0 # matching characters
+    # count m matching characters
+    m = 0 
     flag = fill(false, len2)
     i1 = 0
+    state1 = start(s1)
     startstate2 = start(s2)
     starti2 = 0
-    c = Vector{Char}()
-    for ch1 in s1
+    i1_match = fill!(Array{typeof(state1)}(len1), state1)
+    while !done(s1, state1)
+        ch1, newstate1 = next(s1, state1)
         i1 += 1
         if starti2 < i1 - maxdist - 1
             startstate2 = nextind(s2, startstate2)
@@ -184,12 +187,13 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
             if ch1 == ch2 && !flag[i2] 
                 m += 1
                 flag[i2] = true
-                push!(c, ch1)
+                i1_match[m] = state1
                 break
             end
         end
+        state1 = newstate1
     end
-    # count transpotsitions
+    # count t transpotsitions
     t = 0
     i1 = 0
     i2 = 0
@@ -197,7 +201,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
         i2 += 1
         if flag[i2]
             i1 += 1
-            t += ch2 != c[i1]
+            t += ch2 != next(s1, i1_match[i1])[1]
         end
     end
     m == 0.0 && return 1.0

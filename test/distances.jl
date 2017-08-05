@@ -91,7 +91,6 @@ for x in solutions
 		if isnan(evaluate(t, strings[i]...))
 			@test isnan(solution[i])
 		else
-			@show strings[i]
 			@test evaluate(t, strings[i]...) ≈ solution[i] atol = 1e-4
 		end
 	end
