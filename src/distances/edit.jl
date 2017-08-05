@@ -1,14 +1,13 @@
 ##############################################################################
 ##
 ## Find common prefixes (up to lim. -1 means Inf)
-## Assumes length(s1) <= length(s2)
 ##############################################################################
 
-function common_prefix(s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, lim::Integer = -1)
+function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
     start1 = start(s1)
     start2 = start(s2)
     l = 0
-    while !done(s1, start1) && (l < lim || lim < 0)
+    while !done(s1, start1) && !done(s2, start2) && (l < lim || lim < 0)
         ch1, nextstart1 = next(s1, start1)
         ch2, nextstart2 = next(s2, start2)
         ch1 != ch2 && break
@@ -24,13 +23,13 @@ end
 ##
 ##############################################################################
 
-function evaluate(dist::Hamming, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2:: Integer)
-    count = 0
+function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
+    out = 0
     for (ch1, ch2) in zip(s1, s2)
-        count += ch1 != ch2
+        out += ch1 != ch2
     end
-    count += len2 - len1
-    return count
+    out += abs(length(s2) - length(s1))
+    return out
 end
 
 ##############################################################################
@@ -43,9 +42,10 @@ end
 
 struct Levenshtein <: SemiMetric end
 
-function evaluate(dist::Levenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
+function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
+    s2, len2, s1, len1 = reorder(s1, s2)
     done(s1, start1) && return len2 - k
 
     # distance initialized to first row of matrix
@@ -90,10 +90,11 @@ end
 
 struct DamerauLevenshtein <: SemiMetric end
 
-function evaluate(dist::DamerauLevenshtein, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer)
+function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
 
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
+    s2, len2, s1, len1 = reorder(s1, s2)
     done(s1, start1) && return len2 - k
 
     v0 = Array{Int}(len2 - k)
@@ -153,24 +154,22 @@ end
 ##############################################################################
 ##
 ## Jaro
-##
+## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ##############################################################################
 
 struct Jaro <: SemiMetric end
 
-function evaluate(dist::Jaro, s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator, len1::Integer, len2::Integer) 
-    # if len2 == 0, m = 0 so should be 1.0 according to wikipedia. Nope.
+function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
+    s2, len2, s1, len1 = reorder(s1, s2)
+    # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
-
     maxdist = max(0, div(len2, 2) - 1)
     m = 0 # matching characters
-    t = 0 # half number of transpositions
     flag = fill(false, len2)
-    prevpos = 0
-
     i1 = 0
     startstate2 = start(s2)
     starti2 = 0
+    c = Vector{Char}()
     for ch1 in s1
         i1 += 1
         if starti2 < i1 - maxdist - 1
@@ -179,24 +178,31 @@ function evaluate(dist::Jaro, s1::AbstractStringorGraphemeIterator, s2::Abstract
         end 
         i2 = starti2
         state2 = startstate2
-        while !done(s2, state2) && i2 < i1 + maxdist
+        while !done(s2, state2) && i2 <= i1 + maxdist
             ch2, state2 = next(s2, state2)
             i2 += 1
             if ch1 == ch2 && !flag[i2] 
                 m += 1
-                # if match is before the index of previous match
-                if i2 < prevpos
-                    t += 1
-                end
-                prevpos = max(i2, prevpos)
                 flag[i2] = true
+                push!(c, ch1)
                 break
             end
         end
     end
+    # count transpotsitions
+    t = 0
+    i1 = 0
+    i2 = 0
+    for ch2 in s2
+        i2 += 1
+        if flag[i2]
+            i1 += 1
+            t += ch2 != c[i1]
+        end
+    end
     m == 0.0 && return 1.0
-    score = (m / len1 + m / len2 + (m - t) / m) / 3.0
+    score = (m / len1 + m / len2 + (m - t/2) / m) / 3.0
     return 1.0 - score
 end
 
-jaro(s1::AbstractStringorGraphemeIterator, s2::AbstractStringorGraphemeIterator) = evaluate(Jaro(), s1, s2)
+jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)

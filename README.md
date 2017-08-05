@@ -95,10 +95,9 @@ The package includes distance "modifiers", that can be applied to any distance. 
 
 ## Which distance should I use?
 
-It depends on your specific problem. As a rule of thumb, 
+As a rule of thumb, 
 - standardize strings before comparing them (lowercase, punctuation, whitespaces, accents, abbreviations...)
-- if word order does not matter, avoid edit distances.
-
+- if word order does not matter, avoid edit distances. The distance `Tokenmax(RatcliffObershelp())' is a good all-around choice.
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo

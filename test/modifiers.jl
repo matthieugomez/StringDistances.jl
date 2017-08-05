@@ -14,20 +14,9 @@ strings = [
 ("dwayne", "duane") ,
 ("dixon", "dicksonx"),
 ("william", "williams"),
-("", "foo"),
-("a", "a"),
-("abc", "xyz"),
-("abc", "ccc"),
-("kitten", "sitting"),
-("saturday", "sunday"),
-("hi, my name is", "my name is"),
-("alborgów", "amoniak"),
-("cape sand recycling ", "edith ann graham"),
-( "jellyifhs", "jellyfish"),
-("ifhs", "fish"),
-("leia", "leela"),
+("", "foo")
 ]
-solutions = [0.03888889 0.16000000 0.18666667 0.02500000 1.00000000 0.00000000 1.00000000 0.44444444 0.25396825 0.22250000 0.16190476 0.43928571 0.49166667 0.04444444 0.16666667 0.17333333]
+solutions = [0.03888889 0.16000000 0.18666667 0.02500000 1.00000000]
 for i in 1:length(solutions)
 	@test compare(Winkler(Jaro(), 0.1, 0.0), strings[i]...) ≈ (1 - solutions[i]) atol = 1e-4
 end
@@ -80,5 +69,4 @@ s = "HSINCHUANG"
 
 
 
-@test compare(Winkler(Partial(Jaro())),"mariners vs angels", "los angeles angels at seattle mariners") ≈ 0.7378917378917379
 @test compare(TokenSet(Partial(RatcliffObershelp())),"mariners vs angels", "los angeles angels at seattle mariners") ≈ 1.0
