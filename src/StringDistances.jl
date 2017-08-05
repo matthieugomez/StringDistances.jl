@@ -8,7 +8,6 @@ module StringDistances
 ##
 ##############################################################################
 import Base: eltype, length, start, done, next, ==, hash, isless, convert, show, endof
-import Base.UTF8proc: isgraphemebreak
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 import IterTools: chain
 export
