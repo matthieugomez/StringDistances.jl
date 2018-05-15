@@ -60,6 +60,7 @@ s = "HSINCHUANG"
 
 @test compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "") ≈ 0.0
 
+@test compare(Partial(Jaccard(2)), "aa", "aa ") ≈ 1.0
 
 
 #@test_approx_eq compare(TokenSort(RatcliffObershelp()), graphemeiterator("New York Mets vs Atlanta Braves"), graphemeiterator("Atlanta Braves vs New York Mets"))  1.0
