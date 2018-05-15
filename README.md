@@ -37,6 +37,8 @@ compare(Hamming(), "martha", "marhta")
 #> 0.6666666666666667
 compare(QGram(2), "martha", "marhta")
 #> 0.4
+compare(QGram(2), "martha", "martha")
+#> 1.0
 ```
 
 ## Modifiers
