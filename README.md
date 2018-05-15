@@ -26,7 +26,9 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html)
 
 ## Syntax
-The function `compare` returns  *a similarity score* between two strings, based on their distance. The similarity score is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+The function `evaluate` return the *litteral distance* between two strings. 
+
+The function `compare` returns  *a similarity score* between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
 
 
 ```julia
@@ -37,12 +39,11 @@ compare(QGram(2), "martha", "marhta")
 #> 0.4
 ```
 
-To return the *litteral distance* between two strings, use `evaluate`
 ## Modifiers
 
-The package includes distance "modifiers", that can be applied to any distance. Read below for more details.
+The package includes distance "modifiers", that can be applied to any distance.
 
-- [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes. 	The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
+- [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes.  The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
 
 	```julia
 	compare(Jaro(), "martha", "marhta")
@@ -97,7 +98,7 @@ The package includes distance "modifiers", that can be applied to any distance. 
 
 As a rule of thumb, 
 - Standardize strings before comparing them (correct for uppercases, punctuations, whitespaces, accents, abbreviations...)
-- Don't use Edit Distances if differences in word order do not matter.
+- Don't use Edit Distances if word order do not matter.
 - The distance `Tokenmax(RatcliffObershelp())' is a good default choice.
 
 ## References
