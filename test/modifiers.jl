@@ -12,6 +12,13 @@ using StringDistances, Base.Test
 
 @test compare(Jaccard(2), "", "abc") ≈ 0.0 atol = 1e-4
 
+@test compare(Jaccard(2), "martha", "martha") ≈ 1.0 atol = 1e-4
+@test compare(Cosine(2), "martha", "martha") ≈ 1.0 atol = 1e-4
+@test compare(Jaccard(2), "martha", "martha") ≈ 1.0 atol = 1e-4
+@test compare(Overlap(2), "martha", "martha") ≈ 1.0 atol = 1e-4
+@test compare(SorensenDice(2), "martha", "martha") ≈ 1.0 atol = 1e-4
+
+
 # Winkler
 @test compare(Winkler(Jaro(), 0.1, 0.0), "martha", "marhta") ≈ 0.9611 atol = 1e-4
 @test compare(Winkler(Jaro(), 0.1, 0.0), "dwayne", "duane") ≈ 0.84 atol = 1e-4

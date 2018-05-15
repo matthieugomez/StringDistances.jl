@@ -9,21 +9,21 @@ This Julia package computes various distances between strings.
 ## Distances
 
 #### Edit Distances
-- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance)
-- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
-- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)
+- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
+- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
+- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
 
 #### Q-Grams Distances
 Q-gram distances compare the set of all substrings of length `q` in each string.
-- QGram Distance
-- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity)
-- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index)
-- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient)
-- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient)
+- QGram Distance `Qgram(q)`
+- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q)`
+- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q)`
+- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q)`
+- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q)`
 
 #### Others
-- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
-- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html)
+- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
+- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
 ## Syntax
 The function `evaluate` return the *litteral distance* between two strings. 
@@ -101,7 +101,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 As a rule of thumb, 
 - Standardize strings before comparing them (correct for uppercases, punctuations, whitespaces, accents, abbreviations...)
 - Don't use Edit Distances if word order do not matter.
-- The distance `Tokenmax(RatcliffObershelp())' is a good default choice.
+- The distance `Tokenmax(RatcliffObershelp())` is a good default choice.
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
