@@ -1,6 +1,18 @@
 
 using StringDistances, Base.Test
 
+# Compare
+@test compare(Hamming(), "", "abc") ≈ 0.0 atol = 1e-4
+@test compare(Hamming(), "acc", "abc") ≈ 2/3 atol = 1e-4
+@test compare(Hamming(), "saturday", "sunday") ≈ 1/8 atol = 1e-4
+
+@test compare(QGram(1), "", "abc") ≈ 0.0 atol = 1e-4
+@test compare(QGram(1), "abc", "cba") ≈ 1.0 atol = 1e-4
+@test compare(QGram(1), "abc", "ccc") ≈ 1/3 atol = 1e-4
+
+@test compare(Jaccard(2), "", "abc") ≈ 0.0 atol = 1e-4
+
+# Winkler
 @test compare(Winkler(Jaro(), 0.1, 0.0), "martha", "marhta") ≈ 0.9611 atol = 1e-4
 @test compare(Winkler(Jaro(), 0.1, 0.0), "dwayne", "duane") ≈ 0.84 atol = 1e-4
 @test compare(Winkler(Jaro(), 0.1, 0.0), "dixon", "dicksonx") ≈ 0.81333 atol = 1e-4
@@ -24,14 +36,9 @@ end
 
 
 
-@test compare(Hamming(), "", "abc") ≈ 0.0 atol = 1e-4
-@test compare(Hamming(), "acc", "abc") ≈ 2/3 atol = 1e-4
-@test compare(Hamming(), "saturday", "sunday") ≈ 1/8 atol = 1e-4
 
-@test compare(QGram(1), "", "abc") ≈ 0.0 atol = 1e-4
-@test compare(QGram(1), "abc", "cba") ≈ 1.0 atol = 1e-4
-@test compare(QGram(1), "abc", "ccc") ≈ 1/3 atol = 1e-4
-
+# Partial
+@test compare(Partial(Jaccard(2)), "aa", "aa ") ≈ 1.0
 
 @test compare(Partial(RatcliffObershelp()), "New York Yankees",  "Yankees") ≈ 1.0
 @test compare(Partial(RatcliffObershelp()), "New York Yankees",  "") ≈ 0.0
@@ -49,7 +56,7 @@ s = "HSINCHUANG"
 
 
 
-
+# Token
 @test compare(TokenSort(RatcliffObershelp()), "New York Mets vs Atlanta Braves", "Atlanta Braves vs New York Mets")  ≈ 1.0
 @test compare(TokenSet(RatcliffObershelp()),"mariners vs angels", "los angeles angels of anaheim at seattle mariners") ≈ 1.0 - 0.09090909090909094
 
@@ -60,7 +67,6 @@ s = "HSINCHUANG"
 
 @test compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "") ≈ 0.0
 
-@test compare(Partial(Jaccard(2)), "aa", "aa ") ≈ 1.0
 
 
 #@test_approx_eq compare(TokenSort(RatcliffObershelp()), graphemeiterator("New York Mets vs Atlanta Braves"), graphemeiterator("Atlanta Braves vs New York Mets"))  1.0
