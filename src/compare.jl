@@ -20,7 +20,7 @@ end
 function compare(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
     len = min(length(s1), length(s2))
     len <= (dist.q - 1) && return convert(Float64, s1 == s2)
-    evaluate(dist, s1, s2)
+    1 - evaluate(dist, s1, s2)
 end
 
 function compare(dist::QGram, s1::AbstractString, s2::AbstractString)
