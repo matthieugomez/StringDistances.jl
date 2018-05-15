@@ -4,6 +4,22 @@
 
 This Julia package computes various distances between strings.
 
+## Syntax
+The function `evaluate` return the *litteral distance* between two strings. 
+
+The function `compare` returns  *a similarity score* between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+
+
+```julia
+using StringDistances
+compare(Hamming(), "martha", "marhta")
+#> 0.6666666666666667
+compare(QGram(2), "martha", "marhta")
+#> 0.4
+compare(QGram(2), "martha", "martha")
+#> 1.0
+```
+
 
 
 ## Distances
@@ -25,21 +41,7 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
-## Syntax
-The function `evaluate` return the *litteral distance* between two strings. 
 
-The function `compare` returns  *a similarity score* between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
-
-
-```julia
-using StringDistances
-compare(Hamming(), "martha", "marhta")
-#> 0.6666666666666667
-compare(QGram(2), "martha", "marhta")
-#> 0.4
-compare(QGram(2), "martha", "martha")
-#> 1.0
-```
 
 ## Modifiers
 
