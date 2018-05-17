@@ -5,15 +5,10 @@
 This Julia package computes various distances between strings.
 
 ## Syntax
-The package defines two functions:
-- The function `evaluate` return the litteral distance between two strings. 
-- The function `compare` returns  a similarity score between two strings, which is based on the inverse of the distance. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
+The function `compare` returns  a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
 
 
 ```julia
-using StringDistances
-evaluate(Hamming(), "martha", "martha")
-#> 0.0
 compare(Hamming(), "martha", "martha")
 #> 1.0
 compare(Hamming(), "martha", "marhta")
@@ -43,6 +38,7 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
 
+The function `evaluate` returns the litteral distance between two strings. In contrast, the function `compare` always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
 
 ## Modifiers
 The package includes distance "modifiers", that can be applied to any distance.
