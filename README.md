@@ -9,6 +9,7 @@ The function `compare` returns  a similarity score between two strings. The func
 
 
 ```julia
+using StringDistances
 compare(Hamming(), "martha", "martha")
 #> 1.0
 compare(Hamming(), "martha", "marhta")
