@@ -22,15 +22,12 @@ Cosine,
 Jaccard,
 SorensenDice,
 Overlap,
-longest_common_substring,
-matching_blocks,
 RatcliffObershelp,
 Winkler,
 Partial,
 TokenSort,
 TokenSet,
-TokenMax,
-graphemeiterator
+TokenMax
 
 ##############################################################################
 ##
@@ -38,11 +35,9 @@ graphemeiterator
 ##
 ##############################################################################
 include("utils.jl")
-
 include("distances/edit.jl")
 include("distances/qgram.jl")
 include("distances/RatcliffObershelp.jl")
-
 include("compare.jl")
 
 end
