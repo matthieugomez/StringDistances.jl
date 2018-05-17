@@ -93,16 +93,16 @@ The package includes distance "modifiers", that can be applied to any distance.
 		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
 		#> 0.855
 		```
-## Evaluate vs Compare
-The function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar.
+## Compare vs Evaluate
+The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
 
-In contrast, the function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
+In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar.
 
 ```julia
-evaluate(Levenshtein(), "New York", "New York")
-#> 0
 compare(Levenshtein(), "New York", "New York")
 #> 1.0
+evaluate(Levenshtein(), "New York", "New York")
+#> 0
 ```
 
 ## Which distance should I use?
