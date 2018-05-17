@@ -25,9 +25,11 @@ compare(Hamming(), "martha", "marhta")
 ## Distances
 
 #### Edit Distances
-- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
-- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 - [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
+- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
+- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
+- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
+
 
 #### Q-Grams Distances
 Q-gram distances compare the set of all substrings of length `q` in each string.
@@ -38,13 +40,11 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q)`
 
 #### Others
-- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
 
 
 ## Modifiers
-
 The package includes distance "modifiers", that can be applied to any distance.
 
 - [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes.  The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
