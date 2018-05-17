@@ -94,7 +94,9 @@ The package includes distance "modifiers", that can be applied to any distance.
 		#> 0.855
 		```
 ## Evaluate vs Compare
-The function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. In contrast, the function `compare` always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
+The function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar.
+The function `compare` is the opposite of `evaluate': a value of 0 means completely different and a value of 1 means completely similar.
+
 
 ## Which distance should I use?
 
