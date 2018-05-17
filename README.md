@@ -6,8 +6,8 @@ This Julia package computes various distances between strings.
 
 ## Syntax
 The package defines two functions:
-- The function `evaluate` return the distance between two strings. 
-- The function `compare` returns  a similarity score between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+- The function `evaluate` return the litteral distance between two strings. 
+- The function `compare` returns  a similarity score between two strings, which is based on the inverse of the distance. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
 
 
 ```julia
