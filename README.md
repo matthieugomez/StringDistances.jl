@@ -39,9 +39,8 @@ Q-gram distances compare the set of all substrings of length `q` in each string.
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
 
-The function `evaluate` returns the litteral distance between two strings. In contrast, the function `compare` always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
 
-## Modifiers
+## Distance Modifiers
 The package includes distance "modifiers", that can be applied to any distance.
 
 - [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) boosts the similary score of strings with common prefixes.  The Winkler adjustment was originally defined for the Jaro similarity score but this package defines it for any string distance.
@@ -94,6 +93,8 @@ The package includes distance "modifiers", that can be applied to any distance.
 		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
 		#> 0.855
 		```
+## Evaluate vs Compare
+The function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. In contrast, the function `compare` always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
 
 ## Which distance should I use?
 
