@@ -97,7 +97,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 The function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar.
 The function `compare` is the opposite of `evaluate`: a value of 0 means completely different and a value of 1 means completely similar.
 
-```
+```julia
 evaluate(Levenshtein(), "New York", "New York")
 #> 0
 compare(Levenshtein(), "New York", "New York")
