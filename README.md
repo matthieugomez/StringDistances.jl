@@ -5,19 +5,19 @@
 This Julia package computes various distances between strings.
 
 ## Syntax
-The function `evaluate` return the *litteral distance* between two strings. 
-
-The function `compare` returns  *a similarity score* between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
+The package defines two functions:
+- The function `evaluate` return the distance between two strings. 
+- The function `compare` returns  a similarity score between two strings. The similarity score is inversely related to the distance, and is always between 0 and 1. A value of 0 being completely different and a value of 1 being completely similar.
 
 
 ```julia
 using StringDistances
+evaluate(Hamming(), "martha", "martha")
+#> 0.0
+compare(Hamming(), "martha", "martha")
+#> 1.0
 compare(Hamming(), "martha", "marhta")
 #> 0.6666666666666667
-compare(QGram(2), "martha", "marhta")
-#> 0.4
-compare(QGram(2), "martha", "martha")
-#> 1.0
 ```
 
 
