@@ -1,5 +1,5 @@
 
-using StringDistances, Base.Test
+using StringDistances, Test
 
 
 @test evaluate(Levenshtein(), "", "") == 0

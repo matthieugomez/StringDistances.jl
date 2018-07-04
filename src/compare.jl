@@ -96,8 +96,8 @@ function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::Abstr
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        i2_start =  chr2ind(s2, s2_start)
-        i2_end = s2_end == len2 ? endof(s2) : (chr2ind(s2, s2_end + 1) - 1)
+        i2_start =  nextind(s2, 0, s2_start)
+        i2_end = s2_end == len2 ? endof(s2) : (nextind(s2, 0, s2_end + 1) - 1)
         curr = compare(RatcliffObershelp(), s1, SubString(s2, i2_start, i2_end))
         out = max(out, curr)
     end

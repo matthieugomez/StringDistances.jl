@@ -1,5 +1,5 @@
 
-using StringDistances, Base.Test
+using StringDistances, Test
 
 # Compare
 @test compare(Hamming(), "", "abc") ≈ 0.0 atol = 1e-4
