@@ -5,8 +5,6 @@
 
 function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
     # in case this loop never happens
-    out1 = firstindex(s1)
-    out2 = firstindex(s2)
     x1 = iterate(s1)
     x2 = iterate(s2)
     l = 0
@@ -14,13 +12,11 @@ function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1
         ch1, state1 = x1
         ch2, state2 = x2
         ch1 != ch2 && break
-        out1 = state1
-        out2 = state2
         x1 = iterate(s1, state1)
         x2 = iterate(s2, state2)
         l += 1
     end
-    return l, out1, out2
+    return l, x1, x2
 end
 
 ##############################################################################
@@ -51,8 +47,7 @@ struct Levenshtein <: SemiMetric end
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     # prefix common to both strings can be ignored
     s2, len2, s1, len1 = reorder(s1, s2)
-    k, start1, start2 = common_prefix(s1, s2)
-    x1 = iterate(s1, start1)
+    k, x1, x2start = common_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
@@ -68,7 +63,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
         left = (i1 - 1)
         current = (i1 - 1)
         i2 = 0
-        x2 = iterate(s2, start2)
+        x2 = x2start
         while x2 != nothing
             i2 += 1
             ch2, state2 = x2
@@ -100,8 +95,7 @@ struct DamerauLevenshtein <: SemiMetric end
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
     s2, len2, s1, len1 = reorder(s1, s2)
     # prefix common to both strings can be ignored
-    k, state1, start2 = common_prefix(s1, s2)
-    x1 = iterate(s1, state1)
+    k, x1, x2start = common_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
     v0 = Array{Int}(undef, len2 - k)
     @inbounds for i2 in 1:(len2 - k)
@@ -110,20 +104,18 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     v2 = Array{Int}(undef, len2 - k)
     current = 0
     i1 = 0
-    ch1 = first(s1)
+    prevch1, = x1
     while (x1 != nothing)
         i1 += 1
-        prevch1 = ch1
         ch1, state1 = x1
-        x2 = iterate(s2, start2)
         left = (i1 - 1) 
         current = i1 
         nextTransCost = 0
-        ch2, = x2
+        prevch2, = x2start
+        x2 = x2start
         i2 = 0
         while (x2 != nothing)
             i2 += 1
-            prevch2 = ch2
             ch2, state2 = x2
             above = current
             thisTransCost = nextTransCost
@@ -151,8 +143,10 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
             end
             v0[i2] = current
             x2 = iterate(s2, state2)
+            prevch2 = ch2
         end
         x1 = iterate(s1, state1)
+        prevch1 = ch1
     end
     return current
 end

@@ -47,16 +47,16 @@ end
 
 function Base.iterate(s::CountIterator, state = (1, 1))
 	state1, state2 = state
-	state2 > length(s.v2) &&  state1 > length(s.v1) && return nothing
 	iter1 = state2 > length(s.v2)
 	iter2 = state1 > length(s.v1)
+	iter2 && iter1 && return nothing
 	if iter1
-		@inbounds x1 = s.v1[state1]
+		x1 = s.v1[state1]
 	elseif iter2
-		@inbounds x2 = s.v2[state2]
+		x2 = s.v2[state2]
 	else
-		@inbounds x1 = s.v1[state1]
-		@inbounds x2 = s.v2[state2]
+		x1 = s.v1[state1]
+		x2 = s.v2[state2]
 		iter1 = x1 <= x2
 		iter2 = x2 <= x1
 	end
@@ -64,6 +64,7 @@ function Base.iterate(s::CountIterator, state = (1, 1))
 	nextstate2 = iter2 ? searchsortedlast(s.v2, x2, state2, length(s.v2), Base.Forward) + 1 : state2
 	((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
 end
+
 
 
 ##############################################################################
