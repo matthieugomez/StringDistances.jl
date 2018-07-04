@@ -1,26 +1,23 @@
 
-using DataStructures, StringDistances
+using StringDistances
 
-x = map(randstring, rand(5:25,100_000))
-y = map(randstring, rand(5:25,100_000))
-function f(out, t, x, y)
-    d = Array(out, length(x))
-    @inbounds for i in 1:length(x)
-        d[i] = evaluate(t, x[i], y[i])
-    end
+x = map(Base.randstring, rand(5:25,500_000))
+y = map(Base.randstring, rand(5:25,500_000))
+function f(t, x, y)
+    [evaluate(t, x[i], y[i]) for i in 1:length(x)]
 end
 
-# similar
-@time f(Int, Levenshtein(), x, y)
-@time f(Float64, Jaro(), x, y)
+# same speed as StringDist
+@time f(Levenshtein(), x, y)
+@time f(Jaro(), x, y)
+@time f(RatcliffObershelp(), x, y)
 
-# 2x slower compared to StringDist
-@time f(Int, QGram(2), x, y)
-@time f(Float64, Cosine(2), x, y)
-@time f(Float64, Jaccard(2), x, y)
+# 4x slower compared to StringDist
+@time f(Jaccard(2), x, y)
+@time f(Cosine(2), x, y)
+@time f(QGram(2), x, y)
 
 #
-@time f(Float64, RatcliffObershelp(), x, y)
 
 
 
@@ -29,8 +26,8 @@ end
 
 #= Rcode
 library(stringdist)
-x <- sapply(sample(5:25,1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse="")) 
-y <- sapply(sample(5:25,1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse=""))
+x <- sapply(sample(5:25,5 * 1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse="")) 
+y <- sapply(sample(5:25,5 * 1e5,replace=TRUE), function(n) paste(sample(letters,n,replace=TRUE),collapse=""))
 system.time(stringdist(x,y,method='lv', nthread = 1))
 system.time(stringdist(x,y,method='jaccard', nthread = 1))
 system.time(stringdist(x,y,method='cosine', nthread = 1))

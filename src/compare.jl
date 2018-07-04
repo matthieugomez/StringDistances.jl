@@ -69,7 +69,7 @@ function compare(dist::Partial, s1::AbstractString, s2::AbstractString)
     iter = QGramIterator(s2, len2, len1)
     out = 0.0
     x = iterate(iter)
-    while x != nothing
+    while x !== nothing
         s, state = x
         curr = compare(dist.dist, s1, s)
         out = max(out, curr)

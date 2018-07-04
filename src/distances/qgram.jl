@@ -22,6 +22,15 @@ end
 Base.eltype(qgram::QGramIterator{S, T}) where {S <: SubString, T} = S
 Base.eltype(qgram::QGramIterator{S, T}) where {S, T} = SubString{S}
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
+
+##############################################################################
+##
+## CountedIterator that use Binary Search
+##
+## For each element in union{v1, v2}, this iterator output numbers of times it appears in v1 and the number of times it appears in v2
+## v1 and v2 must be sorted vectors
+##
+##############################################################################
 function Base.collect(qgram::QGramIterator)
 	x = Array{eltype(qgram)}(undef, length(qgram))
 	i = 0
@@ -33,19 +42,17 @@ function Base.collect(qgram::QGramIterator)
 end
 Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 
-##############################################################################
-##
-## For each element in union{v1, v2}, this iterator output numbers of times it appears in v1 and the number of times it appears in v2
-## v1 and v2 must be sorted vectors
-##
-##############################################################################
 
-struct CountIterator{T1 <: AbstractVector, T2 <: AbstractVector}
-	v1::T1
-	v2::T2
+struct CountIteratorBinary{T1, T2}
+	v1::Vector{T1}
+	v2::Vector{T2}
 end
 
-function Base.iterate(s::CountIterator, state = (1, 1))
+function CountIteratorBinary(s1::QGramIterator, s2::QGramIterator)
+	CountIteratorBinary(sort(s1), sort(s2))
+end
+
+function Base.iterate(s::CountIteratorBinary, state = (1, 1))
 	state1, state2 = state
 	iter1 = state2 > length(s.v2)
 	iter2 = state1 > length(s.v1)
@@ -66,6 +73,40 @@ function Base.iterate(s::CountIterator, state = (1, 1))
 end
 
 
+##############################################################################
+##
+## CountedIterator that use Dictionary
+##
+## For each element in union{v1, v2}, this iterator output numbers of times it appears in v1 and the number of times it appears in v2
+## v1 and v2 must be sorted vectors
+##
+##############################################################################
+struct CountIteratorDictionary{T}
+	d::T
+end
+
+function CountIteratorDictionary(s1::QGramIterator, s2::QGramIterator)
+	d = Dict{eltype(s1), Tuple{Int, Int}}()
+	for ch1 in s1
+		if haskey(d, ch1)
+			t = d[ch1]
+			d[ch1] = (t[1] + 1, 0)
+		else
+			d[ch1] = (1, 0)
+		end
+	end
+	for ch2 in s2
+		if haskey(d, ch2)
+			t = d[ch2]
+			d[ch2] = (t[1], t[2] + 1)
+		else
+			d[ch2] = (0, 1)
+		end
+	end
+	return values(d)
+end
+
+
 
 ##############################################################################
 ##
@@ -75,9 +116,9 @@ end
 abstract type AbstractQGram <: SemiMetric end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
-	sort1 = sort(QGramIterator(s1, length(s1), dist.q))
-	sort2 = sort(QGramIterator(s2, length(s2), dist.q))
-	evaluate(dist, CountIterator(sort1, sort2))
+	evaluate(dist, 
+		CountIteratorDictionary(QGramIterator(s1, length(s1), dist.q), 
+		QGramIterator(s2, length(s2), dist.q)))
 end
 
 ##############################################################################
