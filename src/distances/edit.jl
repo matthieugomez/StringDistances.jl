@@ -167,34 +167,35 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     # count m matching characters
     m = 0 
     flag = fill(false, len2)
+    i1_match = fill!(Array{Int}(undef, len1), firstindex(s1))
+    prevstate1 = firstindex(s1)
     i1 = 0
-    startstate2 = firstindex(s2)
-    starti2 = 0
-    state1 = firstindex(s1)
-    i1_match = fill!(Array{Int}(undef, len1), state1)
+    i2 = 0
     x1 = iterate(s1)
+    x2 = iterate(s2)
     while (x1 != nothing)
-        ch1, newstate1 = x1
+        ch1, state1 = x1
         i1 += 1
-        if starti2 < i1 - maxdist - 1
-            startstate2 = nextind(s2, startstate2)
-            starti2 += 1
-        end 
-        i2 = starti2
-        x2 = iterate(s2, startstate2)
-        while (x2 != nothing) && i2 <= i1 + maxdist
+        if i2 < i1 - maxdist - 1
             ch2, state2 = x2
             i2 += 1
-            if ch1 == ch2 && !flag[i2] 
+            x2 = iterate(s2, state2)
+        end 
+        i2curr = i2
+        x2curr = x2
+        while (x2curr != nothing) && i2curr <= i1 + maxdist
+            ch2, state2 = x2curr
+            i2curr += 1
+            if ch1 == ch2 && !flag[i2curr] 
                 m += 1
-                flag[i2] = true
-                i1_match[m] = state1
+                flag[i2curr] = true
+                i1_match[m] = prevstate1
                 break
             end
-            x2 = iterate(s2, state2) 
+            x2curr = iterate(s2, state2) 
         end
-        state1 = newstate1
         x1 = iterate(s1, state1)
+        prevstate1 = state1
     end
     # count t transpotsitions
     t = 0
