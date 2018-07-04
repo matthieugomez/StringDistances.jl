@@ -52,16 +52,14 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     # => distance between "" and s2[1:i}
     v0 = collect(1:(len2 - k))
     current = 0
-    i1 = 0
+    i1 = 1
     while x1 != nothing
-        i1 += 1
         ch1, state1 = x1
         left = (i1 - 1)
         current = (i1 - 1)
-        i2 = 0
+        i2 = 1
         x2 = x2start
         while x2 != nothing
-            i2 += 1
             ch2, state2 = x2
             #  update
             above, current, left = current, left, v0[i2]
@@ -73,8 +71,10 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
             end
             v0[i2] = current
             x2 = iterate(s2, state2)
+            i2 += 1
         end
         x1 = iterate(s1, state1)
+        i1 += 1
     end
     return current
 end
@@ -95,20 +95,18 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     (x1 == nothing) && return len2 - k
     v0 = collect(1:(len2 - k))
     v2 = similar(v0)
-    current = 0
-    i1 = 0
+    i1 = 1
+    current = i1
     prevch1, = x1
     while (x1 != nothing)
-        i1 += 1
         ch1, state1 = x1
         left = (i1 - 1) 
         current = i1 
         nextTransCost = 0
         prevch2, = x2start
         x2 = x2start
-        i2 = 0
+        i2 = 1
         while (x2 != nothing)
-            i2 += 1
             ch2, state2 = x2
             above = current
             thisTransCost = nextTransCost
@@ -136,9 +134,11 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
             end
             v0[i2] = current
             x2 = iterate(s2, state2)
+            i2 += 1
             prevch2 = ch2
         end
         x1 = iterate(s1, state1)
+        i1 += 1
         prevch1 = ch1
     end
     return current
@@ -162,14 +162,13 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     i1_match = prevstate1 * ones(Int, len1)
     #  m counts matching characters
     m = 0 
-    i1 = 0
-    i2 = 0
+    i1 = 1
+    i2 = 1
     x1 = iterate(s1)
     x2 = iterate(s2)
     while (x1 != nothing)
         ch1, state1 = x1
-        i1 += 1
-        if i2 < i1 - maxdist - 1
+        if i2 <= i1 - maxdist - 1
             ch2, state2 = x2
             i2 += 1
             x2 = iterate(s2, state2)
@@ -178,7 +177,6 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
         x2curr = x2
         while (x2curr != nothing) && i2curr <= i1 + maxdist
             ch2, state2 = x2curr
-            i2curr += 1
             if ch1 == ch2 && !flag[i2curr] 
                 m += 1
                 flag[i2curr] = true
@@ -186,8 +184,10 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
                 break
             end
             x2curr = iterate(s2, state2) 
+            i2curr += 1
         end
         x1 = iterate(s1, state1)
+        i1 += 1
         prevstate1 = state1
     end
     # count t transpotsitions
