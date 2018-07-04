@@ -11,12 +11,10 @@ struct QGramIterator{S <: AbstractString, T <: Integer}
 end
 
 
-function Base.iterate(qgram::QGramIterator)
-	(1, qgram.l < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
-end
-function Base.iterate(qgram::QGramIterator, state)
+function Base.iterate(qgram::QGramIterator, 
+	state = (1, qgram.l < qgram.q ? lastindex(qgram.s) + 1 : nextind(qgram.s, 0, qgram.q)))
 	istart, iend = state
-	iend > nchodeunits(qgram.s) && return nothing
+	iend > ncodeunits(qgram.s) && return nothing
 	element = SubString(qgram.s, istart, iend)
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
@@ -25,7 +23,7 @@ Base.eltype(qgram::QGramIterator{S, T}) where {S <: SubString, T} = S
 Base.eltype(qgram::QGramIterator{S, T}) where {S, T} = SubString{S}
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 function Base.collect(qgram::QGramIterator)
-	x = Array{eltype(qgram)}(length(qgram))
+	x = Array{eltype(qgram)}(undef, length(qgram))
 	i = 0
 	for q in qgram
 		i += 1
@@ -46,11 +44,10 @@ struct CountIterator{T1 <: AbstractVector, T2 <: AbstractVector}
 	v1::T1
 	v2::T2
 end
-Base.iterate(s::CountIterator) = (1, 1)
 
-function Base.iterate(s::CountIterator, state)
+function Base.iterate(s::CountIterator, state = (1, 1))
 	state1, state2 = state
-	state2 > s.v2 &&  state1 > s.v1 && nothing
+	state2 > length(s.v2) &&  state1 > length(s.v1) && return nothing
 	iter1 = state2 > length(s.v2)
 	iter2 = state1 > length(s.v1)
 	if iter1

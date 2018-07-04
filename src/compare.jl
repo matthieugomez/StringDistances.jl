@@ -67,13 +67,13 @@ function compare(dist::Partial, s1::AbstractString, s2::AbstractString)
     len1 == len2 && return compare(dist.dist, s1, s2)
     len1 == 0 && return compare(dist.dist, "", "")
     iter = QGramIterator(s2, len2, len1)
-    state = iterate(iter)
-    s, state = iterate(iter, state)
-    out = compare(dist.dist, s1, s)
-    while state != nothing
-        s, state = iterate(iter, state)
+    out = 0.0
+    x = iterate(iter)
+    while x != nothing
+        s, state = x
         curr = compare(dist.dist, s1, s)
         out = max(out, curr)
+        x = iterate(iter, state)
     end
     return out
 end
@@ -97,7 +97,7 @@ function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::Abstr
             s2_end += len2 - s2_end
         end
         i2_start =  nextind(s2, 0, s2_start)
-        i2_end = s2_end == len2 ? endof(s2) : (nextind(s2, 0, s2_end + 1) - 1)
+        i2_end = s2_end == len2 ? lastindex(s2) : (nextind(s2, 0, s2_end + 1) - 1)
         curr = compare(RatcliffObershelp(), s1, SubString(s2, i2_start, i2_end))
         out = max(out, curr)
     end
@@ -115,12 +115,8 @@ struct TokenSort{T <: PreMetric} <: PreMetric
 end
 
 function compare(dist::TokenSort, s1::AbstractString, s2::AbstractString)
-    if search(s1, Base._default_delims) > 0
-        s1 = join(sort!(split(s1)), " ")
-    end
-    if search(s2, Base._default_delims) > 0
-        s2 = join(sort!(split(s2)), " ")
-    end
+    s1 = join(sort!(split(s1)), " ")
+    s2 = join(sort!(split(s2)), " ")
     compare(dist.dist, s1, s2)
 end
 
@@ -137,8 +133,8 @@ end
 function compare(dist::TokenSet, s1::AbstractString, s2::AbstractString)
     v0, v1, v2 = _separate!(split(s1), split(s2))
     s0 = join(v0, " ")
-    s1 = join(chain(v0, v1), " ")
-    s2 = join(chain(v0, v2), " ")
+    s1 = join(Iterators.flatten((v0, v1)), " ")
+    s2 = join(Iterators.flatten((v0, v2)), " ")
     if isempty(s0)
         # otherwise compare(dist, "", "a")== 1.0 
         compare(dist.dist, s1, s2)

@@ -30,6 +30,7 @@ using StringDistances, Test
 @test evaluate(Hamming(), "testing", "this is a test") == 13
 @test evaluate(Hamming(), "saturday", "sunday") == 7
 
+@test evaluate(QGram(1), "abc", "abc") == 0
 @test evaluate(QGram(1), "", "abc") == 3
 @test evaluate(QGram(1), "abc", "cba") == 0
 @test evaluate(QGram(1), "abc", "ccc") == 4
@@ -54,6 +55,7 @@ using StringDistances, Test
 @test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
 
 
+@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547
 
 @test evaluate(Jaro(), "es an ", " vs an") ≈ 0.2777777777777777
 @test evaluate(Jaro(), " vs an", "es an ") ≈ 0.2777777777777777

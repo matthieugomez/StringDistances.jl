@@ -4,19 +4,23 @@
 ##############################################################################
 
 function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
-    ncu1 = ncodeunits(s1)
-    ncu2 = ncodeunits(s2)
-    state1 = firstindex(s1)
-    state2 = firstindex(s2)
+    # in case this loop never happens
+    out1 = firstindex(s1)
+    out2 = firstindex(s2)
+    x1 = iterate(s1)
+    x2 = iterate(s2)
     l = 0
-    while (state1 <= ncu1) && (state2 <= ncu2) && (l < lim || lim < 0)
-        ch1, nextstate1 = iterate(s1, state1)
-        ch2, nextstate2 = iterate(s2, state2)
+    while (x1 != nothing) && (x2 != nothing) && (l < lim || lim < 0)
+        ch1, state1 = x1
+        ch2, state2 = x2
         ch1 != ch2 && break
+        out1 = state1
+        out2 = state2
+        x1 = iterate(s1, state1)
+        x2 = iterate(s2, state2)
         l += 1
-        state1, state2 = nextstate1, nextstate2
     end
-    return l, state1, state2
+    return l, out1, out2
 end
 
 ##############################################################################
@@ -48,28 +52,26 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     # prefix common to both strings can be ignored
     s2, len2, s1, len1 = reorder(s1, s2)
     k, start1, start2 = common_prefix(s1, s2)
-    ncu1 = ncodeunits(s1)
-    ncu2 = ncodeunits(s2)
-    (start1 > ncu1) && return len2 - k
+    x1 = iterate(s1, start1)
+    (x1 == nothing) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
     v0 = Array{Int}(undef, len2 - k)
     for i2 in 1:(len2 - k)
         v0[i2] = i2 
     end
-    current = zero(0)
-    state1 = start1
+    current = 0
     i1 = 0
-    while state1 <= ncu1
+    while x1 != nothing
         i1 += 1
-        ch1, state1 = iterate(s1, i1)
+        ch1, state1 = x1
         left = (i1 - 1)
         current = (i1 - 1)
-        state2 = start2
         i2 = 0
-        while state2 <= ncu2
+        x2 = iterate(s2, start2)
+        while x2 != nothing
             i2 += 1
-            ch2, state2 = iterate(s2, state2)
+            ch2, state2 = x2
             #  update
             above, current, left = current, left, v0[i2]
             if ch1 != ch2
@@ -79,7 +81,9 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
                                 left + 1)
             end
             v0[i2] = current
+            x2 = iterate(s2, state2)
         end
+        x1 = iterate(s1, state1)
     end
     return current
 end
@@ -95,36 +99,32 @@ struct DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
     s2, len2, s1, len1 = reorder(s1, s2)
-    ncu1 = ncodeunits(s1)
-    ncu2 = ncodeunits(s2)
     # prefix common to both strings can be ignored
-    k, start1, start2 = common_prefix(s1, s2)
-    (start1 > ncu1) && return len2 - k
-
+    k, state1, start2 = common_prefix(s1, s2)
+    x1 = iterate(s1, state1)
+    (x1 == nothing) && return len2 - k
     v0 = Array{Int}(undef, len2 - k)
     @inbounds for i2 in 1:(len2 - k)
         v0[i2] = i2
     end
     v2 = Array{Int}(undef, len2 - k)
-
-    ch1, = iterate(s1, start1)
     current = 0
-    state1 = start1
     i1 = 0
-    while state1 <= ncu1
+    ch1 = first(s1)
+    while (x1 != nothing)
         i1 += 1
         prevch1 = ch1
-        ch1, state1 = iterate(s1, i1)
-        ch2, = iterate(s2, start2)
+        ch1, state1 = x1
+        x2 = iterate(s2, start2)
         left = (i1 - 1) 
         current = i1 
         nextTransCost = 0
-        state2 = start2
+        ch2, = x2
         i2 = 0
-        while state2 <= ncu2
+        while (x2 != nothing)
             i2 += 1
             prevch2 = ch2
-            ch2, state2 = iterate(s2, state2)
+            ch2, state2 = x2
             above = current
             thisTransCost = nextTransCost
             nextTransCost = v2[i2]
@@ -150,7 +150,9 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
                 end
             end
             v0[i2] = current
+            x2 = iterate(s2, state2)
         end
+        x1 = iterate(s1, state1)
     end
     return current
 end
@@ -165,8 +167,6 @@ struct Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     s2, len2, s1, len1 = reorder(s1, s2)
-    ncu1 = ncodeunits(s1)
-    ncu2 = ncodeunits(s2)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
@@ -174,21 +174,22 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     m = 0 
     flag = fill(false, len2)
     i1 = 0
-    state1 = firstindex(s1)
     startstate2 = firstindex(s2)
     starti2 = 0
-    i1_match = fill!(Array{typeof(state1)}(undef, len1), state1)
-    while state1 <= ncu1
-        ch1, newstate1 = iterate(s1, i1)
+    state1 = firstindex(s1)
+    i1_match = fill!(Array{Int}(undef, len1), state1)
+    x1 = iterate(s1)
+    while (x1 != nothing)
+        ch1, newstate1 = x1
         i1 += 1
         if starti2 < i1 - maxdist - 1
-            startstate2 = iterate(s2, startstate2)
+            startstate2 = nextind(s2, startstate2)
             starti2 += 1
         end 
         i2 = starti2
-        state2 = startstate2
-        while state2 <= len2 && i2 <= i1 + maxdist
-            ch2, state2 = iterate(s2, state2)
+        x2 = iterate(s2, startstate2)
+        while (x2 != nothing) && i2 <= i1 + maxdist
+            ch2, state2 = x2
             i2 += 1
             if ch1 == ch2 && !flag[i2] 
                 m += 1
@@ -196,8 +197,10 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
                 i1_match[m] = state1
                 break
             end
+            x2 = iterate(s2, state2) 
         end
         state1 = newstate1
+        x1 = iterate(s1, state1)
     end
     # count t transpotsitions
     t = 0
