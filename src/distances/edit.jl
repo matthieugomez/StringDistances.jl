@@ -4,17 +4,19 @@
 ##############################################################################
 
 function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
-    start1 = firstindex(s1)
-    start2 = firstindex(s2)
+    ncu1 = ncodeunits(s1)
+    ncu2 = ncodeunits(s2)
+    state1 = firstindex(s1)
+    state2 = firstindex(s2)
     l = 0
-    while (start1 <= ncodeunits(s1)) && (start2 <= ncodeunits(s2)) && (l < lim || lim < 0)
-        ch1, nextstart1 = iterate(s1, start1)
-        ch2, nextstart2 = iterate(s2, start2)
+    while (state1 <= ncu1) && (state2 <= ncu2) && (l < lim || lim < 0)
+        ch1, nextstate1 = iterate(s1, state1)
+        ch2, nextstate2 = iterate(s2, state2)
         ch1 != ch2 && break
         l += 1
-        start1, start2 = nextstart1, nextstart2
+        state1, state2 = nextstate1, nextstate2
     end
-    return l, start1, start2
+    return l, state1, state2
 end
 
 ##############################################################################
@@ -44,27 +46,28 @@ struct Levenshtein <: SemiMetric end
 
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     # prefix common to both strings can be ignored
-    k, start1, start2 = common_prefix(s1, s2)
     s2, len2, s1, len1 = reorder(s1, s2)
-    (start1 > ncodeunits(s1)) && return len2 - k
-
+    k, start1, start2 = common_prefix(s1, s2)
+    ncu1 = ncodeunits(s1)
+    ncu2 = ncodeunits(s2)
+    (start1 > ncu1) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
     v0 = Array{Int}(undef, len2 - k)
-    @inbounds for i2 in 1:(len2 - k)
+    for i2 in 1:(len2 - k)
         v0[i2] = i2 
     end
     current = zero(0)
     state1 = start1
     i1 = 0
-    while state1 <= ncodeunits(s1)
+    while state1 <= ncu1
         i1 += 1
         ch1, state1 = iterate(s1, i1)
         left = (i1 - 1)
         current = (i1 - 1)
         state2 = start2
         i2 = 0
-        while state2 <= ncodeunits(s1)
+        while state2 <= ncu2
             i2 += 1
             ch2, state2 = iterate(s2, state2)
             #  update
@@ -91,11 +94,12 @@ end
 struct DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
-
+    s2, len2, s1, len1 = reorder(s1, s2)
+    ncu1 = ncodeunits(s1)
+    ncu2 = ncodeunits(s2)
     # prefix common to both strings can be ignored
     k, start1, start2 = common_prefix(s1, s2)
-    s2, len2, s1, len1 = reorder(s1, s2)
-    (start1 > ncodeunits(s1)) && return len2 - k
+    (start1 > ncu1) && return len2 - k
 
     v0 = Array{Int}(undef, len2 - k)
     @inbounds for i2 in 1:(len2 - k)
@@ -107,7 +111,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     current = 0
     state1 = start1
     i1 = 0
-    while state1 <= ncodeunits(s1)
+    while state1 <= ncu1
         i1 += 1
         prevch1 = ch1
         ch1, state1 = iterate(s1, i1)
@@ -117,7 +121,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
         nextTransCost = 0
         state2 = start2
         i2 = 0
-        while state2 <= ncodeunits(s2)
+        while state2 <= ncu2
             i2 += 1
             prevch2 = ch2
             ch2, state2 = iterate(s2, state2)
@@ -161,6 +165,8 @@ struct Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     s2, len2, s1, len1 = reorder(s1, s2)
+    ncu1 = ncodeunits(s1)
+    ncu2 = ncodeunits(s2)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
@@ -172,7 +178,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     startstate2 = firstindex(s2)
     starti2 = 0
     i1_match = fill!(Array{typeof(state1)}(undef, len1), state1)
-    while state1 <= ncodeunits(s1)
+    while state1 <= ncu1
         ch1, newstate1 = iterate(s1, i1)
         i1 += 1
         if starti2 < i1 - maxdist - 1

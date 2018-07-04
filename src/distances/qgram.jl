@@ -10,22 +10,19 @@ struct QGramIterator{S <: AbstractString, T <: Integer}
 	q::T # length of q-grams
 end
 
-function Base.start(qgram::QGramIterator)
+
+function Base.iterate(qgram::QGramIterator)
 	(1, qgram.l < qgram.q ? endof(qgram.s) + 1 : chr2ind(qgram.s, qgram.q))
 end
-function Base.next(qgram::QGramIterator, state)
+function Base.iterate(qgram::QGramIterator, state)
 	istart, iend = state
+	iend > nchodeunits(qgram.s) && return nothing
 	element = SubString(qgram.s, istart, iend)
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-function Base.done(qgram::QGramIterator, state)
-	istart, idend = state
-	done(qgram.s, idend)
-end
 Base.eltype(qgram::QGramIterator{S, T}) where {S <: SubString, T} = S
 Base.eltype(qgram::QGramIterator{S, T}) where {S, T} = SubString{S}
-
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 function Base.collect(qgram::QGramIterator)
 	x = Array{eltype(qgram)}(length(qgram))
@@ -45,16 +42,17 @@ Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 ##
 ##############################################################################
 
-struct CountInterator{T1 <: AbstractVector, T2 <: AbstractVector}
+struct CountIterator{T1 <: AbstractVector, T2 <: AbstractVector}
 	v1::T1
 	v2::T2
 end
-Base.start(s::CountInterator) = (1, 1)
+Base.iterate(s::CountIterator) = (1, 1)
 
-function Base.next(s::CountInterator, state)
+function Base.iterate(s::CountIterator, state)
 	state1, state2 = state
-	iter1 = done(s.v2, state2)
-	iter2 = done(s.v1, state1)
+	state2 > s.v2 &&  state1 > s.v1 && nothing
+	iter1 = state2 > length(s.v2)
+	iter2 = state1 > length(s.v1)
 	if iter1
 		@inbounds x1 = s.v1[state1]
 	elseif iter2
@@ -70,10 +68,6 @@ function Base.next(s::CountInterator, state)
 	((nextstate1 - state1, nextstate2 - state2), (nextstate1, nextstate2))
 end
 
-function Base.done(s::CountInterator, state) 
-	state1, state2 = state
-	done(s.v2, state2) && done(s.v1, state1)
-end
 
 ##############################################################################
 ##
@@ -85,7 +79,7 @@ abstract type AbstractQGram <: SemiMetric end
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
 	sort1 = sort(QGramIterator(s1, length(s1), dist.q))
 	sort2 = sort(QGramIterator(s2, length(s2), dist.q))
-	evaluate(dist, CountInterator(sort1, sort2))
+	evaluate(dist, CountIterator(sort1, sort2))
 end
 
 ##############################################################################
