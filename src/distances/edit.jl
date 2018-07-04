@@ -4,7 +4,6 @@
 ##############################################################################
 
 function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
-    # in case this loop never happens
     x1 = iterate(s1)
     x2 = iterate(s2)
     l = 0
@@ -51,10 +50,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
     (x1 == nothing) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
-    v0 = Array{Int}(undef, len2 - k)
-    for i2 in 1:(len2 - k)
-        v0[i2] = i2 
-    end
+    v0 = collect(1:(len2 - k))
     current = 0
     i1 = 0
     while x1 != nothing
@@ -97,11 +93,8 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     # prefix common to both strings can be ignored
     k, x1, x2start = common_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
-    v0 = Array{Int}(undef, len2 - k)
-    @inbounds for i2 in 1:(len2 - k)
-        v0[i2] = i2
-    end
-    v2 = Array{Int}(undef, len2 - k)
+    v0 = collect(1:(len2 - k))
+    v2 = similar(v0)
     current = 0
     i1 = 0
     prevch1, = x1
@@ -164,11 +157,11 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
-    # count m matching characters
-    m = 0 
     flag = fill(false, len2)
-    i1_match = fill!(Array{Int}(undef, len1), firstindex(s1))
     prevstate1 = firstindex(s1)
+    i1_match = prevstate1 * ones(Int, len1)
+    #  m counts matching characters
+    m = 0 
     i1 = 0
     i2 = 0
     x1 = iterate(s1)
@@ -208,9 +201,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
             t += ch2 != iterate(s1, i1_match[i1])[1]
         end
     end
-    m == 0.0 && return 1.0
+    m == 0 && return 1.0
     score = (m / len1 + m / len2 + (m - t/2) / m) / 3.0
     return 1.0 - score
 end
-
-jaro(s1::AbstractString, s2::AbstractString) = evaluate(Jaro(), s1, s2)
