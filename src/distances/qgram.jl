@@ -117,7 +117,7 @@ abstract type AbstractQGram <: SemiMetric end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
 	evaluate(dist, 
-		CountIteratorDictionary(QGramIterator(s1, length(s1), dist.q), 
+		CountIteratorBinary(QGramIterator(s1, length(s1), dist.q), 
 		QGramIterator(s2, length(s2), dist.q)))
 end
 
