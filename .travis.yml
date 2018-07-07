@@ -1,6 +1,10 @@
 language: julia
 julia:
+- 0.7
 - nightly
+matrix:
+  allow_failures:
+    - julia: nightly
 script:
 - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("StringDistances"); Pkg.test("StringDistances"; coverage=true)'
