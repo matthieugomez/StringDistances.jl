@@ -87,7 +87,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 		```
 
 
-	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths.
+	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is the default distance  in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) .
 
 		```julia
 		compare(TokenMax(RatcliffObershelp()),"mariners vs angels", "los angeles angels at seattle mariners")
@@ -95,8 +95,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 		```
 ## Compare vs Evaluate
 The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
-
-In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar.
+In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. some distances are between 0 and 1. Others are unbouded.
 
 ```julia
 compare(Levenshtein(), "New York", "New York")
@@ -108,12 +107,12 @@ evaluate(Levenshtein(), "New York", "New York")
 ## Which distance should I use?
 
 As a rule of thumb, 
-- Standardize strings before comparing them (correct for uppercases, punctuations, whitespaces, accents, abbreviations...)
-- Don't use Edit Distances if word order do not matter.
-- The distance `Tokenmax(RatcliffObershelp())` is a good default choice.
+- Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
+- Don't use one of the Edit distances if word order do not matter.
+- The distance `Tokenmax(RatcliffObershelp())` is a good choice to link names or adresses across datasets.
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
-- [fuzzywuzzy blog post](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
+- [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 
 

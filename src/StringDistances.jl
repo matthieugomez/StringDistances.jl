@@ -7,7 +7,7 @@ module StringDistances
 ## Export
 ##
 ##############################################################################
-import Base: eltype, length, iterate, ==, hash, isless, convert, show, endof
+import Base: eltype, length, iterate, ==, hash, isless, convert, show
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 import IterTools: chain
 export
