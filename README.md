@@ -108,7 +108,7 @@ evaluate(Levenshtein(), "New York", "New York")
 
 As a rule of thumb, 
 - Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
-- Don't use one of the Edit distances if word order do not matter.
+- Only consider using one of the Edit distances if word order matters.
 - The distance `Tokenmax(RatcliffObershelp())` is a good choice to link names or adresses across datasets.
 
 ## References
