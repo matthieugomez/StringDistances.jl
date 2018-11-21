@@ -19,8 +19,8 @@ function Base.iterate(qgram::QGramIterator,
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.eltype(qgram::QGramIterator{S, T}) where {S <: SubString, T} = S
-Base.eltype(qgram::QGramIterator{S, T}) where {S, T} = SubString{S}
+Base.eltype(qgram::QGramIterator{S}) where {S} = SubString{S}
+Base.eltype(qgram::QGramIterator{S}) where {S <: SubString} = S
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 
 ##############################################################################
@@ -31,6 +31,11 @@ Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 ## v1 and v2 must be sorted vectors
 ##
 ##############################################################################
+struct CountIteratorBinary{T1, T2}
+	v1::Vector{T1}
+	v2::Vector{T2}
+end
+
 function Base.collect(qgram::QGramIterator)
 	x = Array{eltype(qgram)}(undef, length(qgram))
 	i = 0
@@ -42,11 +47,6 @@ function Base.collect(qgram::QGramIterator)
 end
 Base.sort(qgram::QGramIterator) = sort!(collect(qgram))
 
-
-struct CountIteratorBinary{T1, T2}
-	v1::Vector{T1}
-	v2::Vector{T2}
-end
 
 function CountIteratorBinary(s1::QGramIterator, s2::QGramIterator)
 	CountIteratorBinary(sort(s1), sort(s2))

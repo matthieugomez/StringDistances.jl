@@ -1,4 +1,3 @@
-__precompile__(true)
 
 module StringDistances
 
@@ -29,11 +28,16 @@ TokenSort,
 TokenSet,
 TokenMax
 
+
+
+
+
 ##############################################################################
 ##
 ## include
 ##
 ##############################################################################
+
 include("utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")

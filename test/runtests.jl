@@ -1,6 +1,6 @@
 using StringDistances
 
-tests = ["distances.jl", "modifiers.jl"]
+tests = ["distances.jl", "modifiers.jl", "utf8.jl"]
 
 println("Running tests:")
 
