@@ -1,4 +1,3 @@
-
 using StringDistances, Test
 
 # check with weird utf8 strings

@@ -1,6 +1,3 @@
-\
-
-
 ##############################################################################
 ##
 ## compare
@@ -21,14 +18,13 @@ end
 function compare(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
     # When string length < q for qgram distance, returns s1 == s2
     len1 = length(s1) ; len2 = length(s2)
-    min(len1, len2) <= (dist.q - 1) && return convert(Float64, s1 == s2)
+    min(len1, len2) <= (param(dist) - 1) && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
-        1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
+        1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * param(dist) + 2)
     else
         1 - evaluate(dist, s1, s2)
     end
 end
-
 
 ##############################################################################
 ##
@@ -70,7 +66,7 @@ function compare(dist::Partial, s1::AbstractString, s2::AbstractString)
     s2, len2, s1, len1 = reorder(s1, s2)
     len1 == len2 && return compare(dist.dist, s1, s2)
     len1 == 0 && return compare(dist.dist, "", "")
-    iter = QGramIterator(s2, len2, len1)
+    iter = QGramIterator{typeof(s2), len1}(s2, len2)
     out = 0.0
     x = iterate(iter)
     while x !== nothing
