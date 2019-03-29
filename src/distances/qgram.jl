@@ -1,3 +1,4 @@
+
 ##############################################################################
 ##
 ## Define a type that iterates through q-grams of a string
@@ -18,9 +19,9 @@ function Base.iterate(qgram::QGramIterator{S, N},
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.eltype(qgram::QGramIterator{S}) where {S} = S
 Base.length(qgram::QGramIterator{S, N}) where {S, N} = max(qgram.l - N + 1, 0)
 
+Base.eltype(qgram::QGramIterator) = String
 
 ##############################################################################
 ##
@@ -36,35 +37,31 @@ end
 
 # see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
 function CountIteratorDictionary(s1::QGramIterator{S1, N}, s2::QGramIterator{S2, N}) where {S1, S2, N}
-	K = eltype(s1)
-	d = Dict{K, NTuple{2, UInt8}}()
-	sizehint!(d, length(s1))
+	K = String
+	d = Dict{K, NTuple{2, Int}}()
+	sizehint!(d, length(s1) + length(s2))
 	for ch10 in s1
 		ch1 = convert(K, ch10)
-		if !isequal(ch1, ch10)
-		    throw(ArgumentError("$(limitrepr(ch10)) is not a valid key for type $K"))
-		end
+		!isequal(ch1, ch10) && throw(ArgumentError("$(limitrepr(ch10)) is not a valid key for type $K"))
 		index = Base.ht_keyindex2!(d, ch1)
 		if index > 0
 			d.age += 1
 			@inbounds d.keys[index] = ch1
-			@inbounds d.vals[index] = (d.vals[index][1] + UInt8(1), UInt8(0))
+			@inbounds d.vals[index] = (d.vals[index][1] + 1, 0)
 		else
-			Base._setindex!(d, (UInt8(1), UInt8(0)), ch1, -index)
+			Base._setindex!(d, (1, 0), ch1, -index)
 		end
 	end
 	for ch20 in s2
 		ch2 = convert(K, ch20)
-		if !isequal(ch2, ch20)
-		    throw(ArgumentError("$(limitrepr(ch20)) is not a valid key for type $K"))
-		end
+		!isequal(ch2, ch20) && throw(ArgumentError("$(limitrepr(ch20)) is not a valid key for type $K"))
 		index = Base.ht_keyindex2!(d, ch2)
 		if index > 0
 			d.age += 1
 			@inbounds d.keys[index] = ch2
-			@inbounds d.vals[index] = (d.vals[index][1], d.vals[index][2] + UInt8(1))
+			@inbounds d.vals[index] = (d.vals[index][1], d.vals[index][2] + 1)
 		else
-			Base._setindex!(d, (UInt8(0), UInt8(1)), ch2, -index)
+			Base._setindex!(d, (0, 1), ch2, -index)
 		end
 	end
 	return values(d)
