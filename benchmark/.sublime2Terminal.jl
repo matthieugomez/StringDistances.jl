@@ -1,1 +1,1 @@
-@time f(Cosine(2), x, y)
+@time f(Jaccard(2), x, y)
