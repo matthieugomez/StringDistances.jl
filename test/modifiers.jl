@@ -85,3 +85,5 @@ s = "HSINCHUANG"
 
 
 @test compare(TokenSet(Partial(RatcliffObershelp())),"mariners vs angels", "los angeles angels at seattle mariners") ≈ 1.0
+
+@test compare(Partial(RatcliffObershelp()), "为人子女者要堂堂正正做人，千万不可作奸犯科，致使父母蒙羞", "此前稍早些时候中国商务部发布消息称，中美经贸高级别磋商双方牵头人通话，中方就美拟9月1日加征关税进行了严正交涉。") ≈ 0.0714285714285714
