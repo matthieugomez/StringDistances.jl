@@ -9,10 +9,11 @@ struct QGramIterator{S <: AbstractString, N}
 	s::S # grapheme
 	l::Int # length of string
 end
+# N is the number of characters in the QGram
 param(x::QGramIterator{S, N}) where {S, N} = N
 
 function Base.iterate(qgram::QGramIterator{S, N}, 
-	state = (1, qgram.l < N ? lastindex(qgram.s) + 1 : nextind(qgram.s, 0, N))) where {S, N}
+	state = (1, qgram.l < N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, N))) where {S, N}
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
 	element = qgram.s[istart:iend]
@@ -20,7 +21,6 @@ function Base.iterate(qgram::QGramIterator{S, N},
 	element, nextstate
 end
 Base.length(qgram::QGramIterator{S, N}) where {S, N} = max(qgram.l - N + 1, 0)
-
 Base.eltype(qgram::QGramIterator) = String
 
 ##############################################################################
@@ -77,11 +77,13 @@ end
 abstract type AbstractQGram{N} <: SemiMetric end
 param(x::AbstractQGram{N}) where N = N
 
+function qgram_iterator(dist::AbstractQGram, s::AbstractString)
+	QGramIterator{typeof(s), param(dist)}(s, length(s))
+end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
 	evaluate(dist, 
-		CountIteratorDictionary(QGramIterator{typeof(s1), param(dist)}(s1, length(s1)), 
-		QGramIterator{typeof(s2), param(dist)}(s2, length(s2))))
+		CountIteratorDictionary(qgram_iterator(dist, s1), qgram_iterator(dist, s2)))
 end
 
 ##############################################################################
