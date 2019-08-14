@@ -32,8 +32,8 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     a = longest_common_substring(s1, s2)
     if a[3] > 0
         push!(x, (a[1] + start1 - 1, a[2] + start2 - 1, a[3]))
-        s1before = SubString(s1, firstindex(s1), nextind(s1, 0, a[1] - 1))
-        s2before = SubString(s2, firstindex(s2), nextind(s2, 0, a[2] - 1))
+        s1before = SubString(s1, 1, nextind(s1, 0, a[1] - 1))
+        s2before = SubString(s2, 1, nextind(s2, 0, a[2] - 1))
         matching_blocks!(x, s1before, s2before, start1, start2)
         if ((a[1] + a[3]) <= lastindex(s1)) & ((a[2] + a[3]) <= lastindex(s2))
             s1after = SubString(s1, nextind(s1, 0, a[1] + a[3]), lastindex(s1))
