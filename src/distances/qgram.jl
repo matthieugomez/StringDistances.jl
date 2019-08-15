@@ -4,13 +4,11 @@
 ## Define a type that iterates through q-grams of a string
 ##
 ##############################################################################
-
+# N is the number of characters in the QGram
 struct QGramIterator{S <: AbstractString, N}
 	s::S # grapheme
 	l::Int # length of string
 end
-# N is the number of characters in the QGram
-param(x::QGramIterator{S, N}) where {S, N} = N
 
 function Base.iterate(qgram::QGramIterator{S, N}, 
 	state = (1, qgram.l < N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, N))) where {S, N}
@@ -25,48 +23,38 @@ Base.eltype(qgram::QGramIterator) = String
 
 ##############################################################################
 ##
-## CountedIterator that use Dictionary
-##
-## For each element in union{v1, v2}, this iterator output numbers of times it appears in v1 and the number of times it appears in v2
-## v1 and v2 must be sorted vectors
+## For two iterators x1 x2, count_map(x1, x2) returns an iterator that returns,  for each element in union{x1, x2}, the numbers of times it appears in x1 and the number of times it appears in x2
 ##
 ##############################################################################
-struct CountIteratorDictionary{T}
-	d::T
-end
 
+# I use a faster way to change a dictionary key
 # see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
-function CountIteratorDictionary(s1::QGramIterator{S1, N}, s2::QGramIterator{S2, N}) where {S1, S2, N}
-	K = String
+function count_map(s1, s2) where {S1, S2, N}
+	K = Union{eltype(s1), eltype(s2)}
 	d = Dict{K, NTuple{2, Int}}()
 	sizehint!(d, length(s1) + length(s2))
-	for ch10 in s1
-		ch1 = convert(K, ch10)
-		!isequal(ch1, ch10) && throw(ArgumentError("$(limitrepr(ch10)) is not a valid key for type $K"))
+	for ch1 in s1
 		index = Base.ht_keyindex2!(d, ch1)
 		if index > 0
 			d.age += 1
 			@inbounds d.keys[index] = ch1
 			@inbounds d.vals[index] = (d.vals[index][1] + 1, 0)
 		else
-			Base._setindex!(d, (1, 0), ch1, -index)
+			@inbounds Base._setindex!(d, (1, 0), ch1, -index)
 		end
 	end
-	for ch20 in s2
-		ch2 = convert(K, ch20)
-		!isequal(ch2, ch20) && throw(ArgumentError("$(limitrepr(ch20)) is not a valid key for type $K"))
+	for ch2 in s2
 		index = Base.ht_keyindex2!(d, ch2)
 		if index > 0
 			d.age += 1
 			@inbounds d.keys[index] = ch2
 			@inbounds d.vals[index] = (d.vals[index][1], d.vals[index][2] + 1)
 		else
-			Base._setindex!(d, (0, 1), ch2, -index)
+			@inbounds Base._setindex!(d, (0, 1), ch2, -index)
 		end
 	end
 	return values(d)
 end
-
 
 
 ##############################################################################
@@ -75,15 +63,13 @@ end
 ##
 ##############################################################################
 abstract type AbstractQGram{N} <: SemiMetric end
-param(x::AbstractQGram{N}) where N = N
 
-function qgram_iterator(dist::AbstractQGram, s::AbstractString)
-	QGramIterator{typeof(s), param(dist)}(s, length(s))
+function qgram_iterator(dist::AbstractQGram{N}, s::AbstractString) where {N}
+	QGramIterator{typeof(s), N}(s, length(s))
 end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
-	evaluate(dist, 
-		CountIteratorDictionary(qgram_iterator(dist, s1), qgram_iterator(dist, s2)))
+	evaluate(dist, count_map(qgram_iterator(dist, s1), qgram_iterator(dist, s2)))
 end
 
 ##############################################################################
