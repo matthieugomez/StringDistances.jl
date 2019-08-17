@@ -129,28 +129,17 @@ struct TokenSet{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
-    v0, v1, v2 = separate!(SortedSet(split(s1)), SortedSet(split(s2)))
+    v1 = SortedSet(split(s1))
+    v2 = SortedSet(split(s2))
+    v0 = intersect(v1, v2)
     s0 = join(v0, " ")
-    s1 = join(union(v0, v1), " ")
-    s2 = join(union(v0, v2), " ")
+    s1 = join(v1, " ")
+    s2 = join(v2, " ")
     max(compare(s0, s1, dist.dist), 
         compare(s0, s2, dist.dist),
         compare(s1, s2, dist.dist)) 
-
 end
 
-# separate 2 sets in intersection, setdiff1, setdiff2 (all sorted)
-function separate!(v1::SortedSet, v2::SortedSet)
-    out = OrderedSet{eltype(v1)}()
-    for x in v1
-        if x in v2
-            pop!(v1, x)
-            pop!(v2, x)
-            push!(out, x)
-        end
-    end
-    return out, v1, v2
-end
 
 ##############################################################################
 ##
