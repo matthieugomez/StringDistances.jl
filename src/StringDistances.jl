@@ -5,7 +5,7 @@ module StringDistances
 ## Export
 ##
 ##############################################################################
-
+using DataStructures
 import Base: eltype, length, iterate, ==, hash, isless, convert, show, @deprecate
 import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
 import IterTools: chain

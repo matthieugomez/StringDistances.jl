@@ -52,7 +52,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 	#> 0.9538461538461539
 	```
 
-- Modifiers from the Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/). One difference with this Python library is that modifiers are defined for any distance, not just the levenshtein one.
+- Modifiers from the Python library [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/), that can be applied to any distance.
 
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the maximal similarity score between the shorter string and substrings of the longer string.
 

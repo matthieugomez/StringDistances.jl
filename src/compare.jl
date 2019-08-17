@@ -129,35 +129,24 @@ struct TokenSet{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
-    v0, v1, v2 = _separate!(split(s1), split(s2))
+    v0, v1, v2 = separate!(SortedSet(split(s1)), SortedSet(split(s2)))
     s0 = join(v0, " ")
-    s1 = join(Iterators.flatten((v0, v1)), " ")
-    s2 = join(Iterators.flatten((v0, v2)), " ")
-    # otherwise compare("", "a", dist)== 1.0 
-    isempty(s0) && return compare(s1, s2, dist.dist)
+    s1 = join(union(v0, v1), " ")
+    s2 = join(union(v0, v2), " ")
     max(compare(s0, s1, dist.dist), 
-            compare(s1, s2, dist.dist), 
-            compare(s0, s2, dist.dist))
+        compare(s0, s2, dist.dist),
+        compare(s1, s2, dist.dist)) 
+
 end
 
-# separate 2 vectors in intersection, setdiff1, setdiff2 (all sorted)
-function _separate!(v1::AbstractVector, v2::AbstractVector)
-    sort!(v1)
-    sort!(v2)
-    out = eltype(v1)[]
-    start = 1
-    i1 = 0
-    while i1 < length(v1)
-        i1 += 1
-        x = v1[i1]
-        i2 = searchsortedfirst(v2, x, start, length(v2), Base.Forward)
-        i2 > length(v2) && break 
-        if i2 > 0 && v2[i2] == x
-            deleteat!(v1, i1)
-            deleteat!(v2, i2)
+# separate 2 sets in intersection, setdiff1, setdiff2 (all sorted)
+function separate!(v1::SortedSet, v2::SortedSet)
+    out = OrderedSet{eltype(v1)}()
+    for x in v1
+        if x in v2
+            pop!(v1, x)
+            pop!(v2, x)
             push!(out, x)
-            i1 -= 1
-            start = i2 
         end
     end
     return out, v1, v2
