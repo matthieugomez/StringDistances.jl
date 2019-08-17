@@ -135,9 +135,10 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
     s0 = join(v0, " ")
     s1 = join(v1, " ")
     s2 = join(v2, " ")
+    isempty(s0) && return compare(s1, s2, dist.dist)
     max(compare(s0, s1, dist.dist), 
         compare(s0, s2, dist.dist),
-        compare(s1, s2, dist.dist)) 
+        compare(s1, s2, dist.dist))
 end
 
 

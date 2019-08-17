@@ -68,10 +68,13 @@ s = "HSINCHUANG"
 @test compare("mariners vs angels", "los angeles angels of anaheim at seattle mariners", TokenSet(RatcliffObershelp())) ≈ 1.0 - 0.09090909090909094
 
 
+@test compare("New York Mets vs Atlanta Braves", "", RatcliffObershelp())  ≈ 0.0
+
+
 @test compare("New York Mets vs Atlanta Braves", "", TokenSort(RatcliffObershelp()))  ≈ 0.0
 
 # ADD AGAIN
-#@test compare("mariners vs angels", "", TokenSet(RatcliffObershelp())) ≈ 0.0
+@test compare("mariners vs angels", "", TokenSet(RatcliffObershelp())) ≈ 0.0
 
 
 
