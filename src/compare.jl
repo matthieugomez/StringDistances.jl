@@ -4,7 +4,11 @@
 ## compare always return a value between 0 and 1.
 ##
 ##############################################################################
+"""
+    compare(s1::AbstractString, s2::AbstractString, dist::PreMetric)
 
+compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
+"""
 function compare(s1::AbstractString, s2::AbstractString, dist::PreMetric)
     1.0 - evaluate(dist, s1, s2)
 end
