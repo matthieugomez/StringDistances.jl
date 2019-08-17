@@ -18,7 +18,7 @@ end
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::AbstractQGramDistance)
     # When string length < q for qgram distance, returns s1 == s2
-    len1 = length(s1) ; len2 = length(s2)
+    len1, len2 = length(s1), length(s2)
     min(len1, len2) <= (dist.N - 1) && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
         1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.N + 2)
@@ -69,14 +69,10 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
     s2, len2, s1, len1 = reorder(s1, s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     len1 == 0 && return compare("", "", dist.dist)
-    iter = QGramIterator(s2, len2, len1)
     out = 0.0
-    x = iterate(iter)
-    while x !== nothing
-        s, state = x
-        curr = compare(s1, s, dist.dist)
+    for x in qgram_iterator(s2, len1)
+        curr = compare(s1, x, dist.dist)
         out = max(out, curr)
-        x = iterate(iter, state)
     end
     return out
 end
@@ -87,8 +83,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffO
     s2, len2, s1, len1 = reorder(s1, s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     out = 0.0
-    result = matching_blocks(s1, s2)
-    for r in result
+    for r in matching_blocks(s1, s2)
         # here I difffer from fuzz.py by making sure the substring of s2 has length len1
         s2_start = r[2] - r[1] + 1
         s2_end = s2_start + len1 - 1
@@ -138,18 +133,15 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
     s0 = join(v0, " ")
     s1 = join(Iterators.flatten((v0, v1)), " ")
     s2 = join(Iterators.flatten((v0, v2)), " ")
-    if isempty(s0)
-        # otherwise compare("", "a", dist)== 1.0 
-        compare(s1, s2, dist.dist)
-    else
-        max(compare(s0, s1, dist.dist), 
+    # otherwise compare("", "a", dist)== 1.0 
+    isempty(s0) && return compare(s1, s2, dist.dist)
+    max(compare(s0, s1, dist.dist), 
             compare(s1, s2, dist.dist), 
-            compare(s0, s2, dist.dist))        
-    end
+            compare(s0, s2, dist.dist))
 end
 
 # separate 2 vectors in intersection, setdiff1, setdiff2 (all sorted)
-function _separate!(v1::Vector, v2::Vector)
+function _separate!(v1::AbstractVector, v2::AbstractVector)
     sort!(v1)
     sort!(v2)
     out = eltype(v1)[]

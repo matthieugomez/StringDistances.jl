@@ -24,11 +24,9 @@ function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1
     return l, x1, x2
 end
 
-
-
 # Return start of commn substring in s1, start of common substring in s2, and length of substring
 # Indexes refer to character number, not index
-function longest_common_substring(s1::AbstractString, s2::AbstractString, len1::Int, len2::Int)
+function longest_common_substring(s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     if len1 > len2
         start2, start1, len = longest_common_substring(s2, s1, len2, len1)
     else

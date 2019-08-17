@@ -219,6 +219,3 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     return x
 end
 
-
-
-
