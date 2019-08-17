@@ -23,7 +23,9 @@ Base.eltype(qgram::QGramIterator) = String
 
 ##############################################################################
 ##
-## For two iterators x1 x2, count_map(x1, x2) returns an iterator that returns,  for each element in union{x1, x2}, the numbers of times it appears in x1 and the number of times it appears in x2
+## For two iterators x1 x2, count_map(x1, x2) returns an iterator 
+## that returns,  for each element in union{x1, x2}, the numbers of 
+## times it appears in x1 and the number of times it appears in x2
 ##
 ##############################################################################
 
@@ -56,7 +58,6 @@ function count_map(s1, s2) where {S1, S2, N}
 	return values(d)
 end
 
-
 ##############################################################################
 ##
 ## Distance on strings is computed by set distance on qgram sets
@@ -88,7 +89,7 @@ QGram(x::Integer) = QGram{x}()
 function evaluate(dist::QGram, countiterator)
 	n = 0
 	for (n1, n2) in countiterator
-		n += abs(Int(n1) - Int(n2))
+		n += abs(n1 - n2)
 	end
 	n
 end
