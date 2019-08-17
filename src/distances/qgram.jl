@@ -11,6 +11,18 @@ struct QGramIterator{S <: AbstractString}
 	N::Int # Length of Qgram
 end
 
+function Base.iterate(qgram::QGramIterator, 
+	state = (1, qgram.l < qgram.N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.N)))
+	istart, iend = state
+	iend > ncodeunits(qgram.s) && return nothing
+	element = qgram.s[istart:iend]
+	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
+	element, nextstate
+end
+Base.length(qgram::QGramIterator) = max(qgram.l - qgram.N + 1, 0)
+Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
+Base.eltype(qgram::QGramIterator{S}) where {S} = S
+
 """
 Return an iterator that iterates on the QGram of the string
 
@@ -27,18 +39,6 @@ end
 ```
 """
 qgram_iterator(s::AbstractString, n::Int) = QGramIterator{typeof(s)}(s, length(s), n)
-
-function Base.iterate(qgram::QGramIterator, 
-	state = (1, qgram.l < qgram.N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.N)))
-	istart, iend = state
-	iend > ncodeunits(qgram.s) && return nothing
-	element = qgram.s[istart:iend]
-	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
-	element, nextstate
-end
-Base.length(qgram::QGramIterator) = max(qgram.l - qgram.N + 1, 0)
-Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
-Base.eltype(qgram::QGramIterator{S}) where {S} = S
 
 ##############################################################################
 ##
