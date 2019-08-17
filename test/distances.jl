@@ -99,6 +99,8 @@ for x in solutions
 end
 
 
+
+
 #= R test
 library(stringdist)
 strings = matrix(data = c(
@@ -128,4 +130,36 @@ stringdist(strings[1,], strings[2,], method = "qgram", q = 1)
 
 
 
-#@test evaluate(Hamming(), graphemeiterator("b\u0300"), graphemeiterator("a")) == 1
+
+
+# test  RatcliffObershelp
+solution = [83, 73, 62, 93, 0, 100, 0, 33, 62, 71, 83, 27, 33, 78, 50, 67]
+for i in eachindex(strings)
+	@test round(Int, (1 - evaluate(RatcliffObershelp(), strings[i]...)) * 100) ≈ solution[i] atol = 1e-4
+end
+
+#= Fuzzywuzzy usesRatcliffObershelp  if python-Levenshtein not installed, fuzzywuzzy uses RatcliffObershelp)
+from fuzzywuzzy import fuzz
+strings = [
+("martha", "marhta"),
+("dwayne", "duane") ,
+("dixon", "dicksonx"),
+("william", "williams"),
+("", "foo"),
+("a", "a"),
+("abc", "xyz"),
+("abc", "ccc"),
+("kitten", "sitting"),
+("saturday", "sunday"),
+("hi, my name is", "my name is"),
+("alborgów", "amoniak"),
+("cape sand recycling ", "edith ann graham"),
+( "jellyifhs", "jellyfish"),
+("ifhs", "fish"),
+("leia", "leela"),
+]
+for x in strings:
+   print(fuzz.ratio(x[0], x[1]))
+=#
+
+
