@@ -73,7 +73,8 @@ end
 abstract type AbstractQGram <: SemiMetric end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
-	evaluate(dist, count_map(qgram_iterator(s1, dist.N), qgram_iterator(s2, dist.N)))
+	evaluate(dist, 
+		count_map(qgram_iterator(s1, dist.N), qgram_iterator(s2, dist.N)))
 end
 
 ##############################################################################
