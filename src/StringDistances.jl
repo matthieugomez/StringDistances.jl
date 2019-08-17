@@ -16,12 +16,12 @@ Hamming,
 Levenshtein,
 DamerauLevenshtein,
 Jaro,
+RatcliffObershelp,
 QGram,
 Cosine,
 Jaccard,
 SorensenDice,
 Overlap,
-RatcliffObershelp,
 Winkler,
 Partial,
 TokenSort,
@@ -37,7 +37,6 @@ qgram_iterator
 include("utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
-include("distances/RatcliffObershelp.jl")
 include("compare.jl")
 
 end

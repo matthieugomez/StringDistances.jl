@@ -183,3 +183,42 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     end
     return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
 end
+
+##############################################################################
+##
+## Ratcliff/Obershelp
+##
+##############################################################################
+
+struct RatcliffObershelp <: PreMetric end
+
+function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
+    n_matched = sum(last.(matching_blocks(s1, s2)))   
+    1.0 - 2 *  n_matched / (length(s1) + length(s2))
+end
+
+function matching_blocks(s1::AbstractString, s2::AbstractString)
+    matching_blocks!(Set{Tuple{Int, Int, Int}}(), s1, s2, length(s1), length(s2), 1, 1)
+end
+
+function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer, start1::Integer, start2::Integer)
+    a = longest_common_substring(s1, s2, len1 , len2)
+    # if there is a common substring
+    if a[3] > 0
+        # add the info of the common to the existing set
+        push!(x, (a[1] + start1 - 1, a[2] + start2 - 1, a[3]))
+        # add the longest common substring that happens before
+        s1before = SubString(s1, 1, nextind(s1, 0, a[1] - 1))
+        s2before = SubString(s2, 1, nextind(s2, 0, a[2] - 1))
+        matching_blocks!(x, s1before, s2before, a[1] - 1, a[2] - 1, start1, start2)
+        # add the longest common substring that happens after
+        s1after = SubString(s1, nextind(s1, 0, a[1] + a[3]), lastindex(s1))
+        s2after = SubString(s2, nextind(s2, 0, a[2] + a[3]), lastindex(s2))
+        matching_blocks!(x, s1after, s2after, len1 - (a[1] + a[3]) + 1, len2 - (a[2] + a[3]) + 1, start1 + a[1] + a[3] - 1, start2 + a[2] + a[3] - 1)
+    end
+    return x
+end
+
+
+
+
