@@ -34,11 +34,15 @@ end
 ## Winkler
 ##
 ##############################################################################
+"""
+   Winkler(dist::Premetric, scaling_factor::Real = 0.1, boosting_limit::Real = 0.7)
 
+Winkler is a `PreMetric` modifier that boosts the similarity score between two strings by a scale `scaling_factor` when the strings share a common prefix (the boost is only applied the similarity score above `boosting_threshold`)
+"""
 struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
     dist::T1
     scaling_factor::T2      # scaling factor. Default to 0.1
-    boosting_limit::T3      # boost threshold. Default to 0.7
+    boosting_threshold::T3      # boost threshold. Default to 0.7
 end
 
 # restrict to distance between 0 and 1
@@ -48,7 +52,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
     score = compare(s1, s2, dist.dist)
     l = common_prefix(s1, s2, 4)[1]
     # common prefix adjustment
-    if score >= dist.boosting_limit
+    if score >= dist.boosting_threshold
         score += l * dist.scaling_factor * (1 - score)
     end
     return score
@@ -60,6 +64,11 @@ end
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
+"""
+   Partial(dist::Premetric)
+
+Partial is a `PreMetric` modifier that returns the maximal similarity score between the shorter string and substrings of the longer string
+"""
 struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
@@ -108,6 +117,11 @@ end
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
+"""
+   TokenSort(dist::Premetric)
+
+TokenSort is a `PreMetric` modifier that adjusts for differences in word orders by reording words alphabetically.
+"""
 struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
@@ -124,6 +138,11 @@ end
 ## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 ##
 ##############################################################################
+"""
+   TokenSet(dist::Premetric)
+
+TokenSort is a `PreMetric` modifier that adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
+"""
 struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
@@ -147,6 +166,11 @@ end
 ## TokenMax
 ##
 ##############################################################################
+"""
+   TokenMax(dist::Premetric)
+
+TokenSort is a `PreMetric` modifier that combines similarlity scores using the base distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on string lengths.
+"""
 struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end

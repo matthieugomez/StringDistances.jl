@@ -4,7 +4,6 @@
 ## Hamming
 ##
 ##############################################################################
-
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
     current = abs(length(s2) - length(s1))
     for (ch1, ch2) in zip(s1, s2)
@@ -19,7 +18,13 @@ end
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 ##
 ##############################################################################
+"""
+    Levenshtein()
 
+Creates the Levenshtein metric
+
+The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, substitutions of a single character) required to change one string into the other.
+"""
 struct Levenshtein <: SemiMetric end
 
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
@@ -59,10 +64,16 @@ end
 ##############################################################################
 ##
 ## Damerau Levenshtein
-## Source: http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 ##
 ##############################################################################
+"""
+    DamerauLevenshtein()
 
+Creates the DamerauLevenshtein metric
+
+The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, deletions or substitutions of a single character, or transposition of two adjacent characters) required to change one string into the other.
+"""
 struct DamerauLevenshtein <: SemiMetric end
 
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
@@ -127,7 +138,19 @@ end
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ##
 ##############################################################################
+"""
+    Jaro()
 
+Creates the Jaro metric
+
+The Jaro distance is defined as
+
+
+``1 - (m / |s1| + m / |s2| + (m - t) / m) / 3``
+
+where ``m`` is the number of matching characters and 
+``t`` is half the number of transpositions.
+"""
 struct Jaro <: SemiMetric end
 
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
@@ -189,7 +212,13 @@ end
 ## Ratcliff/Obershelp
 ##
 ##############################################################################
+"""
+    RatcliffObershelp()
 
+Creates the RatcliffObershelp metric
+
+The distance between two strings is defined as one minus  the number of matching characters divided by the total number of characters in the two strings. Matching characters are those in the longest common subsequence plus, recursively, matching characters in the unmatched region on either side of the longest common subsequence.
+"""
 struct RatcliffObershelp <: PreMetric end
 
 function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)

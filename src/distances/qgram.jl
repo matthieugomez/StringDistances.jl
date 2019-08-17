@@ -4,7 +4,7 @@
 ## Define a type that iterates through q-grams of a string
 ##
 ##############################################################################
-# N is the number of characters in the QGram
+# N is the number of characters for the QGram
 struct QGramIterator{S <: AbstractString}
 	s::S # grapheme
 	l::Int # length of string
@@ -92,12 +92,24 @@ end
 ##############################################################################
 ##
 ## q-gram 
-## Define v(s) a vector on the space of q-uple which contains number of times it appears in s
-## For instance v("leila")["il"] =1 
-## q-gram is ∑ |v(s1, p) - v(s2, p)|
 ##
 ##############################################################################
+"""
+For an AbstractString s, denote v(s) the vector on the space of q-grams of length N, that contains the number of times a q-gram appears in s
+The q-gram distance is ||v(s1) - v(s2)||
+"""
 
+"""
+	QGram(n::Int)
+
+Creates a QGram metric.
+
+The distance corresponds to
+
+``||v(s1, n) - v(s2, n)||``
+
+where ``v(s, n)`` denotes the vector on the space of q-grams of length n, that contains the number of times a q-gram appears for the string s
+"""
 struct QGram <: AbstractQGramDistance
 	N::Int
 end
@@ -114,9 +126,19 @@ end
 ##
 ## cosine 
 ##
-## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
+## 
 ##############################################################################
+"""
+	Cosine(n::Int)
 
+Creates a Cosine metric.
+
+The distance corresponds to
+
+`` 1 - v(s1, n).v(s2, n)  / ||v(s1, n)|| * ||v(s2, n)||``
+
+where ``v(s, n)`` denotes the vector on the space of q-grams of length n, that contains the number of times a q-gram appears for the string s
+"""
 struct Cosine <: AbstractQGramDistance
 	N::Int
 end
@@ -135,11 +157,18 @@ end
 ##
 ## Jaccard
 ##
-## Denote Q(s, q) the set of tuple of length q in s
-## 1 - |intersect(Q(s1, q), Q(s2, q))| / |union(Q(s1, q), Q(s2, q))|
-##
 ##############################################################################
+"""
+	Jaccard(n::Int)
 
+Creates a Jaccard metric.
+
+The distance corresponds to 
+
+``1 - |Q(s1, n) ∩ Q(s2, n)| / |Q(s1, n) ∪ Q(s2, n))|``
+
+where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+"""
 struct Jaccard <: AbstractQGramDistance
 	N::Int
 end
@@ -158,9 +187,18 @@ end
 ##
 ## SorensenDice
 ##
-## 1 - 2 * |intersect(Q(s1, q), Q(s2, q))| / (|Q(s1, q)| + |Q(s2, q))|)
 ##############################################################################
+"""
+	SorensenDice(n::Int)
 
+Creates a SorensenDice metric
+
+The distance corresponds to  
+
+``1 - 2 * |Q(s1, n) ∩ Q(s2, n)|  / (|Q(s1, n)| + |Q(s2, n))|)``
+
+where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+"""
 struct SorensenDice <: AbstractQGramDistance
 	N::Int
 end
@@ -181,7 +219,17 @@ end
 ##
 ## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
 ##############################################################################
+"""
+	Overlap(n::Int)
 
+Creates a Overlap metric
+
+The distance corresponds to  
+
+``1 - |Q(s1, n) ∩ Q(s2, n)|  / min(|Q(s1, n)|, |Q(s2, n)|)``
+
+where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+"""
 struct Overlap <: AbstractQGramDistance
 	N::Int
 end
