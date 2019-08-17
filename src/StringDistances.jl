@@ -26,7 +26,8 @@ Winkler,
 Partial,
 TokenSort,
 TokenSet,
-TokenMax
+TokenMax,
+qgram_iterator
 
 ##############################################################################
 ##

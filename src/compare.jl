@@ -20,7 +20,7 @@ function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein},
     len == 0 ? 1.0 : 1.0 - evaluate(dist, s1, s2) / len
 end
 
-function compare(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
+function compare(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
     # When string length < q for qgram distance, returns s1 == s2
     len1 = length(s1) ; len2 = length(s2)
     min(len1, len2) <= (dist.N - 1) && return convert(Float64, s1 == s2)

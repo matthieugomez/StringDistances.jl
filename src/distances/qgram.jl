@@ -11,9 +11,22 @@ struct QGramIterator{S <: AbstractString}
 	N::Int # Length of Qgram
 end
 
-function qgram_iterator(s::AbstractString, n::Int)
-	QGramIterator{typeof(s)}(s, length(s), n)
+"""
+Return an iterator that iterates on the QGram of the string
+
+### Arguments
+* `s::AbstractString`
+* `n::Int`: length of qgram
+
+## Examples
+```julia
+using StringDistances
+for x in qgram_iterator("hello", 2)
+	@show x
 end
+```
+"""
+qgram_iterator(s::AbstractString, n::Int) = QGramIterator{typeof(s)}(s, length(s), n)
 
 function Base.iterate(qgram::QGramIterator, 
 	state = (1, qgram.l < qgram.N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.N)))
@@ -24,7 +37,6 @@ function Base.iterate(qgram::QGramIterator,
 	element, nextstate
 end
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.N + 1, 0)
-
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
 Base.eltype(qgram::QGramIterator{S}) where {S} = S
 
@@ -70,9 +82,9 @@ end
 ## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
-abstract type AbstractQGram <: SemiMetric end
+abstract type AbstractQGramDistance <: SemiMetric end
 
-function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
 	evaluate(dist, 
 		count_map(qgram_iterator(s1, dist.N), qgram_iterator(s2, dist.N)))
 end
@@ -86,7 +98,7 @@ end
 ##
 ##############################################################################
 
-struct QGram <: AbstractQGram
+struct QGram <: AbstractQGramDistance
 	N::Int
 end
 
@@ -105,7 +117,7 @@ end
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-struct Cosine <: AbstractQGram
+struct Cosine <: AbstractQGramDistance
 	N::Int
 end
 
@@ -128,7 +140,7 @@ end
 ##
 ##############################################################################
 
-struct Jaccard <: AbstractQGram
+struct Jaccard <: AbstractQGramDistance
 	N::Int
 end
 
@@ -149,7 +161,7 @@ end
 ## 1 - 2 * |intersect(Q(s1, q), Q(s2, q))| / (|Q(s1, q)| + |Q(s2, q))|)
 ##############################################################################
 
-struct SorensenDice <: AbstractQGram
+struct SorensenDice <: AbstractQGramDistance
 	N::Int
 end
 
@@ -170,7 +182,7 @@ end
 ## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
 ##############################################################################
 
-struct Overlap <: AbstractQGram
+struct Overlap <: AbstractQGramDistance
 	N::Int
 end
 
