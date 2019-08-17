@@ -1,12 +1,12 @@
 using StringDistances, Test
 
 # check with weird utf8 strings
-compare(TokenMax(RatcliffObershelp()), "aüa", "aua")
-compare(TokenMax(QGram(2)), "aüa", "aua")
-compare(DamerauLevenshtein(), "aüa", "aua")
-compare(Hamming(), "aüa", "aua")
-compare(Jaro(), "aüa", "aua")
-compare(Levenshtein(), "aüa", "aua")
+compare("aüa", "aua", TokenMax(RatcliffObershelp()))
+compare("aüa", "aua", TokenMax(QGram(2)))
+compare("aüa", "aua", DamerauLevenshtein())
+compare("aüa", "aua", Hamming())
+compare("aüa", "aua", Jaro())
+compare("aüa", "aua", Levenshtein())
 
 
 s1 = "aü☃"

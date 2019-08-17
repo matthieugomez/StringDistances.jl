@@ -6,21 +6,17 @@
 ##############################################################################
 
 function compare(s1::AbstractString, s2::AbstractString, dist::PreMetric)
-    compare(dist, s1, s2)
-end
-
-
-function compare(dist::PreMetric, s1::AbstractString, s2::AbstractString)
     1.0 - evaluate(dist, s1, s2)
 end
 
-function compare(dist::Union{Hamming, Levenshtein, DamerauLevenshtein}, 
-    s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, 
+    dist::Union{Hamming, Levenshtein, DamerauLevenshtein})
     len = max(length(s1), length(s2))
     len == 0 ? 1.0 : 1.0 - evaluate(dist, s1, s2) / len
 end
 
-function compare(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, 
+    dist::AbstractQGramDistance)
     # When string length < q for qgram distance, returns s1 == s2
     len1 = length(s1) ; len2 = length(s2)
     min(len1, len2) <= (dist.N - 1) && return convert(Float64, s1 == s2)
@@ -30,6 +26,8 @@ function compare(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractSt
         1 - evaluate(dist, s1, s2)
     end
 end
+
+@deprecate compare(dist::PreMetric, s1::AbstractString, s2::AbstractString) compare(s1, s2, dist)
 
 ##############################################################################
 ##
@@ -46,8 +44,8 @@ end
 # restrict to distance between 0 and 1
 Winkler(x) = Winkler(x, 0.1, 0.7)
 
-function compare(dist::Winkler, s1::AbstractString, s2::AbstractString)
-    score = compare(dist.dist, s1, s2)
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
+    score = compare(s1, s2, dist.dist)
     l = common_prefix(s1, s2, 4)[1]
     # common prefix adjustment
     if score >= dist.boosting_limit
@@ -67,16 +65,16 @@ struct Partial{T <: PreMetric} <: PreMetric
 end
 
 # general
-function compare(dist::Partial, s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
     s2, len2, s1, len1 = reorder(s1, s2)
-    len1 == len2 && return compare(dist.dist, s1, s2)
-    len1 == 0 && return compare(dist.dist, "", "")
+    len1 == len2 && return compare(s1, s2, dist.dist)
+    len1 == 0 && return compare("", "", dist.dist)
     iter = QGramIterator(s2, len2, len1)
     out = 0.0
     x = iterate(iter)
     while x !== nothing
         s, state = x
-        curr = compare(dist.dist, s1, s)
+        curr = compare(s1, s, dist.dist)
         out = max(out, curr)
         x = iterate(iter, state)
     end
@@ -85,9 +83,9 @@ end
 
 # Specialization for RatcliffObershelp distance
 # Code follows https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/fuzz.py
-function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp})
     s2, len2, s1, len1 = reorder(s1, s2)
-    len1 == len2 && return compare(dist.dist, s1, s2)
+    len1 == len2 && return compare(s1, s2, dist.dist)
     out = 0.0
     result = matching_blocks(s1, s2)
     for r in result
@@ -103,7 +101,7 @@ function compare(dist::Partial{RatcliffObershelp}, s1::AbstractString, s2::Abstr
         end
         i2_start =  nextind(s2, 0, s2_start)
         i2_end = nextind(s2, 0, s2_end)
-        curr = compare(RatcliffObershelp(), s1, SubString(s2, i2_start, i2_end))
+        curr = compare(s1, SubString(s2, i2_start, i2_end), RatcliffObershelp())
         out = max(out, curr)
     end
     return out
@@ -119,10 +117,10 @@ struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenSort, s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
-    compare(dist.dist, s1, s2)
+    compare(s1, s2, dist.dist)
 end
 
 ##############################################################################
@@ -135,18 +133,18 @@ struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenSet, s1::AbstractString, s2::AbstractString)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
     v0, v1, v2 = _separate!(split(s1), split(s2))
     s0 = join(v0, " ")
     s1 = join(Iterators.flatten((v0, v1)), " ")
     s2 = join(Iterators.flatten((v0, v2)), " ")
     if isempty(s0)
-        # otherwise compare(dist, "", "a")== 1.0 
-        compare(dist.dist, s1, s2)
+        # otherwise compare("", "a", dist)== 1.0 
+        compare(s1, s2, dist.dist)
     else
-        max(compare(dist.dist, s0, s1), 
-            compare(dist.dist, s1, s2), 
-            compare(dist.dist, s0, s2))        
+        max(compare(s0, s1, dist.dist), 
+            compare(s1, s2, dist.dist), 
+            compare(s0, s2, dist.dist))        
     end
 end
 
@@ -182,24 +180,24 @@ struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(dist::TokenMax, s1::AbstractString, s2::AbstractString)
-    dist0 = compare(dist.dist, s1, s2)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax)
+    dist0 = compare(s1, s2, dist.dist)
     s2, len2, s1, len1 = reorder(s1, s2)
     unbase_scale = 0.95
     # if one string is much much shorter than the other
     if len2 >= 1.5 * len1
         # if strings are of dissimilar length, use partials
-        partial = compare(Partial(dist.dist), s1, s2) 
-        ptsor = compare(TokenSort(Partial(dist.dist)), s1, s2) 
-        ptser = compare(TokenSet(Partial(dist.dist)), s1, s2) 
+        partial = compare(s1, s2, Partial(dist.dist)) 
+        ptsor = compare(s1, s2, TokenSort(Partial(dist.dist))) 
+        ptser = compare(s1, s2, TokenSet(Partial(dist.dist))) 
         partial_scale = len2 > (8 * len1) ? 0.6 : 0.9
         return max(dist0, 
                 partial * partial_scale, 
                 ptsor * unbase_scale * partial_scale, 
                 ptser * unbase_scale * partial_scale)
     else
-        ptsor = compare(TokenSort(dist.dist), s1, s2) 
-        ptser = compare(TokenSet(dist.dist), s1, s2) 
+        ptsor = compare(s1, s2, TokenSort(dist.dist)) 
+        ptser = compare(s1, s2, TokenSet(dist.dist)) 
         return max(dist0, 
                 ptsor * unbase_scale, 
                 ptser * unbase_scale)
