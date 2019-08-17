@@ -5,21 +5,28 @@
 ##
 ##############################################################################
 # N is the number of characters in the QGram
-struct QGramIterator{S <: AbstractString, N}
+struct QGramIterator{S <: AbstractString}
 	s::S # grapheme
 	l::Int # length of string
+	N::Int # Length of Qgram
 end
 
-function Base.iterate(qgram::QGramIterator{S, N}, 
-	state = (1, qgram.l < N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, N))) where {S, N}
+function qgram_iterator(s::AbstractString, n::Int)
+	QGramIterator{typeof(s)}(s, length(s), n)
+end
+
+function Base.iterate(qgram::QGramIterator, 
+	state = (1, qgram.l < qgram.N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.N)))
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
 	element = qgram.s[istart:iend]
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.length(qgram::QGramIterator{S, N}) where {S, N} = max(qgram.l - N + 1, 0)
-Base.eltype(qgram::QGramIterator) = String
+Base.length(qgram::QGramIterator) = max(qgram.l - qgram.N + 1, 0)
+
+Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
+Base.eltype(qgram::QGramIterator{S}) where {S} = S
 
 ##############################################################################
 ##
@@ -31,7 +38,7 @@ Base.eltype(qgram::QGramIterator) = String
 
 # I use a faster way to change a dictionary key
 # see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
-function count_map(s1, s2) where {S1, S2, N}
+function count_map(s1, s2)
 	K = Union{eltype(s1), eltype(s2)}
 	d = Dict{K, NTuple{2, Int}}()
 	sizehint!(d, length(s1) + length(s2))
@@ -63,14 +70,10 @@ end
 ## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
-abstract type AbstractQGram{N} <: SemiMetric end
-
-function qgram_iterator(dist::AbstractQGram{N}, s::AbstractString) where {N}
-	QGramIterator{typeof(s), N}(s, length(s))
-end
+abstract type AbstractQGram <: SemiMetric end
 
 function evaluate(dist::AbstractQGram, s1::AbstractString, s2::AbstractString)
-	evaluate(dist, count_map(qgram_iterator(dist, s1), qgram_iterator(dist, s2)))
+	evaluate(dist, count_map(qgram_iterator(s1, dist.N), qgram_iterator(s2, dist.N)))
 end
 
 ##############################################################################
@@ -82,9 +85,9 @@ end
 ##
 ##############################################################################
 
-struct QGram{N} <: AbstractQGram{N} end
-
-QGram(x::Integer) = QGram{x}()
+struct QGram <: AbstractQGram
+	N::Int
+end
 
 function evaluate(dist::QGram, countiterator)
 	n = 0
@@ -101,9 +104,9 @@ end
 ## 1 - v(s1, p).v(s2, p)  / ||v(s1, p)|| * ||v(s2, p)||
 ##############################################################################
 
-struct Cosine{N} <: AbstractQGram{N} end
-
-Cosine(n::Integer = 2) = Cosine{n}()
+struct Cosine <: AbstractQGram
+	N::Int
+end
 
 function evaluate(dist::Cosine, countiterator)
 	norm1, norm2, prodnorm = 0, 0, 0
@@ -124,9 +127,9 @@ end
 ##
 ##############################################################################
 
-struct Jaccard{N} <: AbstractQGram{N} end
-
-Jaccard(n::Integer = 2) = Jaccard{n}()
+struct Jaccard <: AbstractQGram
+	N::Int
+end
 
 function evaluate(dist::Jaccard, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -145,9 +148,9 @@ end
 ## 1 - 2 * |intersect(Q(s1, q), Q(s2, q))| / (|Q(s1, q)| + |Q(s2, q))|)
 ##############################################################################
 
-struct SorensenDice{N} <: AbstractQGram{N} end
-
-SorensenDice(n::Integer = 2) = SorensenDice{n}()
+struct SorensenDice <: AbstractQGram
+	N::Int
+end
 
 function evaluate(dist::SorensenDice, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -166,9 +169,9 @@ end
 ## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
 ##############################################################################
 
-struct Overlap{N} <: AbstractQGram{N} end
-
-Overlap(n::Integer = 2) = Overlap{n}()
+struct Overlap <: AbstractQGram
+	N::Int
+end
 
 function evaluate(dist::Overlap, countiterator)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
