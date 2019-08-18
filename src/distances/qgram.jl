@@ -3,23 +3,22 @@
 ##
 ## Define a type that iterates through q-grams of a string
 ##
-##############################################################################
-# N is the number of characters for the QGram
+############################################################################
 struct QGramIterator{S <: AbstractString}
 	s::S # grapheme
 	l::Int # length of string
-	N::Int # Length of Qgram
+	q::Int # Length of Qgram
 end
 
 function Base.iterate(qgram::QGramIterator, 
-	state = (1, qgram.l < qgram.N ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.N)))
+	state = (1, qgram.l < qgram.q ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.q)))
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
 	element = qgram.s[istart:iend]
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.length(qgram::QGramIterator) = max(qgram.l - qgram.N + 1, 0)
+Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
 Base.eltype(qgram::QGramIterator{S}) where {S} = S
 
@@ -28,7 +27,7 @@ Return an iterator that iterates on the QGram of the string
 
 ### Arguments
 * `s::AbstractString`
-* `n::Int`: length of qgram
+* `q::Integer`: length of qgram
 
 ## Examples
 ```julia
@@ -38,7 +37,9 @@ for x in qgram_iterator("hello", 2)
 end
 ```
 """
-qgram_iterator(s::AbstractString, n::Int) = QGramIterator{typeof(s)}(s, length(s), n)
+function qgram_iterator(s::AbstractString, q::Integer)
+	QGramIterator{typeof(s)}(s, length(s), q)
+end
 
 ##############################################################################
 ##
@@ -85,8 +86,8 @@ end
 abstract type AbstractQGramDistance <: SemiMetric end
 
 function evaluate(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
-	evaluate(dist, 
-		count_map(qgram_iterator(s1, dist.N), qgram_iterator(s2, dist.N)))
+	x = count_map(qgram_iterator(s1, dist.q), qgram_iterator(s2, dist.q))
+	evaluate(dist, x)
 end
 
 ##############################################################################
@@ -100,18 +101,18 @@ The q-gram distance is ||v(s1) - v(s2)||
 """
 
 """
-	QGram(n::Int)
+	QGram(q::Int)
 
 Creates a QGram metric.
 
 The distance corresponds to
 
-``||v(s1, n) - v(s2, n)||``
+``||v(s1, q) - v(s2, q)||``
 
-where ``v(s, n)`` denotes the vector on the space of q-grams of length n, that contains the number of times a q-gram appears for the string s
+where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
 """
 struct QGram <: AbstractQGramDistance
-	N::Int
+	q::Int
 end
 
 function evaluate(dist::QGram, countiterator)
@@ -129,18 +130,18 @@ end
 ## 
 ##############################################################################
 """
-	Cosine(n::Int)
+	Cosine(q::Int)
 
 Creates a Cosine metric.
 
 The distance corresponds to
 
-`` 1 - v(s1, n).v(s2, n)  / ||v(s1, n)|| * ||v(s2, n)||``
+`` 1 - v(s1, q).v(s2, q)  / ||v(s1, q)|| * ||v(s2, q)||``
 
-where ``v(s, n)`` denotes the vector on the space of q-grams of length n, that contains the number of times a q-gram appears for the string s
+where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
 """
 struct Cosine <: AbstractQGramDistance
-	N::Int
+	q::Int
 end
 
 function evaluate(dist::Cosine, countiterator)
@@ -159,18 +160,18 @@ end
 ##
 ##############################################################################
 """
-	Jaccard(n::Int)
+	Jaccard(q::Int)
 
 Creates a Jaccard metric.
 
 The distance corresponds to 
 
-``1 - |Q(s1, n) ∩ Q(s2, n)| / |Q(s1, n) ∪ Q(s2, n))|``
+``1 - |Q(s1, q) ∩ Q(s2, q)| / |Q(s1, q) ∪ Q(s2, q))|``
 
-where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
 struct Jaccard <: AbstractQGramDistance
-	N::Int
+	q::Int
 end
 
 function evaluate(dist::Jaccard, countiterator)
@@ -189,18 +190,18 @@ end
 ##
 ##############################################################################
 """
-	SorensenDice(n::Int)
+	SorensenDice(q::Int)
 
 Creates a SorensenDice metric
 
 The distance corresponds to  
 
-``1 - 2 * |Q(s1, n) ∩ Q(s2, n)|  / (|Q(s1, n)| + |Q(s2, n))|)``
+``1 - 2 * |Q(s1, q) ∩ Q(s2, q)|  / (|Q(s1, q)| + |Q(s2, q))|)``
 
-where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
 struct SorensenDice <: AbstractQGramDistance
-	N::Int
+	q::Int
 end
 
 function evaluate(dist::SorensenDice, countiterator)
@@ -220,18 +221,18 @@ end
 ## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
 ##############################################################################
 """
-	Overlap(n::Int)
+	Overlap(q::Int)
 
 Creates a Overlap metric
 
 The distance corresponds to  
 
-``1 - |Q(s1, n) ∩ Q(s2, n)|  / min(|Q(s1, n)|, |Q(s2, n)|)``
+``1 - |Q(s1, q) ∩ Q(s2, q)|  / min(|Q(s1, q)|, |Q(s2, q)|)``
 
-where ``Q(s, n)``  denotes the set of q-grams of length n for the string s
+where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
 struct Overlap <: AbstractQGramDistance
-	N::Int
+	q::Int
 end
 
 function evaluate(dist::Overlap, countiterator)
