@@ -32,27 +32,34 @@ Return an iterator that iterates on the QGram of the string
 ## Examples
 ```julia
 using StringDistances
-for x in qgram_iterator("hello", 2)
+for x in qgram("hello", 2)
 	@show x
 end
 ```
 """
-function qgram_iterator(s::AbstractString, q::Integer)
+function qgram(s::AbstractString, q::Integer)
 	QGramIterator{typeof(s)}(s, length(s), q)
 end
 
 ##############################################################################
 ##
-## For two iterators x1 x2, count_map(x1, x2) returns an iterator 
-## that returns,  for each element in union{x1, x2}, the numbers of 
-## times it appears in x1 and the number of times it appears in x2
+## 
+## 
+## 
 ##
 ##############################################################################
-# I use a faster way to change a dictionary key
-# see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
+"""
+   count_map(x1, x2)
+
+For two iterators `x1` and `x2`, `count_map(x1, x2)`  returns an dictionary 
+that returns,  for each element in `x1` or `x2`, a tuple with the numbers of 
+times it appears in `x1` and the number of times it appears in `x2`
+"""
 function count_map(s1, s2)
-	K = Union{eltype(s1), eltype(s2)}
-	d = Dict{K, NTuple{2, Int}}()
+	K = promote_type(eltype(s1), eltype(s2))
+	d = Dict{K, Tuple{Int, Int}}()
+	# I use a faster way to change a dictionary key
+	# see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
 	sizehint!(d, length(s1) + length(s2))
 	for x1 in s1
 		index = Base.ht_keyindex2!(d, x1)
@@ -74,7 +81,7 @@ function count_map(s1, s2)
 			@inbounds Base._setindex!(d, (0, 1), x2, -index)
 		end
 	end
-	return values(d)
+	return d
 end
 
 #= Trie
@@ -126,7 +133,7 @@ end
 abstract type AbstractQGramDistance <: SemiMetric end
 
 function evaluate(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
-	x = count_map(qgram_iterator(s1, dist.q), qgram_iterator(s2, dist.q))
+	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
 	evaluate(dist, x)
 end
 
@@ -155,9 +162,9 @@ struct QGram <: AbstractQGramDistance
 	q::Int
 end
 
-function evaluate(dist::QGram, countiterator)
+function evaluate(dist::QGram, count_dict)
 	n = 0
-	for (n1, n2) in countiterator
+	for (n1, n2) in values(count_dict)
 		n += abs(n1 - n2)
 	end
 	n
@@ -184,9 +191,9 @@ struct Cosine <: AbstractQGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, countiterator)
+function evaluate(dist::Cosine, count_dict)
 	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in countiterator
+	for (n1, n2) in values(count_dict)
 		norm1 += n1^2
 		norm2 += n2^2
 		prodnorm += n1 * n2
@@ -214,9 +221,9 @@ struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, countiterator)
+function evaluate(dist::Jaccard, count_dict)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in countiterator
+	for (n1, n2) in values(count_dict)
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -244,9 +251,9 @@ struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, countiterator)
+function evaluate(dist::SorensenDice, count_dict)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in countiterator
+	for (n1, n2) in values(count_dict)
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -275,9 +282,9 @@ struct Overlap <: AbstractQGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, countiterator)
+function evaluate(dist::Overlap, count_dict)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in countiterator
+	for (n1, n2) in values(count_dict)
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)

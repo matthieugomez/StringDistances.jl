@@ -27,16 +27,16 @@ Partial,
 TokenSort,
 TokenSet,
 TokenMax,
-qgram_iterator
+qgram
 
 ##############################################################################
 ##
 ## include
 ##
 ##############################################################################
-include("distances/utils.jl")
-include("distances/edit.jl")
-include("distances/qgram.jl")
+include("utils.jl")
+include("edit.jl")
+include("qgram.jl")
 include("compare.jl")
 
 end

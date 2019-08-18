@@ -45,17 +45,14 @@ Winkler is a `PreMetric` modifier that boosts the similarity score between two s
 """
 struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
     dist::T1
-    scaling_factor::T2      # scaling factor. Default to 0.1
+    scaling_factor::T2          # scaling factor. Default to 0.1
     boosting_threshold::T3      # boost threshold. Default to 0.7
 end
-
-# restrict to distance between 0 and 1
 Winkler(x) = Winkler(x, 0.1, 0.7)
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
     score = compare(s1, s2, dist.dist)
     l = common_prefix(s1, s2, 4)[1]
-    # common prefix adjustment
     if score >= dist.boosting_threshold
         score += l * dist.scaling_factor * (1 - score)
     end
@@ -77,27 +74,24 @@ struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-# general
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
     s2, len2, s1, len1 = reorder(s1, s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     len1 == 0 && return compare("", "", dist.dist)
     out = 0.0
-    for x in qgram_iterator(s2, len1)
+    for x in qgram(s2, len1)
         curr = compare(s1, x, dist.dist)
         out = max(out, curr)
     end
     return out
 end
 
-# Specialization for RatcliffObershelp distance
-# Code follows https://github.com/seatgeek/fuzzywuzzy/blob/master/fuzzywuzzy/fuzz.py
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp})
     s2, len2, s1, len1 = reorder(s1, s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     out = 0.0
     for r in matching_blocks(s1, s2)
-        # here I difffer from fuzz.py by making sure the substring of s2 has length len1
+        # Make sure the substring of s2 has length len1
         s2_start = r[2] - r[1] + 1
         s2_end = s2_start + len1 - 1
         if s2_start <= 0
@@ -183,9 +177,8 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax)
     dist0 = compare(s1, s2, dist.dist)
     s2, len2, s1, len1 = reorder(s1, s2)
     unbase_scale = 0.95
-    # if one string is much much shorter than the other
+    # if one string is much shorter than the other, use partial
     if len2 >= 1.5 * len1
-        # if strings are of dissimilar length, use partials
         partial = compare(s1, s2, Partial(dist.dist)) 
         ptsor = compare(s1, s2, TokenSort(Partial(dist.dist))) 
         ptser = compare(s1, s2, TokenSet(Partial(dist.dist))) 

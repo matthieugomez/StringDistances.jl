@@ -6,13 +6,20 @@ y = map(Random.randstring, rand(5:25,500_000))
 function f(t, x, y)
     [evaluate(t, x[i], y[i]) for i in 1:length(x)]
 end
+@time f(Hamming(), x, y)
+@time f(Jaro(), x, y)
+@time f(Levenshtein(), x, y)
+# 0.3s. A big faster than StringDist
+@time f(DamerauLevenshtein(), x, y)
+@time f(RatcliffObershelp(), x, y)
+@time f(Jaccard(2), x, y)
+# 1.6s 2-3x slower compared to StringDist
 
 # a bist faster than StringDist
 @time f(Levenshtein(), x, y)
 #  355.984 ms (1500004 allocations: 223.24 MiB)
 @time f(RatcliffObershelp(), x, y)
 
-# 2-3x slower compared to StringDist
 @time f(Jaccard(2), x, y)
 # 1.6s
 
