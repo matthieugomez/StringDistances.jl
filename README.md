@@ -22,7 +22,7 @@ compare("martha", "marhta", Hamming())
 #### Edit Distances
 - [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
 - [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
-- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
+- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 - [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
 - [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 
