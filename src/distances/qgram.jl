@@ -14,13 +14,13 @@ function Base.iterate(qgram::QGramIterator,
 	state = (1, qgram.l < qgram.q ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.q)))
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
-	element = qgram.s[istart:iend]
+	element = SubString(qgram.s, istart, iend)
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
 Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
-Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = S
-Base.eltype(qgram::QGramIterator{S}) where {S} = S
+Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
+Base.eltype(qgram::QGramIterator{S}) where {S} = SubString{S}
 
 """
 Return an iterator that iterates on the QGram of the string
@@ -48,35 +48,75 @@ end
 ## times it appears in x1 and the number of times it appears in x2
 ##
 ##############################################################################
-
 # I use a faster way to change a dictionary key
 # see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
 function count_map(s1, s2)
 	K = Union{eltype(s1), eltype(s2)}
 	d = Dict{K, NTuple{2, Int}}()
 	sizehint!(d, length(s1) + length(s2))
-	for ch1 in s1
-		index = Base.ht_keyindex2!(d, ch1)
+	for x1 in s1
+		index = Base.ht_keyindex2!(d, x1)
 		if index > 0
 			d.age += 1
-			@inbounds d.keys[index] = ch1
+			@inbounds d.keys[index] = x1
 			@inbounds d.vals[index] = (d.vals[index][1] + 1, 0)
 		else
-			@inbounds Base._setindex!(d, (1, 0), ch1, -index)
+			@inbounds Base._setindex!(d, (1, 0), x1, -index)
 		end
 	end
-	for ch2 in s2
-		index = Base.ht_keyindex2!(d, ch2)
+	for x2 in s2
+		index = Base.ht_keyindex2!(d, x2)
 		if index > 0
 			d.age += 1
-			@inbounds d.keys[index] = ch2
+			@inbounds d.keys[index] = x2
 			@inbounds d.vals[index] = (d.vals[index][1], d.vals[index][2] + 1)
 		else
-			@inbounds Base._setindex!(d, (0, 1), ch2, -index)
+			@inbounds Base._setindex!(d, (0, 1), x2, -index)
 		end
 	end
 	return values(d)
 end
+
+#= Trie
+function count_map(s1, s2)
+	d = Trie{Tuple{Int, Int}}()
+	for ch1 in s1
+		node = d
+		for char in ch1
+			if !haskey(node.children, char)
+	            node.children[char] = Trie{Tuple{Int, Int}}()
+	        end
+	        node = node.children[char]
+	    end
+	    node.value = node.is_key ? (node.value[1] + 1, 0) : (1, 0)
+	    node.is_key = true
+	end
+	for ch2 in s2
+		node = d
+		for char in ch2
+			if !haskey(node.children, char)
+	            node.children[char] = Trie{Tuple{Int, Int}}()
+	        end
+	        node = node.children[char]
+	    end
+	    node.value = node.is_key ? (node.value[1], node.value[2]+ 1) : (0, 1)
+	    node.is_key = true
+	end
+	return iterator(d)
+end
+function iterator(t::Trie, found = Tuple{Int, Int}[])
+    if t.is_key
+    	t.is_key = false
+    	push!(found, t.value)
+    else
+    	for k in values(t.children)
+    		iterator(k, found) 
+    	end
+    end
+    return found
+end
+=#
+
 
 ##############################################################################
 ##

@@ -8,15 +8,13 @@ function f(t, x, y)
 end
 
 # a bist faster than StringDist
-@btime f(Levenshtein(), x, y)
+@time f(Levenshtein(), x, y)
 #  355.984 ms (1500004 allocations: 223.24 MiB)
 @time f(RatcliffObershelp(), x, y)
 
 # 2-3x slower compared to StringDist
 @time f(Jaccard(2), x, y)
 # 1.6s
-
-#
 
 
 
