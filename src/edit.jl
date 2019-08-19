@@ -109,8 +109,8 @@ struct Levenshtein <: SemiMetric end
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
     max_dist = max(length(s1), length(s2)))
-s1, s2 = reorder(s1, s2)
-len1, len2 = length(s1), length(s2)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
     len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)

@@ -11,6 +11,7 @@ end
 @time f(Hamming(), x, y)
 @time f(Jaro(), x, y)
 @time f(Jaro(), x, y; min_dist = 0.9)
+@time f(Winkler(Jaro()), x, y; min_dist = 0.9)
 
 @time f(Levenshtein(), x, y)
 # 0.3s. A bit faster than StringDist
