@@ -10,45 +10,35 @@
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
 
-# String with Length
-# This allows to compute length once and only once
-struct StringWithLength{T} <: AbstractString
-    s::T
-    l::Int
+function compare(s1::AbstractString, s2::AbstractString, dist::RatcliffObershelp; min_dist = 0.0)
+    max(1.0 - evaluate(dist, s1, s2), min_dist)
 end
-string_with_length(s::AbstractString) = StringWithLength(s, length(s))
-string_with_length(s::StringWithLength) = s
-Base.length(s::StringWithLength) = s.l
-Base.iterate(s::StringWithLength) = iterate(s.s)
-Base.iterate(s::StringWithLength, i::Integer) = iterate(s.s, i)
-Base.isequal(s1::StringWithLength, s2::AbstractString) = isequal(s.s1, s2)
-Base.isequal(s1::AbstractString, s2::StringWithLength) = isequal(s1, s2.s)
-Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)
-Base.ncodeunits(s::StringWithLength) = ncodeunits(s.s)
-Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_dist = 0.0)
-    1.0 - evaluate(dist, s1, s2; max_dist = 1.0 - min_dist)
+function compare(s1::AbstractString, s2::AbstractString, dist::Jaro; min_dist = 0.0)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    # http://ceur-ws.org/Vol-1317/om2014_Tpaper4.pdf formula 4
+    bound = 2 / 3 + len1 / (3 * len2)
+    bound <= min_dist && return min_dist 
+    max(1.0 - evaluate(dist, s1, s2), min_dist)
 end
 
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = 0.0)
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    len = max(length(s1), length(s2))
-    len == 0 && return 1.0
-    max_dist = ceil(Int, len * (1 - min_dist))
-    max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len, min_dist)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    len2 == 0 && return 1.0
+    max_dist = ceil(Int, len2 * (1 - min_dist))
+    max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len2, min_dist)
 end
 
 
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::AbstractQGramDistance)
     # When string length < q for qgram distance, returns s1 == s2
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    min(len1, len2) <= (dist.q - 1) && return convert(Float64, s1 == s2)
+    len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
         1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
     else
@@ -75,13 +65,28 @@ struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
 end
 Winkler(x) = Winkler(x, 0.1, 0.7)
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
-    score = compare(s1, s2, dist.dist)
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler{Jaro}; min_dist = 0.0)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
     l = remove_prefix(s1, s2, 4)[1]
+    # http://ceur-ws.org/Vol-1317/om2014_Tpaper4.pdf formula 5
+    bound = 2 / 3 + len1 / (3 * len2) + l * dist.scaling_factor * (1 / 3 - len1 / (3 * len2))
+    bound <= min_dist && return min_dist 
+    score = compare(s1, s2, dist.dist)
     if score >= dist.boosting_threshold
         score += l * dist.scaling_factor * (1 - score)
     end
-    return score
+    return max(score, min_dist)
+end
+
+
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_dist = 0.0)
+    l = remove_prefix(s1, s2, 4)[1]
+    score = compare(s1, s2, dist.dist; min_dist = min_dist)
+    if score >= dist.boosting_threshold
+        score += l * dist.scaling_factor * (1 - score)
+    end
+    return max(score, min_dist)
 end
 
 JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
@@ -102,11 +107,7 @@ struct Partial{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     len1 == 0 && return compare("", "", dist.dist)
@@ -119,11 +120,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp})
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     out = 0.0
@@ -211,11 +208,7 @@ struct TokenMax{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax)
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist)
     unbase_scale = 0.95

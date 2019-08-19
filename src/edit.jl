@@ -36,19 +36,12 @@ where ``m`` is the number of matching characters and
 struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString;
-    max_dist = 1.0)
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
+function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
+    maxdist = max(0, div(len2, 2) - 1)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
-    # Time-Efficient Execution of Bounded Jaro-Winkler Distances Equation (4)
-    1 - (2 / 3 + len1 / (3 * len2)) >= max_dist && return max_dist
-    maxdist = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
     prevstate1 = firstindex(s1)
     i1_match = prevstate1 * ones(Int, len1)
@@ -83,7 +76,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString;
         i1 += 1
         prevstate1 = state1
     end
-    m == 0 && return min(1.0, max_dist)
+    m == 0 && return 1.0
     # t counts number of transpositions
     t = 0
     i1 = 0
@@ -96,7 +89,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString;
         end
     end
     current = 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
-    return min(current, max_dist)
+    return current
 end
 
 ##############################################################################
@@ -116,12 +109,8 @@ struct Levenshtein <: SemiMetric end
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
     max_dist = max(length(s1), length(s2)))
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
-    len1, len2 = length(s1), length(s2)
+s1, s2 = reorder(s1, s2)
+len1, len2 = length(s1), length(s2)
     len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)
@@ -175,11 +164,7 @@ struct DamerauLevenshtein <: SemiMetric end
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString;
     max_dist = max(length(s1), length(s2)))
-    s1 = string_with_length(s1)
-    s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-        s2, s1 = s1, s2
-    end
+    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
@@ -254,10 +239,10 @@ The distance between two strings is defined as one minus  the number of matching
 """
 struct RatcliffObershelp <: PreMetric end
 
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString; max_dist = 1.0)
+function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
     n_matched = sum(last.(matching_blocks(s1, s2)))  
     len1, len2 = length(s1), length(s2)
-    len1 + len2 == 0 ? 0 : min(1.0 - 2 *  n_matched / (len1 + len2), max_dist)
+    len1 + len2 == 0 ? 0 : 1.0 - 2 *  n_matched / (len1 + len2)
 end
 
 function matching_blocks(s1::AbstractString, s2::AbstractString)

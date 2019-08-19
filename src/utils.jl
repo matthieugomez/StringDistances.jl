@@ -1,4 +1,29 @@
+# String with Length
+# This allows to compute length once and only once
+struct StringWithLength{T} <: AbstractString
+    s::T
+    l::Int
+end
+string_with_length(s::AbstractString) = StringWithLength(s, length(s))
+string_with_length(s::StringWithLength) = s
+Base.length(s::StringWithLength) = s.l
+Base.iterate(s::StringWithLength) = iterate(s.s)
+Base.iterate(s::StringWithLength, i::Integer) = iterate(s.s, i)
+Base.isequal(s1::StringWithLength, s2::AbstractString) = isequal(s.s1, s2)
+Base.isequal(s1::AbstractString, s2::StringWithLength) = isequal(s1, s2.s)
+Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)
+Base.ncodeunits(s::StringWithLength) = ncodeunits(s.s)
+Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
+function reorder(s1::AbstractString, s2::AbstractString)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+         s2, s1 = s1, s2
+    end
+    return s1, s2
+ end
 
+ 
 ## Find common prefixes (up to lim. -1 means Inf)
 function remove_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
     l = 0
