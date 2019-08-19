@@ -4,17 +4,19 @@ Random.seed!(2)
 x = map(Random.randstring, rand(5:25,500_000))
 y = map(Random.randstring, rand(5:25,500_000))
 
-function f(t, x, y; max_dist = Inf)
-    [evaluate(t, x[i], y[i]; max_dist = max_dist) for i in 1:length(x)]
+function f(t, x, y; min_dist = 0.0)
+    [compare(x[i], y[i], t; min_dist = min_dist) for i in 1:length(x)]
 end
 
 @time f(Hamming(), x, y)
 @time f(Jaro(), x, y)
+@time f(Jaro(), x, y; min_dist = 0.9)
+
 @time f(Levenshtein(), x, y)
 # 0.3s. A bit faster than StringDist
-@time f(Levenshtein(), x, y, max_dist = 10)
+@time f(Levenshtein(), x, y, min_dist = 0.8)
 @time f(DamerauLevenshtein(), x, y)
-@time f(DamerauLevenshtein(), x, y, max_dist = 10)
+@time f(DamerauLevenshtein(), x, y, min_dist = 0.8)
 # 0.39s.  Much faster than StringDist
 @time f(RatcliffObershelp(), x, y)
 

@@ -17,6 +17,7 @@ struct StringWithLength{T} <: AbstractString
     l::Int
 end
 string_with_length(s::AbstractString) = StringWithLength(s, length(s))
+string_with_length(s::StringWithLength) = s
 Base.length(s::StringWithLength) = s.l
 Base.iterate(s::StringWithLength) = iterate(s.s)
 Base.iterate(s::StringWithLength, i::Integer) = iterate(s.s, i)
@@ -101,7 +102,12 @@ struct Partial{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
-    s2, len2, s1, len1 = reorder(s1, s2)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     len1 == 0 && return compare("", "", dist.dist)
     out = 0.0
@@ -113,7 +119,12 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp})
-    s2, len2, s1, len1 = reorder(s1, s2)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
     out = 0.0
     for r in matching_blocks(s1, s2)
@@ -200,15 +211,20 @@ struct TokenMax{T <: PreMetric} <: PreMetric
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist)
-    s2, len2, s1, len1 = reorder(s1, s2)
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
-    if len2 >= 1.5 * len1
+    if length(s2) >= 1.5 * length(s1)
         partial = compare(s1, s2, Partial(dist.dist)) 
         ptsor = compare(s1, s2, TokenSort(Partial(dist.dist))) 
         ptser = compare(s1, s2, TokenSet(Partial(dist.dist))) 
-        partial_scale = len2 > (8 * len1) ? 0.6 : 0.9
+        partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
         return max(dist0, 
                 partial * partial_scale, 
                 ptsor * unbase_scale * partial_scale, 

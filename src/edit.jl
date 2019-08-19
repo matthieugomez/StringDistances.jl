@@ -5,7 +5,7 @@
 ##
 ##############################################################################
 function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString;
-    max_dist = typemax(Int))
+    max_dist = max(length(s1), length(s2)))
     current = abs(length(s2) - length(s1))
     current >= max_dist && return max_dist
     for (ch1, ch2) in zip(s1, s2)
@@ -37,8 +37,13 @@ struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString;
-    max_dist = Inf)
-    s2, len2, s1, len1 = reorder(s1, s2)
+    max_dist = 1.0)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
     # Time-Efficient Execution of Bounded Jaro-Winkler Distances Equation (4)
@@ -110,8 +115,13 @@ struct Levenshtein <: SemiMetric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
-    max_dist = typemax(Int))
-    s2, len2, s1, len1 = reorder(s1, s2)
+    max_dist = max(length(s1), length(s2)))
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)
@@ -164,8 +174,13 @@ struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString;
-    max_dist = typemax(Int))
-    s2, len2, s1, len1 = reorder(s1, s2)
+    max_dist = max(length(s1), length(s2)))
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
+    if length(s1) > length(s2)
+        s2, s1 = s1, s2
+    end
+    len1, len2 = length(s1), length(s2)
     len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)
@@ -239,7 +254,7 @@ The distance between two strings is defined as one minus  the number of matching
 """
 struct RatcliffObershelp <: PreMetric end
 
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString; max_dist = Inf)
+function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString; max_dist = 1.0)
     n_matched = sum(last.(matching_blocks(s1, s2)))  
     len1, len2 = length(s1), length(s2)
     len1 + len2 == 0 ? 0 : min(1.0 - 2 *  n_matched / (len1 + len2), max_dist)
