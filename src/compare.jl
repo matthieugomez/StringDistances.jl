@@ -9,19 +9,43 @@
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
-function compare(s1::AbstractString, s2::AbstractString, dist::PreMetric)
-    1.0 - evaluate(dist, s1, s2)
+
+# String with Length
+# This allows to compute length once and only once
+struct StringWithLength{T} <: AbstractString
+    s::T
+    l::Int
+end
+string_with_length(s::AbstractString) = StringWithLength(s, length(s))
+Base.length(s::StringWithLength) = s.l
+Base.iterate(s::StringWithLength) = iterate(s.s)
+Base.iterate(s::StringWithLength, i::Integer) = iterate(s.s, i)
+Base.isequal(s1::StringWithLength, s2::AbstractString) = isequal(s.s1, s2)
+Base.isequal(s1::AbstractString, s2::StringWithLength) = isequal(s1, s2.s)
+Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)
+Base.ncodeunits(s::StringWithLength) = ncodeunits(s.s)
+Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
+
+function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_dist = 0.0)
+    1.0 - evaluate(dist, s1, s2; max_dist = 1.0 - min_dist)
 end
 
 function compare(s1::AbstractString, s2::AbstractString, 
-    dist::Union{Hamming, Levenshtein, DamerauLevenshtein})
+    dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = 0.0)
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
     len = max(length(s1), length(s2))
-    len == 0 ? 1.0 : 1.0 - evaluate(dist, s1, s2) / len
+    len == 0 && return 1.0
+    max_dist = ceil(Int, len * (1 - min_dist))
+    max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len, min_dist)
 end
+
 
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::AbstractQGramDistance)
     # When string length < q for qgram distance, returns s1 == s2
+    s1 = string_with_length(s1)
+    s2 = string_with_length(s2)
     len1, len2 = length(s1), length(s2)
     min(len1, len2) <= (dist.q - 1) && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
@@ -52,12 +76,14 @@ Winkler(x) = Winkler(x, 0.1, 0.7)
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
     score = compare(s1, s2, dist.dist)
-    l = common_prefix(s1, s2, 4)[1]
+    l = remove_prefix(s1, s2, 4)[1]
     if score >= dist.boosting_threshold
         score += l * dist.scaling_factor * (1 - score)
     end
     return score
 end
+
+JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
 
 ##############################################################################
 ##

@@ -5,20 +5,19 @@
 ##
 ############################################################################
 struct QGramIterator{S <: AbstractString}
-	s::S # grapheme
-	l::Int # length of string
+	s::S # string
 	q::Int # Length of Qgram
 end
 
 function Base.iterate(qgram::QGramIterator, 
-	state = (1, qgram.l < qgram.q ? ncodeunits(qgram.s) + 1 : nextind(qgram.s, 0, qgram.q)))
+	state = (1, nextind(qgram.s, 0, qgram.q)))
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
 	element = SubString(qgram.s, istart, iend)
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.length(qgram::QGramIterator) = max(qgram.l - qgram.q + 1, 0)
+Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
 Base.eltype(qgram::QGramIterator{S}) where {S} = SubString{S}
 
@@ -38,7 +37,7 @@ end
 ```
 """
 function qgram(s::AbstractString, q::Integer)
-	QGramIterator{typeof(s)}(s, length(s), q)
+	QGramIterator{typeof(s)}(s, q)
 end
 
 ##############################################################################

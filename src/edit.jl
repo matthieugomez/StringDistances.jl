@@ -4,10 +4,13 @@
 ## Hamming
 ##
 ##############################################################################
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString;
+    max_dist = typemax(Int))
     current = abs(length(s2) - length(s1))
+    current >= max_dist && return max_dist
     for (ch1, ch2) in zip(s1, s2)
         current += ch1 != ch2
+        current >= max_dist && return max_dist
     end
     return current
 end
@@ -33,10 +36,13 @@ where ``m`` is the number of matching characters and
 struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString;
+    max_dist = Inf)
     s2, len2, s1, len1 = reorder(s1, s2)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. Add this line so that not the case
     len2 == 0 && return 0.0
+    # Time-Efficient Execution of Bounded Jaro-Winkler Distances Equation (4)
+    1 - (2 / 3 + len1 / (3 * len2)) >= max_dist && return max_dist
     maxdist = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
     prevstate1 = firstindex(s1)
@@ -72,7 +78,7 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
         i1 += 1
         prevstate1 = state1
     end
-    m == 0 && return 1.0
+    m == 0 && return min(1.0, max_dist)
     # t counts number of transpositions
     t = 0
     i1 = 0
@@ -84,7 +90,8 @@ function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
             t += ch2 != iterate(s1, i1_match[i1])[1]
         end
     end
-    return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
+    current = 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
+    return min(current, max_dist)
 end
 
 ##############################################################################
@@ -102,10 +109,12 @@ The Levenshtein distance is the minimum number of operations (consisting of inse
 struct Levenshtein <: SemiMetric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
+    max_dist = typemax(Int))
     s2, len2, s1, len1 = reorder(s1, s2)
+    len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
-    k, x1, x2start = common_prefix(s1, s2)
+    k, x1, x2start = remove_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
@@ -116,6 +125,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
         ch1, state1 = x1
         left = i1 - 1
         current = i1 - 1
+        min_dist = i1 - 2 
         i2 = 1
         x2 = x2start
         while x2 !== nothing
@@ -126,14 +136,16 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString)
                 # substitution
                 current = min(current + 1, above + 1, left + 1)
             end
+            min_dist = min(min_dist, left)
             v0[i2] = current
             x2 = iterate(s2, state2)
             i2 += 1
         end
+        min_dist >= max_dist && return max_dist
         x1 = iterate(s1, state1)
         i1 += 1
     end
-    return current
+    return min(current, max_dist)
 end
 
 ##############################################################################
@@ -151,10 +163,12 @@ The DamerauLevenshtein distance is the minimum number of operations (consisting 
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
-function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString;
+    max_dist = typemax(Int))
     s2, len2, s1, len1 = reorder(s1, s2)
+    len2 - len1 >= max_dist && return max_dist
     # prefix common to both strings can be ignored
-    k, x1, x2start = common_prefix(s1, s2)
+    k, x1, x2start = remove_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
     v0 = collect(1:(len2 - k))
     v2 = similar(v0)
@@ -200,12 +214,15 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
             i2 += 1
             prevch2 = ch2
         end
+        (v0[i1 + len2 - len1] >= max_dist) && return max_dist
         x1 = iterate(s1, state1)
         i1 += 1
         prevch1 = ch1
     end
     return current
 end
+
+
 
 
 ##############################################################################
@@ -222,10 +239,10 @@ The distance between two strings is defined as one minus  the number of matching
 """
 struct RatcliffObershelp <: PreMetric end
 
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString; max_dist = Inf)
     n_matched = sum(last.(matching_blocks(s1, s2)))  
     len1, len2 = length(s1), length(s2)
-    len1 + len2 == 0 ? 0 : 1.0 - 2 *  n_matched / (len1 + len2)
+    len1 + len2 == 0 ? 0 : min(1.0 - 2 *  n_matched / (len1 + len2), max_dist)
 end
 
 function matching_blocks(s1::AbstractString, s2::AbstractString)

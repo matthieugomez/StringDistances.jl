@@ -9,7 +9,7 @@ function reorder(s1::AbstractString, s2::AbstractString)
 end
 
 ## Find common prefixes (up to lim. -1 means Inf)
-function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
+function remove_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1)
     l = 0
     x1 = iterate(s1)
     x2 = iterate(s2)
@@ -23,6 +23,9 @@ function common_prefix(s1::AbstractString, s2::AbstractString, lim::Integer = -1
     end
     return l, x1, x2
 end
+
+
+
 
 # Return start of commn substring in s1, start of common substring in s2, and length of substring
 # Indexes refer to character number, not index

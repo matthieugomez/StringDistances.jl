@@ -99,6 +99,25 @@ for x in solutions
 end
 
 
+for dist in (Hamming, Levenshtein, DamerauLevenshtein)
+	for i in eachindex(strings)
+		@test evaluate(dist(), strings[i]..., max_dist = 3) == min(evaluate(dist(), strings[i]...), 3)
+	end
+end
+
+for i in eachindex(strings)
+	@test evaluate(Jaro(), strings[i]..., max_dist = 0.6) == min(evaluate(Jaro(), strings[i]...), 0.6)
+end
+
+
+
+for dist in (Hamming, Levenshtein, DamerauLevenshtein, Jaro)
+	for i in eachindex(strings)
+		@test compare(strings[i]..., dist() ; min_dist = 1/ 3) ≈ max(compare(strings[i]..., dist()), 1 / 3)
+	end
+end
+
+
 
 
 #= R test
