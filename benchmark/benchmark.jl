@@ -15,17 +15,21 @@ end
 @time f(Levenshtein(), x, y)
 # 0.35s. A bit faster than StringDist
 @time f(Levenshtein(), x, y, min_score = 0.8)
+# 0.11
 @time f(DamerauLevenshtein(), x, y)
 # 0.45s.  Much faster than StringDist
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8)
 # 0.08
 
+@time find_best(x[1], y, Levenshtein())
+# 0.41
 @time find_best(x[1], y, DamerauLevenshtein())
 # 0.41
-@time find_all(x[1], y, Levenshtein())
 
+@time find_all(x[1], y, Levenshtein())
+# 0.14
 @time find_all(x[1], y, DamerauLevenshtein())
-# 0.09
+# 0.08
 
 
 # 1.6s slower compared to StringDist
