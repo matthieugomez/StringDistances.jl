@@ -91,13 +91,13 @@ The package includes distance "modifiers", that can be applied to any distance.
 
 
 ## Find (experimental)
-`find_best` returns the best match in an iterator of AbstractStrings:
+`find_best` returns the element of an iterator with the highest similarity score with a string
 ```julia
 find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
 #> "NewYork"
 ```
 
-`find_all` returns a `Vector` with all the matches in an iterator of AbstractStrings:
+`find_all` returns a collection of all the elements of an iterator with a similarity score higher than a minimum value (default to 0.8)
 
 ```julia
 find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.8)

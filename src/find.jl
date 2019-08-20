@@ -1,7 +1,7 @@
 """
     find_best(s1::AbstractString, iter, dist::PreMetric)
 
-`find_best` returns the best element `iter` that has the best similarity score with `s1` according to the distance `dist`. 
+`find_best` returns the element of the iterator `iter` that has the highest similarity score with `s1` according to the distance `dist`. 
 The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances (potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 """
 function find_best(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}) where T <: Union{Levenshtein, DamerauLevenshtein}
@@ -32,7 +32,7 @@ end
 
 """
     find_all(s1::AbstractString, iter, dist::PreMetric; min_score = 0.8)
-`find_all` returns a vector with all the elements of `iter` that have a similarity score higher than 0.8 according to the distance `dist`. 
+`find_all` returns the vector with all the elements of `iter` that have a similarity score higher than `min_score` according to the distance `dist`. 
 The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances (potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 """
 function find_all(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}; min_score = 0.8) where T <: Union{Levenshtein, DamerauLevenshtein}
