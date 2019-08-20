@@ -89,17 +89,6 @@ The package includes distance "modifiers", that can be applied to any distance.
 		#> 0.855
 		```
 
-## Compare vs Evaluate
-
-The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
-In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. some distances are between 0 and 1. Others are unbouded.
-
-```julia
-compare("New York", "New York", Levenshtein())
-#> 1.0
-evaluate(Levenshtein(), "New York", "New York")
-#> 0
-```
 
 ## Find (experimental)
 `find_best` returns the best match in an iterator of AbstractStrings:
@@ -123,6 +112,18 @@ While these functions are defined for any distance, they are particularly optimi
 As a rule of thumb, 
 - Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
 - The distance `Tokenmax(Levenshtein())` is a good choice to link names or adresses across datasets.
+
+## Compare vs Evaluate
+
+The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
+In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. some distances are between 0 and 1. Others are unbouded.
+
+```julia
+compare("New York", "New York", Levenshtein())
+#> 1.0
+evaluate(Levenshtein(), "New York", "New York")
+#> 0
+```
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
