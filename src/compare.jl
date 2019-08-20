@@ -121,7 +121,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_scor
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; 
-    min_score = nothing)
+    min_score::Nothing = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
