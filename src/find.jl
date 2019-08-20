@@ -10,6 +10,7 @@ function find_best(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, Token
     for s2 in iter_s2
         score = compare(s1, s2, dist; min_score = best_score)
         if score > best_score
+            score == 1.0 && return s2
             best_s2 = s2
             best_score = score
         end
@@ -22,6 +23,7 @@ function find_best(s1::AbstractString, iter_s2, dist::PreMetric)
     for s2 in iter_s2
         score = compare(s1, s2, dist)
         if score > best_score
+            score == 1.0 && return s2
             best_s2 = s2
             best_score = score
         end
