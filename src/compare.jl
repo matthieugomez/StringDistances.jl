@@ -30,11 +30,8 @@ function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtei
     else
         d = evaluate(dist, s1, s2; max_dist = ceil(Int, len2 * (1 - min_score)))
         out = 1.0 - d / len2
-        if d == -1 || out < min_score
-            return 0.0
-        else
-            return out
-        end
+        out < min_score && return 0.0
+        return out
     end
 end
 

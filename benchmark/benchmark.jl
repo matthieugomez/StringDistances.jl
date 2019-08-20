@@ -4,29 +4,30 @@ Random.seed!(2)
 x = map(Random.randstring, rand(5:25,500_000))
 y = map(Random.randstring, rand(5:25,500_000))
 
-function f(t, x, y; min_dist = nothing)
-    [compare(x[i], y[i], t; min_dist = min_dist) for i in 1:length(x)]
+function f(t, x, y; min_score = nothing)
+    [compare(x[i], y[i], t; min_score = min_score) for i in 1:length(x)]
 end
 
 @time f(Hamming(), x, y)
-#0.1s
+#0.05s
 @time f(Jaro(), x, y)
 #0.3s
 @time f(Levenshtein(), x, y)
 # 0.35s. A bit faster than StringDist
-@time f(Levenshtein(), x, y, min_dist = 0.8)
+@time f(Levenshtein(), x, y, min_score = 0.8)
 @time f(DamerauLevenshtein(), x, y)
-@time f(DamerauLevenshtein(), x, y, min_dist = 0.8)
-# 0.39s.  Much faster than StringDist
+# 0.45s.  Much faster than StringDist
+@time f(DamerauLevenshtein(), x, y, min_score = 0.8)
+# 0.08
 
-@time extract.(x[1:10], Ref(y), Ref(DamerauLevenshtein()))
+@time find_best(x[1], y, DamerauLevenshtein())
+# 0.41
+@time find_all(x[1], y, Levenshtein())
+
+@time find_all(x[1], y, DamerauLevenshtein())
+# 0.09
 
 
-
-function g(t, x, y)
-    [evaluate(t, x[i], y[i]) for i in 1:length(x)]
-end
-@time g(Jaccard(2), x, y)
 # 1.6s slower compared to StringDist
 
 
@@ -34,11 +35,18 @@ end
 
 
 
-
-function h(t, x, y; max_dist = Inf)
-    all(evaluate(t, x[i], y[i]; max_dist = max_dist) == min(max_dist, evaluate(t, x[i], y[i])) for i in eachindex(x))
+# check
+function h(t, x, y; min_score = 1/3)
+	out = fill(false, length(x))
+	for i in eachindex(x)
+		if compare(x[i], y[i], t) <  min_score
+			out[i] = compare(x[i], y[i], t ; min_score = min_score) ≈ 0.0
+			else
+			out[i] = compare(x[i], y[i], t ; min_score = min_score) ≈ compare(x[i], y[i], t)
+		end
+	end
+	all(out)
 end
-h(Jaro(), x, y)
 h(Levenshtein(), x, y)
 h(DamerauLevenshtein(), x, y)
 
