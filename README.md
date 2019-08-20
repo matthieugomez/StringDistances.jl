@@ -116,7 +116,7 @@ find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_
 #> "NewYork"
 ```
 
-These functions are optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
+While these functions are defined for any distance, they are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 
 ## Which distance should I use?
 
