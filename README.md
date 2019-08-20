@@ -102,7 +102,8 @@ evaluate(Levenshtein(), "New York", "New York")
 ## Extract
 An experimental `extract` funciton finds the best match in an iterator of AbstractStrings:
 ```julia
-extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) = "NewYork"
+extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
+#> "NewYork"
 ```
 The function works for `Levenshtein`, `DamerauLevenshtein`, possibly modified by `Partial`, `TokenSort`, `TokenSet`, `TokenMax`
 
