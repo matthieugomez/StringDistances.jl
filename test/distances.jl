@@ -99,7 +99,7 @@ for x in solutions
 end
 
 
-for dist in (Hamming, Levenshtein, DamerauLevenshtein, Jaro)
+for dist in (Hamming, Levenshtein, DamerauLevenshtein)
 	for i in eachindex(strings)
 		@test compare(strings[i]..., dist() ; min_dist = 1/ 3) ≈ max(compare(strings[i]..., dist()), 1 / 3)
 	end

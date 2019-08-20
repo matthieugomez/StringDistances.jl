@@ -20,13 +20,13 @@ using StringDistances, Test
 
 
 # Winkler
-@test compare("martha", "marhta", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.9611 atol = 1e-4
-@test compare("dwayne", "duane", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.84 atol = 1e-4
-@test compare("dixon", "dicksonx", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.81333 atol = 1e-4
-@test compare("william", "williams", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.975 atol = 1e-4
-@test compare("", "foo", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.0 atol = 1e-4
-@test compare("a", "a", Winkler(Jaro(), 0.1, 0.0)) ≈ 1.0 atol = 1e-4
-@test compare("abc", "xyz", Winkler(Jaro(), 0.1, 0.0)) ≈ 0.0 atol = 1e-4
+@test compare("martha", "marhta", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.9611 atol = 1e-4
+@test compare("dwayne", "duane", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.84 atol = 1e-4
+@test compare("dixon", "dicksonx", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.81333 atol = 1e-4
+@test compare("william", "williams", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.975 atol = 1e-4
+@test compare("", "foo", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.0 atol = 1e-4
+@test compare("a", "a", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 1.0 atol = 1e-4
+@test compare("abc", "xyz", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.0 atol = 1e-4
 
 strings = [
 ("martha", "marhta"),
@@ -37,7 +37,7 @@ strings = [
 ]
 solutions = [0.03888889 0.16000000 0.18666667 0.02500000 1.00000000]
 for i in 1:length(solutions)
-	@test compare(strings[i]..., Winkler(Jaro(), 0.1, 0.0)) ≈ (1 - solutions[i]) atol = 1e-4
+	@test compare(strings[i]..., Winkler(Jaro(), 0.1, 0.0, 4)) ≈ (1 - solutions[i]) atol = 1e-4
 end
 
 

@@ -10,35 +10,30 @@
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
 
-function compare(s1::AbstractString, s2::AbstractString, dist::RatcliffObershelp; min_dist = 0.0)
-    max(1.0 - evaluate(dist, s1, s2), min_dist)
-end
-
-function compare(s1::AbstractString, s2::AbstractString, dist::Jaro; min_dist = 0.0)
-    s1, s2 = reorder(s1, s2)
-    len1, len2 = length(s1), length(s2)
-    # http://ceur-ws.org/Vol-1317/om2014_Tpaper4.pdf formula 4
-    bound = 2 / 3 + len1 / (3 * len2)
-    bound <= min_dist && return min_dist 
-    max(1.0 - evaluate(dist, s1, s2), min_dist)
-end
-
 function compare(s1::AbstractString, s2::AbstractString, 
-    dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = 0.0)
+    dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
-    max_dist = ceil(Int, len2 * (1 - min_dist))
-    max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len2, min_dist)
+    if min_dist === nothing
+        1.0 - evaluate(dist, s1, s2) / len2
+    else
+        max_dist = ceil(Int, len2 * (1 - min_dist))
+        # need to add max in case of integer stuff
+        max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len2, min_dist)
+    end
 end
 
+function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_dist::Nothing = nothing)
+    1.0 - evaluate(dist, s1, s2)
+end
 
-function compare(s1::AbstractString, s2::AbstractString, 
-    dist::AbstractQGramDistance)
+function compare(s1::AbstractString, s2::AbstractString, dist::AbstractQGramDistance;
+    min_dist::Nothing = nothing)
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 <= (dist.q - 1) && return convert(Float64, s1 == s2)
+    len1 <= dist.q - 1 && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
         1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
     else
@@ -54,39 +49,32 @@ end
 ##
 ##############################################################################
 """
-   Winkler(dist::Premetric, scaling_factor::Real = 0.1, boosting_limit::Real = 0.7)
+   Winkler(dist::Premetric, p::Real = 0.1, boosting_threshold::Real = 0.7, l::Integer = 4)
 
-Winkler is a `PreMetric` modifier that boosts the similarity score between two strings by a scale `scaling_factor` when the strings share a common prefix (the boost is only applied the similarity score above `boosting_threshold`)
+Winkler is a `PreMetric` modifier that boosts the similarity score between two strings by a scale `p` when the strings share a common prefix with lenth lower than `l` (the boost is only applied the similarity score above `boosting_threshold`)
 """
-struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real} <: PreMetric
+struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real, T4 <: Integer} <: PreMetric
     dist::T1
-    scaling_factor::T2          # scaling factor. Default to 0.1
+    p::T2          # scaling factor. Default to 0.1
     boosting_threshold::T3      # boost threshold. Default to 0.7
+    l::Integer                  # length of common prefix. Default to 4
+    function Winkler(dist::T1, p::T2,  boosting_threshold::T3, l::T4) where {T1, T2, T3, T4}
+        p * l >= 1 && throw("scaling factor times length of common prefix must be lower than one")
+        new{T1, T2, T3, T4}(dist, p, boosting_threshold, l)
+    end
 end
-Winkler(x) = Winkler(x, 0.1, 0.7)
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler{Jaro}; min_dist = 0.0)
-    s1, s2 = reorder(s1, s2)
-    len1, len2 = length(s1), length(s2)
-    l = remove_prefix(s1, s2, 4)[1]
-    # http://ceur-ws.org/Vol-1317/om2014_Tpaper4.pdf formula 5
-    bound = 2 / 3 + len1 / (3 * len2) + l * dist.scaling_factor * (1 / 3 - len1 / (3 * len2))
-    bound <= min_dist && return min_dist 
+Winkler(x) = Winkler(x, 0.1, 0.7, 4)
+
+# hard to use min_dist because of whether there is boost or not in the end
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_dist::Nothing = nothing)
+    l = remove_prefix(s1, s2, dist.l)[1]
+    # cannot do min_dist because of boosting threshold
     score = compare(s1, s2, dist.dist)
     if score >= dist.boosting_threshold
-        score += l * dist.scaling_factor * (1 - score)
+        score += l * dist.p * (1 - score)
     end
-    return max(score, min_dist)
-end
-
-
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_dist = 0.0)
-    l = remove_prefix(s1, s2, 4)[1]
-    score = compare(s1, s2, dist.dist; min_dist = min_dist)
-    if score >= dist.boosting_threshold
-        score += l * dist.scaling_factor * (1 - score)
-    end
-    return max(score, min_dist)
+    return score
 end
 
 JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
@@ -106,20 +94,21 @@ struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial)
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 == len2 && return compare(s1, s2, dist.dist)
-    len1 == 0 && return compare("", "", dist.dist)
+    len1 == len2 && return compare(s1, s2, dist.dist; min_dist = min_dist)
+    len1 == 0 && return 1.0
     out = 0.0
     for x in qgram(s2, len1)
-        curr = compare(s1, x, dist.dist)
+        curr = compare(s1, x, dist.dist; min_dist = min_dist)
         out = max(out, curr)
     end
     return out
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp})
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; 
+    min_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -158,10 +147,10 @@ struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_dist = nothing)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
-    compare(s1, s2, dist.dist)
+    compare(s1, s2, dist.dist; min_dist = min_dist)
 end
 
 ##############################################################################
@@ -179,17 +168,17 @@ struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_dist = nothing)
     v1 = SortedSet(split(s1))
     v2 = SortedSet(split(s2))
     v0 = intersect(v1, v2)
     s0 = join(v0, " ")
     s1 = join(v1, " ")
     s2 = join(v2, " ")
-    isempty(s0) && return compare(s1, s2, dist.dist)
-    max(compare(s0, s1, dist.dist), 
-        compare(s0, s2, dist.dist),
-        compare(s1, s2, dist.dist))
+    isempty(s0) && return compare(s1, s2, dist.dist; min_dist = min_dist)
+    max(compare(s0, s1, dist.dist; min_dist = min_dist), 
+        compare(s0, s2, dist.dist; min_dist = min_dist),
+        compare(s1, s2, dist.dist; min_dist = min_dist))
 end
 
 
@@ -207,24 +196,24 @@ struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist)
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
     if length(s2) >= 1.5 * length(s1)
-        partial = compare(s1, s2, Partial(dist.dist)) 
-        ptsor = compare(s1, s2, TokenSort(Partial(dist.dist))) 
-        ptser = compare(s1, s2, TokenSet(Partial(dist.dist))) 
+        partial = compare(s1, s2, Partial(dist.dist); min_dist = min_dist) 
+        ptsor = compare(s1, s2, TokenSort(Partial(dist.dist)); min_dist = min_dist) 
+        ptser = compare(s1, s2, TokenSet(Partial(dist.dist)); min_dist = min_dist) 
         partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
         return max(dist0, 
                 partial * partial_scale, 
                 ptsor * unbase_scale * partial_scale, 
                 ptser * unbase_scale * partial_scale)
     else
-        ptsor = compare(s1, s2, TokenSort(dist.dist)) 
-        ptser = compare(s1, s2, TokenSet(dist.dist)) 
+        ptsor = compare(s1, s2, TokenSort(dist.dist); min_dist = min_dist) 
+        ptser = compare(s1, s2, TokenSet(dist.dist); min_dist = min_dist) 
         return max(dist0, 
                 ptsor * unbase_scale, 
                 ptser * unbase_scale)

@@ -17,11 +17,12 @@ Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
 function reorder(s1::AbstractString, s2::AbstractString)
     s1 = string_with_length(s1)
     s2 = string_with_length(s2)
-    if length(s1) > length(s2)
-         s2, s1 = s1, s2
+    if length(s1) <= length(s2)
+         return s1, s2
+    else
+        return s2, s1
     end
-    return s1, s2
- end
+end
 
  
 ## Find common prefixes (up to lim. -1 means Inf)
