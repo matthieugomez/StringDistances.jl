@@ -9,7 +9,6 @@
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
-
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = nothing)
     s1, s2 = reorder(s1, s2)
@@ -43,6 +42,16 @@ end
 
 @deprecate compare(dist::PreMetric, s1::AbstractString, s2::AbstractString) compare(s1, s2, dist)
 
+# Handle missing values
+function compare(s1::AbstractString, ::Missing, dist::PreMetric; min_dist = nothing)
+    missing
+end
+function compare(::Missing, s2::AbstractString, dist::PreMetric; min_dist = nothing)
+    missing
+end
+function compare(::Missing, ::Missing, dist::PreMetric; min_dist = nothing)
+    missing
+end
 ##############################################################################
 ##
 ## Winkler
@@ -219,3 +228,25 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_dis
                 ptser * unbase_scale)
     end
 end
+
+##############################################################################
+##
+## Extract
+##
+##############################################################################
+function extract(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}) where T <: Union{Levenshtein, DamerauLevenshtein}
+    best_score = 0.0
+    best_s2 = nothing
+    for s2 in iter_s2
+        score = compare(s1, s2, dist; min_dist = best_score)
+        if (score !== missing) && (score > best_score)
+            best_s2 = s2
+            best_score = score
+        end
+    end
+    return best_s2
+end
+function extract(::Missing, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}) where T <: Union{Levenshtein, DamerauLevenshtein}
+    missing
+end
+

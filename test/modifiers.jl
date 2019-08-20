@@ -145,3 +145,14 @@ s1 = SubString(s1, 1, 4)
 s2 = SubString(s2, 1, 4)
 dist = QGram(2)
 @test evaluate(dist, s1, s2) == 2
+
+
+# check missing
+@test compare(s1, missing, Levenshtein()) === missing
+
+# check extract
+@test extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
+@test extract("New York", ["NewYork", "Newark", missing], Levenshtein()) == "NewYork"
+@test extract("New York", [missing, "NewYork", "Newark"], Levenshtein()) == "NewYork"
+
+

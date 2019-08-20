@@ -7,15 +7,13 @@ y = map(Random.randstring, rand(5:25,500_000))
 function f(t, x, y; min_dist = nothing)
     [compare(x[i], y[i], t; min_dist = min_dist) for i in 1:length(x)]
 end
-function f(t, x, y; min_dist = nothing)
-    [evaluate(t, x[i], y[i]; min_dist = min_dist) for i in 1:length(x)]
-end
+
 @time f(Hamming(), x, y)
+#0.1s
 @time f(Jaro(), x, y)
-
-
+#0.3s
 @time f(Levenshtein(), x, y)
-# 0.3s. A bit faster than StringDist
+# 0.35s. A bit faster than StringDist
 @time f(Levenshtein(), x, y, min_dist = 0.8)
 @time f(DamerauLevenshtein(), x, y)
 @time f(DamerauLevenshtein(), x, y, min_dist = 0.8)

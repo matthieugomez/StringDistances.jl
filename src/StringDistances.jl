@@ -26,7 +26,8 @@ Partial,
 TokenSort,
 TokenSet,
 TokenMax,
-qgram
+qgram,
+extract
 
 ##############################################################################
 ##

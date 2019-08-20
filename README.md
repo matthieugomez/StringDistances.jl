@@ -99,6 +99,13 @@ evaluate(Levenshtein(), "New York", "New York")
 #> 0
 ```
 
+## Extract
+An experimental `extract` funciton finds the best match in an iterator of AbstractStrings:
+```julia
+extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) = "NewYork"
+```
+The function works for `Levenshtein`, `DamerauLevenshtein`, possibly modified by `Partial`, `TokenSort`, `TokenSet`, `TokenMax`
+
 ## Which distance should I use?
 
 As a rule of thumb, 
