@@ -90,7 +90,7 @@ The package includes distance "modifiers", that can be applied to any distance.
 		```
 
 
-## Find (experimental)
+## Find
 `find_best` returns the element of an iterator with the highest similarity score with a string
 ```julia
 find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
