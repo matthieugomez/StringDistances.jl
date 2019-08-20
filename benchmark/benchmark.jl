@@ -4,7 +4,7 @@ Random.seed!(2)
 x = map(Random.randstring, rand(5:25,500_000))
 y = map(Random.randstring, rand(5:25,500_000))
 
-function f(t, x, y; min_score = nothing)
+function f(t, x, y; min_score = 0.0)
     [compare(x[i], y[i], t; min_score = min_score) for i in 1:length(x)]
 end
 
@@ -21,6 +21,8 @@ end
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8)
 # 0.08
 
+
+
 @time find_best(x[1], y, Levenshtein())
 # 0.41
 @time find_best(x[1], y, DamerauLevenshtein())
@@ -29,7 +31,16 @@ end
 @time find_all(x[1], y, Levenshtein())
 # 0.14
 @time find_all(x[1], y, DamerauLevenshtein())
-# 0.08
+# 0.07
+@time find_all(x[1], y, Partial(DamerauLevenshtein()))
+# 2.9
+
+@time find_all(x[1], y, TokenSort(DamerauLevenshtein()))
+# 0.7
+@time find_all(x[1], y, TokenSet(DamerauLevenshtein()))
+# 1.5
+@time find_all(x[1], y, TokenMax(DamerauLevenshtein()))
+# 5.4
 
 
 # 1.6s slower compared to StringDist
