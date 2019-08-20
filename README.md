@@ -100,12 +100,12 @@ evaluate(Levenshtein(), "New York", "New York")
 ```
 
 ## Extract
-An experimental `extract` funciton finds the best match in an iterator of AbstractStrings:
+On master, there is an experimental `extract` function that returns the best match in an iterator of AbstractStrings:
 ```julia
 extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
 #> "NewYork"
 ```
-The function works for `Levenshtein`, `DamerauLevenshtein`, possibly modified by `Partial`, `TokenSort`, `TokenSet`, `TokenMax`
+The function is particularly fast for `Levenshtein` and `DamerauLevenshtein` distances (potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 
 ## Which distance should I use?
 

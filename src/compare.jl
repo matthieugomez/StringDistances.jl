@@ -246,7 +246,21 @@ function extract(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, TokenSo
     end
     return best_s2
 end
-function extract(::Missing, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}) where T <: Union{Levenshtein, DamerauLevenshtein}
-    missing
+function extract(s1::AbstractString, iter_s2, dist::PreMetric)
+    best_score = 0.0
+    best_s2 = nothing
+    for s2 in iter_s2
+        score = compare(s1, s2, dist)
+        if (score !== missing) && (score > best_score)
+            best_s2 = s2
+            best_score = score
+        end
+    end
+    return best_s2
+end
+
+
+function extract(::Missing, iter_s2, dist::PreMetric)
+    return missing
 end
 

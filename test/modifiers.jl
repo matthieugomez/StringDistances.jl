@@ -152,6 +152,7 @@ dist = QGram(2)
 
 # check extract
 @test extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
+@test extract("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == "NewYork"
 @test extract("New York", ["NewYork", "Newark", missing], Levenshtein()) == "NewYork"
 @test extract("New York", [missing, "NewYork", "Newark"], Levenshtein()) == "NewYork"
 

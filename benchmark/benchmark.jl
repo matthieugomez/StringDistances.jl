@@ -19,6 +19,10 @@ end
 @time f(DamerauLevenshtein(), x, y, min_dist = 0.8)
 # 0.39s.  Much faster than StringDist
 
+@time extract.(x[1:10], Ref(y), Ref(DamerauLevenshtein()))
+
+
+
 function g(t, x, y)
     [evaluate(t, x[i], y[i]) for i in 1:length(x)]
 end
