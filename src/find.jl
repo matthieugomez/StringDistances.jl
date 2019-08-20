@@ -35,9 +35,9 @@ end
 `find_all` returns the vector with all the elements of `iter` that have a similarity score higher than `min_score` according to the distance `dist`. 
 The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances (potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 """
-function find_all(s1::AbstractString, iter_s2, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}; min_score = 0.8) where T <: Union{Levenshtein, DamerauLevenshtein}
-    collect(s2 for s2 in iter_s2 if compare(s1, s2, dist; min_score = min_score) >= min_score)
+function find_all(s::AbstractString, iter, dist::Union{T, Partial{T}, TokenSort{T}, TokenSet{T}, TokenMax{T}}; min_score = 0.8) where T <: Union{Levenshtein, DamerauLevenshtein}
+    filter(x -> compare(s, x, dist; min_score = min_score) >= min_score, iter)
 end
-function find_all(s1::AbstractString, iter_s2, dist::PreMetric; min_score = 0.8)
-    collect(s2 for s2 in iter_s2 if compare(s1, s2, dist) >= min_score)
+function find_all(s::AbstractString, iter, dist::PreMetric; min_score = 0.8)
+    filter(x -> compare(s, x, dist) >= min_score, iter)
 end
