@@ -10,26 +10,38 @@
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
-function compare(s1::AbstractString, s2::AbstractString, 
-    dist::Union{Hamming, Levenshtein, DamerauLevenshtein}; min_dist = nothing)
+function compare(s1::AbstractString, s2::AbstractString,  dist::Hamming; min_score::Nothing = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
-    if min_dist === nothing
-        1.0 - evaluate(dist, s1, s2) / len2
-    else
-        max_dist = ceil(Int, len2 * (1 - min_dist))
-        # need to add max in case of integer stuff
-        max(1.0 - evaluate(dist, s1, s2; max_dist = max_dist) / len2, min_dist)
-    end
+    1.0 - evaluate(dist, s1, s2) / len2
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_dist::Nothing = nothing)
+function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_score::Nothing = nothing)
     1.0 - evaluate(dist, s1, s2)
 end
 
+function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = nothing)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    len2 == 0 && return 1.0
+    if min_score === nothing
+        1.0 - evaluate(dist, s1, s2) / len2
+    else
+        d = evaluate(dist, s1, s2; max_dist = ceil(Int, len2 * (1 - min_score)))
+        out = 1.0 - d / len2
+        if d == -1 || out < min_score
+            return 0.0
+        else
+            return out
+        end
+    end
+end
+
+
+
 function compare(s1::AbstractString, s2::AbstractString, dist::AbstractQGramDistance;
-    min_dist::Nothing = nothing)
+    min_score::Nothing = nothing)
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -67,10 +79,10 @@ end
 
 Winkler(x) = Winkler(x, 0.1, 0.7, 4)
 
-# hard to use min_dist because of whether there is boost or not in the end
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_dist::Nothing = nothing)
+# hard to use min_score because of whether there is boost or not in the end
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_score::Nothing = nothing)
     l = remove_prefix(s1, s2, dist.l)[1]
-    # cannot do min_dist because of boosting threshold
+    # cannot do min_score because of boosting threshold
     score = compare(s1, s2, dist.dist)
     if score >= dist.boosting_threshold
         score += l * dist.p * (1 - score)
@@ -95,21 +107,21 @@ struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_dist = nothing)
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_score = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 == len2 && return compare(s1, s2, dist.dist; min_dist = min_dist)
+    len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
     len1 == 0 && return 1.0
     out = 0.0
     for x in qgram(s2, len1)
-        curr = compare(s1, x, dist.dist; min_dist = min_dist)
+        curr = compare(s1, x, dist.dist; min_score = min_score)
         out = max(out, curr)
     end
     return out
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; 
-    min_dist = nothing)
+    min_score = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -148,10 +160,10 @@ struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_dist = nothing)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_score = nothing)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
-    compare(s1, s2, dist.dist; min_dist = min_dist)
+    compare(s1, s2, dist.dist; min_score = min_score)
 end
 
 ##############################################################################
@@ -169,17 +181,17 @@ struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_dist = nothing)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = nothing)
     v1 = SortedSet(split(s1))
     v2 = SortedSet(split(s2))
     v0 = intersect(v1, v2)
     s0 = join(v0, " ")
     s1 = join(v1, " ")
     s2 = join(v2, " ")
-    isempty(s0) && return compare(s1, s2, dist.dist; min_dist = min_dist)
-    max(compare(s0, s1, dist.dist; min_dist = min_dist), 
-        compare(s0, s2, dist.dist; min_dist = min_dist),
-        compare(s1, s2, dist.dist; min_dist = min_dist))
+    isempty(s0) && return compare(s1, s2, dist.dist; min_score = min_score)
+    max(compare(s0, s1, dist.dist; min_score = min_score), 
+        compare(s0, s2, dist.dist; min_score = min_score),
+        compare(s1, s2, dist.dist; min_score = min_score))
 end
 
 
@@ -197,24 +209,24 @@ struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_dist = nothing)
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist)
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
     if length(s2) >= 1.5 * length(s1)
-        partial = compare(s1, s2, Partial(dist.dist); min_dist = min_dist) 
-        ptsor = compare(s1, s2, TokenSort(Partial(dist.dist)); min_dist = min_dist) 
-        ptser = compare(s1, s2, TokenSet(Partial(dist.dist)); min_dist = min_dist) 
+        partial = compare(s1, s2, Partial(dist.dist); min_score = min_score) 
+        ptsor = compare(s1, s2, TokenSort(Partial(dist.dist)); min_score = min_score) 
+        ptser = compare(s1, s2, TokenSet(Partial(dist.dist)); min_score = min_score) 
         partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
         return max(dist0, 
                 partial * partial_scale, 
                 ptsor * unbase_scale * partial_scale, 
                 ptser * unbase_scale * partial_scale)
     else
-        ptsor = compare(s1, s2, TokenSort(dist.dist); min_dist = min_dist) 
-        ptser = compare(s1, s2, TokenSet(dist.dist); min_dist = min_dist) 
+        ptsor = compare(s1, s2, TokenSort(dist.dist); min_score = min_score) 
+        ptser = compare(s1, s2, TokenSet(dist.dist); min_score = min_score) 
         return max(dist0, 
                 ptsor * unbase_scale, 
                 ptser * unbase_scale)
@@ -228,13 +240,13 @@ end
 ##
 ##############################################################################
 
-function compare(s1::AbstractString, ::Missing, dist::PreMetric; min_dist = nothing)
+function compare(s1::AbstractString, ::Missing, dist::PreMetric; min_score = nothing)
     missing
 end
-function compare(::Missing, s2::AbstractString, dist::PreMetric; min_dist = nothing)
+function compare(::Missing, s2::AbstractString, dist::PreMetric; min_score = nothing)
     missing
 end
-function compare(::Missing, ::Missing, dist::PreMetric; min_dist = nothing)
+function compare(::Missing, ::Missing, dist::PreMetric; min_score = nothing)
     missing
 end
 

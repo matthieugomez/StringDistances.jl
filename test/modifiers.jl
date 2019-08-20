@@ -150,10 +150,24 @@ dist = QGram(2)
 # check missing
 @test compare(s1, missing, Levenshtein()) === missing
 
-# check extract
-@test extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
-@test extract("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == "NewYork"
-@test extract("New York", ["NewYork", "Newark", missing], Levenshtein()) == "NewYork"
-@test extract("New York", [missing, "NewYork", "Newark"], Levenshtein()) == "NewYork"
+# check min
+for dist in (Levenshtein, DamerauLevenshtein)
+	for i in eachindex(strings)
+		if compare(strings[i]..., dist()) <  1 / 3
+			@test compare(strings[i]..., dist() ; min_score = 1/ 3) ≈ 0.0
+			else
+			@test compare(strings[i]..., dist() ; min_score = 1/ 3) ≈ compare(strings[i]..., dist())
+		end
+	end
+end
+
+# check find_best and find_all
+@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
+@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == "NewYork"
+@test find_best("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == "NewYork"
+@test find_best("New York", skipmissing([missing, "NewYork", "Newark"]), Levenshtein()) == "NewYork"
+@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ["NewYork"]
+@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ["NewYork", "Newark"]
+@test find_all("New York", skipmissing([missing, "NewYork", "Newark"]), Jaro()) == ["NewYork", "Newark"]
 
 

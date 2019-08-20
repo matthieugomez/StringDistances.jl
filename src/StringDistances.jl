@@ -27,7 +27,8 @@ TokenSort,
 TokenSet,
 TokenMax,
 qgram,
-extract
+find_best,
+find_all
 
 ##############################################################################
 ##
@@ -38,7 +39,7 @@ include("utils.jl")
 include("edit.jl")
 include("qgram.jl")
 include("compare.jl")
-include("extract.jl")
+include("find.jl")
 
 end
 

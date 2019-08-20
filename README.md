@@ -88,7 +88,9 @@ The package includes distance "modifiers", that can be applied to any distance.
 		compare("mariners vs angels", "los angeles angels at seattle mariners", TokenMax(RatcliffObershelp()))
 		#> 0.855
 		```
+
 ## Compare vs Evaluate
+
 The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
 In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. some distances are between 0 and 1. Others are unbouded.
 
@@ -99,13 +101,22 @@ evaluate(Levenshtein(), "New York", "New York")
 #> 0
 ```
 
-## Extract
-On master, there is an experimental `extract` function that returns the best match in an iterator of AbstractStrings:
+## Find (experimental)
+`find_best` returns the best match in an iterator of AbstractStrings:
 ```julia
-extract("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
+find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
 #> "NewYork"
 ```
-The function is particularly fast for `Levenshtein` and `DamerauLevenshtein` distances (potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
+
+`find_all` returns a `Vector` with all the matches in an iterator of AbstractStrings:
+
+```julia
+find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.8)
+#> 1-element Array{String,1}:
+#> "NewYork"
+```
+
+These functions are optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 
 ## Which distance should I use?
 

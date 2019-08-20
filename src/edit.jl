@@ -4,12 +4,10 @@
 ## Hamming
 ##
 ##############################################################################
-function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString; max_dist = nothing)
+function evaluate(dist::Hamming, s1::AbstractString, s2::AbstractString)
     current = abs(length(s2) - length(s1))
-    max_dist !== nothing && current >= max_dist && return max_dist
     for (ch1, ch2) in zip(s1, s2)
         current += ch1 != ch2
-        max_dist !== nothing && current >= max_dist && return max_dist
     end
     return current
 end
@@ -110,7 +108,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
     max_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_dist !== nothing && len2 - len1 >= max_dist && return max_dist
+    max_dist !== nothing && len2 - len1 > max_dist && return -1
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)
     x1 == nothing && return len2 - k
@@ -139,11 +137,11 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString;
             x2 = iterate(s2, state2)
             i2 += 1
         end
-        max_dist !== nothing && min_dist >= max_dist && return max_dist
+        max_dist !== nothing && min_dist > max_dist && return -1
         x1 = iterate(s1, state1)
         i1 += 1
     end
-    max_dist !== nothing && return min(current, max_dist)
+    max_dist !== nothing && current > max_dist && return - 1
     return current
 end
 
@@ -166,7 +164,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     max_dist = nothing)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_dist !== nothing && len2 - len1 >= max_dist && return max_dist
+    max_dist !== nothing && len2 - len1 > max_dist && return -1
     # prefix common to both strings can be ignored
     k, x1, x2start = remove_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
@@ -214,12 +212,12 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
             i2 += 1
             prevch2 = ch2
         end
-        max_dist !== nothing && (v0[i1 + len2 - len1] >= max_dist) && return max_dist
+        max_dist !== nothing && (v0[i1 + len2 - len1] > max_dist) && return -1
         x1 = iterate(s1, state1)
         i1 += 1
         prevch1 = ch1
     end
-    max_dist !== nothing && return min(current, max_dist)
+    max_dist !== nothing && current > max_dist && return - 1
     return current
 end
 
@@ -240,8 +238,7 @@ The distance between two strings is defined as one minus  the number of matching
 """
 struct RatcliffObershelp <: PreMetric end
 
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString; 
-    max_dist::Nothing = nothing)
+function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
     n_matched = sum(last.(matching_blocks(s1, s2)))  
     len1, len2 = length(s1), length(s2)
     len1 + len2 == 0 ? 0 : 1.0 - 2 *  n_matched / (len1 + len2)
