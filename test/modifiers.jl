@@ -164,10 +164,8 @@ end
 # check find_best and find_all
 @test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
 @test find_best("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == "NewYork"
-@test find_best("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == "NewYork"
-@test find_best("New York", skipmissing([missing, "NewYork", "Newark"]), Levenshtein()) == "NewYork"
 @test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ["NewYork"]
 @test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ["NewYork", "Newark"]
-@test find_all("New York", skipmissing([missing, "NewYork", "Newark"]), Jaro()) == ["NewYork", "Newark"]
+
 
 
