@@ -93,6 +93,10 @@ end
 ##
 ## Levenshtein
 ##
+## Return -1 if distance higher than max_dist
+## This makes it possible to differentiate distance equalt to max_dist vs strictly higher
+## This is important for find_all
+##
 ##############################################################################
 """
     Levenshtein()
