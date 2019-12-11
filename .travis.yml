@@ -1,13 +1,18 @@
 language: julia
+os:
+  - linux
+  - osx
+  - windows
 julia:
-- 1.0
-- nightly
+  - 1.0
+  - nightly
 matrix:
   allow_failures:
     - julia: nightly
+coveralls: true
 after_success:
 - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
 notifications:
   email: false
-  on_success: never 
+  on_success: never
   on_failure: change
