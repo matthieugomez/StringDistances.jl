@@ -276,10 +276,3 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     matching_blocks!(x, s1after, s2after, len1 - (a[1] + a[3]) + 1, len2 - (a[2] + a[3]) + 1, start1 + a[1] + a[3] - 1, start2 + a[2] + a[3] - 1)
     return x
 end
-
-const string_metrics = (Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp)
-const UnionStringMetrics = Union{string_metrics...}
-
-function result_type(m::UnionStringMetrics, a::AbstractString, b::AbstractString)
-    return typeof(evaluate(m, oneunit(a), oneunit(b)))
-end

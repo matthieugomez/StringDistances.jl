@@ -42,6 +42,11 @@ include("qgram.jl")
 include("compare.jl")
 include("find.jl")
 
+function result_type(m::Union{Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, AbstractQGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}, a::AbstractString, b::AbstractString)
+    typeof(evaluate(m, oneunit(a), oneunit(b)))
+end
+
+
 end
 
 ##############################################################################

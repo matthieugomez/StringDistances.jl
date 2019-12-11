@@ -290,7 +290,3 @@ function evaluate(dist::Overlap, count_dict)
 	end
 	1.0 - nintersect / min(ndistinct1, ndistinct2)
 end
-
-# result types for QGram distances
-result_type(m::AbstractQGramDistance, a::AbstractString, b::AbstractString) =
-	typeof(evaluate(m, oneunit(a), oneunit(b)))
