@@ -1,64 +1,106 @@
 
 using StringDistances, Test
 
+@testset "Distances" begin
 
-@test evaluate(Levenshtein(), "", "") == 0
-@test evaluate(Levenshtein(), "abc", "") == 3
-@test evaluate(Levenshtein(), "", "abc") == 3
-@test evaluate(Levenshtein(), "bc", "abc") == 1
-@test evaluate(Levenshtein(), "kitten", "sitting") == 3
-@test evaluate(Levenshtein(), "saturday", "sunday") == 3
+@testset "Levenshtein" begin
+	@test evaluate(Levenshtein(), "", "") == 0
+	@test evaluate(Levenshtein(), "abc", "") == 3
+	@test evaluate(Levenshtein(), "", "abc") == 3
+	@test evaluate(Levenshtein(), "bc", "abc") == 1
+	@test evaluate(Levenshtein(), "kitten", "sitting") == 3
+	@test evaluate(Levenshtein(), "saturday", "sunday") == 3
+	@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
+	@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
+	@test result_type(Levenshtein(), "hello", "world") == Int
+	@inferred evaluate(Levenshtein(), "", "")
+end
 
-@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
-@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
+@testset "DamerauLevenshtein" begin
+	@test evaluate(DamerauLevenshtein(), "", "") == 0
+	@test evaluate(DamerauLevenshtein(), "abc", "") == 3
+	@test evaluate(DamerauLevenshtein(), "bc", "abc") == 1
+	@test evaluate(DamerauLevenshtein(), "fuor", "four") == 1
+	@test evaluate(DamerauLevenshtein(), "abcd", "acb") == 2
+	@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
+	@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
+	@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
+	@test result_type(DamerauLevenshtein(), "hello", "world") == Int
+	@inferred evaluate(DamerauLevenshtein(), "", "")
+end
 
-@test evaluate(DamerauLevenshtein(), "", "") == 0
-@test evaluate(DamerauLevenshtein(), "abc", "") == 3
-@test evaluate(DamerauLevenshtein(), "bc", "abc") == 1
-@test evaluate(DamerauLevenshtein(), "fuor", "four") == 1
-@test evaluate(DamerauLevenshtein(), "abcd", "acb") == 2
-@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
-@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
-@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
+@testset "Hamming" begin
+	@test evaluate(Hamming(), "", "") == 0
+	@test evaluate(Hamming(), "", "abc") == 3
+	@test evaluate(Hamming(), "abc", "abc") == 0
+	@test evaluate(Hamming(), "acc", "abc") == 1
+	@test evaluate(Hamming(), "abcd", "abc") == 1
+	@test evaluate(Hamming(), "abc", "abcd") == 1
+	@test evaluate(Hamming(), "testing", "this is a test") == 13
+	@test evaluate(Hamming(), "saturday", "sunday") == 7
+	@test result_type(Hamming(), "hello", "world") == Int
+	@inferred evaluate(Hamming(), "", "")
+end
 
-@test evaluate(Hamming(), "", "") == 0
-@test evaluate(Hamming(), "", "abc") == 3
-@test evaluate(Hamming(), "abc", "abc") == 0
-@test evaluate(Hamming(), "acc", "abc") == 1
-@test evaluate(Hamming(), "abcd", "abc") == 1
-@test evaluate(Hamming(), "abc", "abcd") == 1
-@test evaluate(Hamming(), "testing", "this is a test") == 13
-@test evaluate(Hamming(), "saturday", "sunday") == 7
+@testset "QGram" begin
+	@test evaluate(QGram(1), "abc", "abc") == 0
+	@test evaluate(QGram(1), "", "abc") == 3
+	@test evaluate(QGram(1), "abc", "cba") == 0
+	@test evaluate(QGram(1), "abc", "ccc") == 4
+	@test result_type(QGram(1), "hello", "world") == Int
+	@inferred evaluate(QGram(1), "", "")
+end
 
-@test evaluate(QGram(1), "abc", "abc") == 0
-@test evaluate(QGram(1), "", "abc") == 3
-@test evaluate(QGram(1), "abc", "cba") == 0
-@test evaluate(QGram(1), "abc", "ccc") == 4
-@test isnan(evaluate(Cosine(2), "", "abc"))
-@test evaluate(Cosine(2), "abc", "ccc") ≈ 1 atol = 1e-4
-@test evaluate(Cosine(2), "leia", "leela") ≈ 0.7113249 atol = 1e-4
-@test evaluate(Jaccard(1), "", "abc") ≈ 1.0
-@test evaluate(Jaccard(1), "abc", "ccc") ≈ .666666 atol = 1e-4
-@test evaluate(Jaccard(2), "leia", "leela") ≈ 0.83333 atol = 1e-4
-@test evaluate(SorensenDice(1), "night", "nacht") ≈ 0.4 atol = 1e-4
-@test evaluate(SorensenDice(2), "night", "nacht") ≈ 0.75 atol = 1e-4
-@test evaluate(Overlap(1), "night", "nacht") ≈ 0.4 atol = 1e-4
-@test evaluate(Overlap(1), "context", "contact") ≈ .2 atol = 1e-4
+@testset "Cosine" begin
+	@test isnan(evaluate(Cosine(2), "", "abc"))
+	@test evaluate(Cosine(2), "abc", "ccc") ≈ 1 atol = 1e-4
+	@test evaluate(Cosine(2), "leia", "leela") ≈ 0.7113249 atol = 1e-4
+	@test result_type(Cosine(2), "hello", "world") == typeof(float(1))
+	@inferred evaluate(Cosine(2), "", "")
+	@inferred evaluate(Cosine(2), "abc", "ccc")
+end
 
+@testset "Jaccard" begin
+	@test evaluate(Jaccard(1), "", "abc") ≈ 1.0
+	@test evaluate(Jaccard(1), "abc", "ccc") ≈ .666666 atol = 1e-4
+	@test evaluate(Jaccard(2), "leia", "leela") ≈ 0.83333 atol = 1e-4
+	@test result_type(Jaccard(1), "hello", "world") == typeof(float(1))
+	@inferred evaluate(Jaccard(1), "", "")
+end
 
-@test evaluate(RatcliffObershelp(), "dixon", "dicksonx") ≈ 1 - 0.6153846153846154
-@test evaluate(RatcliffObershelp(), "alexandre", "aleksander") ≈ 1 - 0.7368421052631579
-@test evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
-@test evaluate(RatcliffObershelp(), "",  "pencilvaneya") ≈ 1.0
-@test evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
-@test evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") ≈ 0.3913043478260869
-@test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
+@testset "SorensenDice" begin
+	@test evaluate(SorensenDice(1), "night", "nacht") ≈ 0.4 atol = 1e-4
+	@test evaluate(SorensenDice(2), "night", "nacht") ≈ 0.75 atol = 1e-4
+	@test result_type(SorensenDice(1), "hello", "world") == typeof(float(1))
+	@inferred evaluate(SorensenDice(1), "", "")
+end
 
+@testset "Overlap" begin
+	@test evaluate(Overlap(1), "night", "nacht") ≈ 0.4 atol = 1e-4
+	@test evaluate(Overlap(1), "context", "contact") ≈ .2 atol = 1e-4
+	@test result_type(Overlap(1), "hello", "world") == typeof(float(1))
+	@inferred evaluate(Overlap(1), "", "")
+end
 
-@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547
+@testset "RatcliffObershelp" begin
+	@test evaluate(RatcliffObershelp(), "dixon", "dicksonx") ≈ 1 - 0.6153846153846154
+	@test evaluate(RatcliffObershelp(), "alexandre", "aleksander") ≈ 1 - 0.7368421052631579
+	@test evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
+	@test evaluate(RatcliffObershelp(), "",  "pencilvaneya") ≈ 1.0
+	@test evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
+	@test evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") ≈ 0.3913043478260869
+	@test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
+	@test result_type(RatcliffObershelp(), "hello", "world") == typeof(float(1))
+	@inferred evaluate(RatcliffObershelp(), "", "")
+end
 
-@test evaluate(Jaro(), "es an ", " vs an") ≈ 0.2777777777777777
-@test evaluate(Jaro(), " vs an", "es an ") ≈ 0.2777777777777777
+@testset "Jaro" begin
+	@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547
+	@test evaluate(Jaro(), "es an ", " vs an") ≈ 0.2777777777777777
+	@test evaluate(Jaro(), " vs an", "es an ") ≈ 0.2777777777777777
+	@test result_type(Jaro(), "hello", "world") == typeof(float(1))
+end
+
 strings = [
 ("martha", "marhta"),
 ("dwayne", "duane") ,
@@ -120,7 +162,7 @@ strings = matrix(data = c(
 "cape sand recycling ", "edith ann graham",
  "jellyifhs", "jellyfish",
 "ifhs", "fish",
-"leia", "leela"), 
+"leia", "leela"),
 nrow = 2
 )
 stringdist(strings[1,], strings[2,], method = "jw", p = 0)
@@ -163,4 +205,4 @@ for x in strings:
    print(fuzz.ratio(x[0], x[1]))
 =#
 
-
+end

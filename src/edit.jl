@@ -251,9 +251,9 @@ The distance between two strings is defined as one minus  the number of matching
 struct RatcliffObershelp <: PreMetric end
 
 function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
-    n_matched = sum(last.(matching_blocks(s1, s2)))  
+    n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)
-    len1 + len2 == 0 ? 0 : 1.0 - 2 *  n_matched / (len1 + len2)
+    len1 + len2 == 0 ? 0. : 1.0 - 2 *  n_matched / (len1 + len2)
 end
 
 function matching_blocks(s1::AbstractString, s2::AbstractString)
@@ -277,3 +277,9 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     return x
 end
 
+const string_metrics = (Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp)
+const UnionStringMetrics = Union{string_metrics...}
+
+function result_type(m::UnionStringMetrics, a::AbstractString, b::AbstractString)
+    return typeof(evaluate(m, oneunit(a), oneunit(b)))
+end

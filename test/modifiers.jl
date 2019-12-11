@@ -1,6 +1,8 @@
 
 using StringDistances, Test
 
+@testset "Modifiers" begin
+
 # Compare
 @test compare("", "abc", Hamming()) ≈ 0.0 atol = 1e-4
 @test compare("acc", "abc", Hamming()) ≈ 2/3 atol = 1e-4
@@ -167,5 +169,4 @@ end
 @test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ["NewYork"]
 @test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ["NewYork", "Newark"]
 
-
-
+end
