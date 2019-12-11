@@ -7,10 +7,11 @@ module StringDistances
 ##############################################################################
 using DataStructures
 import Base: eltype, length, iterate, ==, hash, isless, convert, show, @deprecate
-import Distances: evaluate, Hamming, hamming, PreMetric, SemiMetric
+import Distances: evaluate, Hamming, hamming, PreMetric, result_type, SemiMetric
 export
 evaluate,
 compare,
+result_type,
 Hamming,
 Levenshtein,
 DamerauLevenshtein,
