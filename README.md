@@ -3,9 +3,11 @@
 
 This Julia package computes various distances between `AbstractString`s
 
+## Installation
+The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
+
 ## Syntax
 The function `compare` returns  a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar.
-
 
 ```julia
 using StringDistances
@@ -14,8 +16,6 @@ compare("martha", "martha", Hamming())
 compare("martha", "marhta", Hamming())
 #> 0.6666666666666667
 ```
-
-
 
 ## Distances
 
@@ -89,7 +89,6 @@ The package includes distance "modifiers", that can be applied to any distance.
 		#> 0.855
 		```
 
-
 ## Find
 `find_best` returns the element of an iterator with the highest similarity score
 ```julia
@@ -107,16 +106,9 @@ find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_
 
 While these functions are defined for any distance, they are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
 
-## Which distance should I use?
-
-As a rule of thumb, 
-- Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
-- The distance `Tokenmax(Levenshtein())` is a good choice to link names or adresses across datasets.
-
 ## Compare vs Evaluate
 
-The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar.
-In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. some distances are between 0 and 1. Others are unbouded.
+The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar. In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. Some distances are between 0 and 1, while others are unbouded.
 
 ```julia
 compare("New York", "New York", Levenshtein())
@@ -124,6 +116,12 @@ compare("New York", "New York", Levenshtein())
 evaluate(Levenshtein(), "New York", "New York")
 #> 0
 ```
+
+## Which distance should I use?
+
+As a rule of thumb, 
+- Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
+- The distance `Tokenmax(Levenshtein())` is a good choice to link sequence of words (adresses, names) across datasets.
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
