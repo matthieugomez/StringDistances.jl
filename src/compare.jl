@@ -11,13 +11,11 @@
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
     1.0 - evaluate(dist, s1, s2)
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing},  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -31,8 +29,7 @@ function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, M
     end
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::QGramDistance; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::QGramDistance; min_score = 0.0)
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -67,8 +64,7 @@ end
 Winkler(x) = Winkler(x, 0.1, 0.7, 4)
 
 # hard to use min_score because of whether there is boost or not in the end
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Winkler; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_score = 0.0)
     l = remove_prefix(s1, s2, dist.l)[1]
     # cannot do min_score because of boosting threshold
     score = compare(s1, s2, dist.dist)
@@ -95,8 +91,7 @@ struct Partial{T <: StringDistance} <: StringDistance
     dist::T
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Partial; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
@@ -110,8 +105,7 @@ function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, M
     return out
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Partial{RatcliffObershelp}; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -150,8 +144,7 @@ struct TokenSort{T <: StringDistance} <: StringDistance
     dist::T
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenSort; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_score = 0.0)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
     compare(s1, s2, dist.dist; min_score = min_score)
@@ -172,8 +165,7 @@ struct TokenSet{T <: StringDistance} <: StringDistance
     dist::T
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenSet; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = 0.0)
     v1 = SortedSet(split(s1))
     v2 = SortedSet(split(s2))
     v0 = intersect(v1, v2)
@@ -204,8 +196,7 @@ struct TokenMax{T <: StringDistance} <: StringDistance
     dist::T
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenMax; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist; min_score = min_score)

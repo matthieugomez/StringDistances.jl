@@ -131,8 +131,7 @@ end
 ##############################################################################
 abstract type QGramDistance <: StringDistance end
 
-function evaluate(dist::QGramDistance, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-	(ismissing(s1) | ismissing(s2)) && return missing
+function evaluate(dist::QGramDistance, s1::AbstractString, s2::AbstractString)
 	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
 	evaluate(dist, x)
 end
