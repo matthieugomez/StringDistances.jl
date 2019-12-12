@@ -36,24 +36,23 @@ for x in qgram("hello", 2)
 end
 ```
 """
-function qgram(s::AbstractString, q::Integer)
-	QGramIterator{typeof(s)}(s, q)
+qgram(s::AbstractString, q::Integer) = QGramIterator{typeof(s)}(s, q)
+
+##############################################################################
+##
+## Distance on strings is computed by set distance on qgram sets
+##
+##############################################################################
+
+abstract type QGramDistance <: StringDistance end
+
+function evaluate(dist::QGramDistance, s1::AbstractString, s2::AbstractString)
+	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
+	evaluate(dist, x)
 end
 
-##############################################################################
-##
-## 
-## 
-## 
-##
-##############################################################################
-"""
-   count_map(x1, x2)
-
-For two iterators `x1` and `x2`, `count_map(x1, x2)`  returns an dictionary 
-that returns,  for each element in `x1` or `x2`, a tuple with the numbers of 
-times it appears in `x1` and the number of times it appears in `x2`
-"""
+# For two iterators x1 and x2, this returns a dictionary which, for each element in x1 or x2, 
+# returns a tuple with the numbers of times it appears in x1 and x2
 function count_map(s1, s2)
 	K = promote_type(eltype(s1), eltype(s2))
 	d = Dict{K, Tuple{Int, Int}}()
@@ -83,64 +82,6 @@ function count_map(s1, s2)
 	return d
 end
 
-#= Trie
-function count_map(s1, s2)
-	d = Trie{Tuple{Int, Int}}()
-	for ch1 in s1
-		node = d
-		for char in ch1
-			if !haskey(node.children, char)
-	            node.children[char] = Trie{Tuple{Int, Int}}()
-	        end
-	        node = node.children[char]
-	    end
-	    node.value = node.is_key ? (node.value[1] + 1, 0) : (1, 0)
-	    node.is_key = true
-	end
-	for ch2 in s2
-		node = d
-		for char in ch2
-			if !haskey(node.children, char)
-	            node.children[char] = Trie{Tuple{Int, Int}}()
-	        end
-	        node = node.children[char]
-	    end
-	    node.value = node.is_key ? (node.value[1], node.value[2]+ 1) : (0, 1)
-	    node.is_key = true
-	end
-	return iterator(d)
-end
-function iterator(t::Trie, found = Tuple{Int, Int}[])
-    if t.is_key
-    	t.is_key = false
-    	push!(found, t.value)
-    else
-    	for k in values(t.children)
-    		iterator(k, found) 
-    	end
-    end
-    return found
-end
-=#
-
-
-##############################################################################
-##
-## Distance on strings is computed by set distance on qgram sets
-##
-##############################################################################
-abstract type QGramDistance <: StringDistance end
-
-function evaluate(dist::QGramDistance, s1::AbstractString, s2::AbstractString)
-	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
-	evaluate(dist, x)
-end
-
-##############################################################################
-##
-## q-gram 
-##
-##############################################################################
 """
 	QGram(q::Int)
 
@@ -150,7 +91,8 @@ The distance corresponds to
 
 ``||v(s1, q) - v(s2, q)||``
 
-where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
+where ``v(s, q)`` denotes the vector on the space of q-grams of length q, 
+that contains the number of times a q-gram appears for the string s
 """
 struct QGram <: QGramDistance
 	q::Int
@@ -164,12 +106,6 @@ function evaluate(dist::QGram, count_dict)
 	n
 end
 
-##############################################################################
-##
-## cosine 
-##
-## 
-##############################################################################
 """
 	Cosine(q::Int)
 
@@ -179,7 +115,8 @@ The distance corresponds to
 
 `` 1 - v(s1, q).v(s2, q)  / ||v(s1, q)|| * ||v(s2, q)||``
 
-where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
+where ``v(s, q)`` denotes the vector on the space of q-grams of length q, 
+that contains the  number of times a q-gram appears for the string s
 """
 struct Cosine <: QGramDistance
 	q::Int
@@ -195,11 +132,6 @@ function evaluate(dist::Cosine, count_dict)
 	1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
 end
 
-##############################################################################
-##
-## Jaccard
-##
-##############################################################################
 """
 	Jaccard(q::Int)
 
@@ -225,11 +157,6 @@ function evaluate(dist::Jaccard, count_dict)
 	1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
 
-##############################################################################
-##
-## SorensenDice
-##
-##############################################################################
 """
 	SorensenDice(q::Int)
 
@@ -255,12 +182,6 @@ function evaluate(dist::SorensenDice, count_dict)
 	1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
 end
 
-##############################################################################
-##
-## overlap
-##
-## 1 -  |intersect(Q(s1, q), Q(s2, q))| / min(|Q(s1, q)|, |Q(s2, q)))
-##############################################################################
 """
 	Overlap(q::Int)
 

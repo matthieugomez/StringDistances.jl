@@ -1,21 +1,16 @@
-
-##############################################################################
-##
-## compare
-## compare always return a value between 0 and 1.
-##
-##############################################################################
 """
     compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
 
-compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
+compare returns a similarity score between 0 and 1 for the strings `s1` and 
+`s2` based on the distance `dist`
 """
-
-function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
+function compare(s1::AbstractString, s2::AbstractString, 
+    dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
     1.0 - evaluate(dist, s1, s2)
 end
 
-function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+function compare(s1::AbstractString, s2::AbstractString,  
+    dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -29,7 +24,8 @@ function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtei
     end
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::QGramDistance; min_score = 0.0)
+function compare(s1::AbstractString, s2::AbstractString, 
+    dist::QGramDistance; min_score = 0.0)
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -41,15 +37,12 @@ function compare(s1::AbstractString, s2::AbstractString, dist::QGramDistance; mi
     end
 end
 
-##############################################################################
-##
-## Winkler
-##
-##############################################################################
 """
    Winkler(dist::StringDistance, p::Real = 0.1, boosting_threshold::Real = 0.7, l::Integer = 4)
 
-Winkler is a `StringDistance` modifier that boosts the similarity score between two strings by a scale `p` when the strings share a common prefix with lenth lower than `l` (the boost is only applied the similarity score above `boosting_threshold`)
+Winkler is a `StringDistance` modifier that boosts the similarity score between 
+two strings by a scale `p` when the strings share a common prefix with lenth lower 
+than `l` (the boost is only applied the similarity score above `boosting_threshold`)
 """
 struct Winkler{T1 <: StringDistance, T2 <: Real, T3 <: Real, T4 <: Integer} <: StringDistance
     dist::T1
@@ -76,16 +69,12 @@ end
 
 JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
 
-##############################################################################
-##
-## Partial
-## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-##
-##############################################################################
+
 """
    Partial(dist::StringDistance)
 
-Partial is a `StringDistance` modifier that returns the maximal similarity score between the shorter string and substrings of the longer string
+Partial is a `StringDistance` modifier that returns the maximal similarity score 
+between the shorter string and substrings of the longer string
 """
 struct Partial{T <: StringDistance} <: StringDistance
     dist::T
@@ -129,42 +118,35 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffO
     return out
 end
 
-##############################################################################
-##
-## TokenSort
-## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-##
-##############################################################################
 """
    TokenSort(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that adjusts for differences in word orders by reording words alphabetically.
+TokenSort is a `StringDistance` modifier that adjusts for differences in word orders
+by reording words alphabetically.
 """
 struct TokenSort{T <: StringDistance} <: StringDistance
     dist::T
 end
 
+# http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_score = 0.0)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
     compare(s1, s2, dist.dist; min_score = min_score)
 end
 
-##############################################################################
-##
-## TokenSet
-## http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-##
-##############################################################################
+
 """
    TokenSet(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
+TokenSort is a `StringDistance` modifier that adjusts for differences in word orders
+and word numbers by comparing the intersection of two strings with each string.
 """
 struct TokenSet{T <: StringDistance} <: StringDistance
     dist::T
 end
 
+# http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = 0.0)
     v1 = SortedSet(split(s1))
     v2 = SortedSet(split(s2))
@@ -182,15 +164,12 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_sco
 end
 
 
-##############################################################################
-##
-## TokenMax
-##
-##############################################################################
 """
    TokenMax(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that combines similarlity scores using the base distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on string lengths.
+TokenSort is a `StringDistance` modifier that combines similarlity scores using the base 
+distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on 
+string lengths.
 """
 struct TokenMax{T <: StringDistance} <: StringDistance
     dist::T
