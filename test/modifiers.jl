@@ -102,6 +102,12 @@ using StringDistances, Test
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
+	if VERSION >= v"1.2.0"
+		@test findmax("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == ("NewYork", 1)
+		@test findmax("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == (nothing, nothing)
+		@test findall("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == [1]
+		@test findall("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == []
+	end
 
 end
 

@@ -46,17 +46,17 @@ compare("mariners vs angels", "los angeles angels at seattle mariners", TokenSet
 compare("mariners vs angels", "los angeles angels at seattle mariners", TokenMax(RatcliffObershelp()))
 ```
 
-A good distance to link adresses etc (where the word order does not matter) is `TokenMax(Levenshtein())`
+In case the word order does not matter, a good distance is `TokenMax(Levenshtein())`
 
 ## Find
-- `findmax` returns the value and index of the element in `iter` with the highest similarity score with `x`. Its syntax is:
+- `findmax` returns the value and index of the element in `itr` with the highest similarity score with `x`. Its syntax is:
 	```julia
-	findmax(x::AbstractString, iter::AbstractString, dist::StringDistance; min_score = 0.0)
+	findmax(x::AbstractString, itr, dist::StringDistance; min_score = 0.0)
 	```
 
-- `findall` returns the indices of all elements in `iter` with a similarity score with `x` higher than a minimum value (default to 0.8). Its syntax is:
+- `findall` returns the indices of all elements in `itr` with a similarity score with `x` higher than a minimum value (default to 0.8). Its syntax is:
 	```julia
-	findall(x::AbstractString, iter::AbstractVector, dist::StringDistance; min_score = 0.8)
+	findall(x::AbstractString, itr, dist::StringDistance; min_score = 0.8)
 	```
 
 The functions `findmax` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
