@@ -1,1 +1,1 @@
-@time f(DamerauLevenshtein(), x, y, min_score = 0.8)
+@time find_best(x[1], y, Levenshtein())

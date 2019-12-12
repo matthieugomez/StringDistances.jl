@@ -6,7 +6,7 @@
 ##
 ##############################################################################
 """
-    compare(s1::AbstractString, s2::AbstractString, dist::PreMetric)
+    compare(s1::AbstractString, s2::AbstractString, dist::PreMetric = TokenMax(Levenshtein()))
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
@@ -51,7 +51,9 @@ function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, M
     end
 end
 
-@deprecate compare(dist::PreMetric, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}) compare(s1, s2, dist)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
+    compare(s1, s2, TokenMax(Levenshtein()))
+end
 
 ##############################################################################
 ##

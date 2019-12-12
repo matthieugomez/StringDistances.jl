@@ -29,18 +29,18 @@ end
 # 0.41
 
 @time find_all(x[1], y, Levenshtein())
-# 0.14
+# 0.06
 @time find_all(x[1], y, DamerauLevenshtein())
-# 0.07
+# 0.05
 @time find_all(x[1], y, Partial(DamerauLevenshtein()))
-# 2.9
+# 0.9
 
 @time find_all(x[1], y, TokenSort(DamerauLevenshtein()))
-# 0.7
+# 0.27
 @time find_all(x[1], y, TokenSet(DamerauLevenshtein()))
-# 1.5
+# 0.8
 @time find_all(x[1], y, TokenMax(DamerauLevenshtein()))
-# 5.4
+# 2.25
 
 
 # 1.6s slower compared to StringDist
