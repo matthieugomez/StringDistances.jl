@@ -8,15 +8,28 @@ using DataStructures  # for SortedSet in TokenSort
 
 ##############################################################################
 ##
+## include
+##
+##############################################################################
+abstract type StringDistance <: SemiMetric end
+include("utils.jl")
+include("edit.jl")
+include("qgram.jl")
+include("compare.jl")
+include("find.jl")
+
+function result_type(m::StringDistance, a::AbstractString, b::AbstractString)
+    typeof(evaluate(m, oneunit(a), oneunit(b)))
+end
+
+##############################################################################
+##
 ## Export
 ##
 ##############################################################################
 
 export
-evaluate,
-compare,
-result_type,
-Hamming,
+StringDistance,
 Levenshtein,
 DamerauLevenshtein,
 Jaro,
@@ -31,25 +44,10 @@ Partial,
 TokenSort,
 TokenSet,
 TokenMax,
-qgram,
-find_best,
-find_all
-
-##############################################################################
-##
-## include
-##
-##############################################################################
-include("utils.jl")
-include("edit.jl")
-include("qgram.jl")
-include("compare.jl")
-include("find.jl")
-
-function result_type(m::Union{Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, AbstractQGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}, a::AbstractString, b::AbstractString)
-    typeof(evaluate(m, oneunit(a), oneunit(b)))
-end
-
+evaluate,
+compare,
+result_type,
+qgram
 end
 
 ##############################################################################

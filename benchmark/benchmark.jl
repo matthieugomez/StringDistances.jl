@@ -8,8 +8,6 @@ function f(t, x, y; min_score = 0.0)
     [compare(x[i], y[i], t; min_score = min_score) for i in 1:length(x)]
 end
 
-@time f(Hamming(), x, y)
-#0.05s
 @time f(Jaro(), x, y)
 #0.3s
 @time f(Levenshtein(), x, y)
@@ -23,27 +21,26 @@ end
 
 
 
-@time find_best(x[1], y, Levenshtein())
-# 0.41
-@time find_best(x[1], y, DamerauLevenshtein())
-# 0.41
+@time findmax(x[1], y, Levenshtein())
+# 0.14
+@time findmax(x[1], y, DamerauLevenshtein())
+# 0.15
 
-@time find_all(x[1], y, Levenshtein())
+@time findall(x[1], y, Levenshtein())
 # 0.06
-@time find_all(x[1], y, DamerauLevenshtein())
+@time findall(x[1], y, DamerauLevenshtein())
 # 0.05
-@time find_all(x[1], y, Partial(DamerauLevenshtein()))
+@time findall(x[1], y, Partial(DamerauLevenshtein()))
 # 0.9
 
-@time find_all(x[1], y, TokenSort(DamerauLevenshtein()))
+@time findall(x[1], y, TokenSort(DamerauLevenshtein()))
 # 0.27
-@time find_all(x[1], y, TokenSet(DamerauLevenshtein()))
-# 0.8
-@time find_all(x[1], y, TokenMax(DamerauLevenshtein()))
+@time findall(x[1], y, TokenSet(DamerauLevenshtein()))
+# 0.74
+@time findall(x[1], y, TokenMax(DamerauLevenshtein()))
 # 2.25
 
 
-# 1.6s slower compared to StringDist
 
 
 

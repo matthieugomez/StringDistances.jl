@@ -31,20 +31,6 @@ using StringDistances, Test
 		@inferred evaluate(DamerauLevenshtein(), "", "")
 	end
 
-	@testset "Hamming" begin
-		@test evaluate(Hamming(), "", "") == 0
-		@test evaluate(Hamming(), "", "abc") == 3
-		@test evaluate(Hamming(), "abc", "abc") == 0
-		@test evaluate(Hamming(), "acc", "abc") == 1
-		@test evaluate(Hamming(), "abcd", "abc") == 1
-		@test evaluate(Hamming(), "abc", "abcd") == 1
-		@test evaluate(Hamming(), "testing", "this is a test") == 13
-		@test evaluate(Hamming(), "saturday", "sunday") == 7
-		@test result_type(Hamming(), "hello", "world") == Int
-		@test ismissing(evaluate(Hamming(), "", missing))
-		@inferred evaluate(Hamming(), "", "")
-	end
-
 	@testset "QGram" begin
 		@test evaluate(QGram(1), "abc", "abc") == 0
 		@test evaluate(QGram(1), "", "abc") == 3

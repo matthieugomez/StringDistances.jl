@@ -129,9 +129,9 @@ end
 ## Distance on strings is computed by set distance on qgram sets
 ##
 ##############################################################################
-abstract type AbstractQGramDistance <: SemiMetric end
+abstract type QGramDistance <: StringDistance end
 
-function evaluate(dist::AbstractQGramDistance, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
+function evaluate(dist::QGramDistance, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
 	(ismissing(s1) | ismissing(s2)) && return missing
 	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
 	evaluate(dist, x)
@@ -153,7 +153,7 @@ The distance corresponds to
 
 where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
 """
-struct QGram <: AbstractQGramDistance
+struct QGram <: QGramDistance
 	q::Int
 end
 
@@ -182,7 +182,7 @@ The distance corresponds to
 
 where ``v(s, q)`` denotes the vector on the space of q-grams of length q, that contains the number of times a q-gram appears for the string s
 """
-struct Cosine <: AbstractQGramDistance
+struct Cosine <: QGramDistance
 	q::Int
 end
 
@@ -212,7 +212,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct Jaccard <: AbstractQGramDistance
+struct Jaccard <: QGramDistance
 	q::Int
 end
 
@@ -242,7 +242,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct SorensenDice <: AbstractQGramDistance
+struct SorensenDice <: QGramDistance
 	q::Int
 end
 
@@ -273,7 +273,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct Overlap <: AbstractQGramDistance
+struct Overlap <: QGramDistance
 	q::Int
 end
 

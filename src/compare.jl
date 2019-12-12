@@ -6,34 +6,14 @@
 ##
 ##############################################################################
 """
-    compare(s1::AbstractString, s2::AbstractString, dist::PreMetric = TokenMax(Levenshtein()))
+    compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Hamming; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
-    s1, s2 = reorder(s1, s2)
-    len1, len2 = length(s1), length(s2)
-    len2 == 0 && return 1.0
-    1.0 - evaluate(dist, s1, s2) / len2
-end
 
 function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
     (ismissing(s1) | ismissing(s2)) && return missing
     1.0 - evaluate(dist, s1, s2)
-end
-
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::AbstractQGramDistance; min_score = 0.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
-    # When string length < q for qgram distance, returns s1 == s2
-    s1, s2 = reorder(s1, s2)
-    len1, len2 = length(s1), length(s2)
-    len1 <= dist.q - 1 && return convert(Float64, s1 == s2)
-    if typeof(dist) <: QGram
-        1.0 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
-    else
-        1.0 - evaluate(dist, s1, s2)
-    end
 end
 
 function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing},  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
@@ -51,8 +31,17 @@ function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, M
     end
 end
 
-function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-    compare(s1, s2, TokenMax(Levenshtein()))
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::QGramDistance; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
+    # When string length < q for qgram distance, returns s1 == s2
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    len1 <= dist.q - 1 && return convert(Float64, s1 == s2)
+    if typeof(dist) <: QGram
+        1.0 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
+    else
+        1.0 - evaluate(dist, s1, s2)
+    end
 end
 
 ##############################################################################
@@ -61,11 +50,11 @@ end
 ##
 ##############################################################################
 """
-   Winkler(dist::Premetric, p::Real = 0.1, boosting_threshold::Real = 0.7, l::Integer = 4)
+   Winkler(dist::StringDistance, p::Real = 0.1, boosting_threshold::Real = 0.7, l::Integer = 4)
 
-Winkler is a `PreMetric` modifier that boosts the similarity score between two strings by a scale `p` when the strings share a common prefix with lenth lower than `l` (the boost is only applied the similarity score above `boosting_threshold`)
+Winkler is a `StringDistance` modifier that boosts the similarity score between two strings by a scale `p` when the strings share a common prefix with lenth lower than `l` (the boost is only applied the similarity score above `boosting_threshold`)
 """
-struct Winkler{T1 <: PreMetric, T2 <: Real, T3 <: Real, T4 <: Integer} <: PreMetric
+struct Winkler{T1 <: StringDistance, T2 <: Real, T3 <: Real, T4 <: Integer} <: StringDistance
     dist::T1
     p::T2          # scaling factor. Default to 0.1
     boosting_threshold::T3      # boost threshold. Default to 0.7
@@ -98,11 +87,11 @@ JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
 ##
 ##############################################################################
 """
-   Partial(dist::Premetric)
+   Partial(dist::StringDistance)
 
-Partial is a `PreMetric` modifier that returns the maximal similarity score between the shorter string and substrings of the longer string
+Partial is a `StringDistance` modifier that returns the maximal similarity score between the shorter string and substrings of the longer string
 """
-struct Partial{T <: PreMetric} <: PreMetric
+struct Partial{T <: StringDistance} <: StringDistance
     dist::T
 end
 
@@ -153,11 +142,11 @@ end
 ##
 ##############################################################################
 """
-   TokenSort(dist::Premetric)
+   TokenSort(dist::StringDistance)
 
-TokenSort is a `PreMetric` modifier that adjusts for differences in word orders by reording words alphabetically.
+TokenSort is a `StringDistance` modifier that adjusts for differences in word orders by reording words alphabetically.
 """
-struct TokenSort{T <: PreMetric} <: PreMetric
+struct TokenSort{T <: StringDistance} <: StringDistance
     dist::T
 end
 
@@ -175,11 +164,11 @@ end
 ##
 ##############################################################################
 """
-   TokenSet(dist::Premetric)
+   TokenSet(dist::StringDistance)
 
-TokenSort is a `PreMetric` modifier that adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
+TokenSort is a `StringDistance` modifier that adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
 """
-struct TokenSet{T <: PreMetric} <: PreMetric
+struct TokenSet{T <: StringDistance} <: StringDistance
     dist::T
 end
 
@@ -207,11 +196,11 @@ end
 ##
 ##############################################################################
 """
-   TokenMax(dist::Premetric)
+   TokenMax(dist::StringDistance)
 
-TokenSort is a `PreMetric` modifier that combines similarlity scores using the base distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on string lengths.
+TokenSort is a `StringDistance` modifier that combines similarlity scores using the base distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on string lengths.
 """
-struct TokenMax{T <: PreMetric} <: PreMetric
+struct TokenMax{T <: StringDistance} <: StringDistance
     dist::T
 end
 

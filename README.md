@@ -6,16 +6,14 @@ This Julia package computes various distances between `AbstractString`s
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
-## Syntax
+## Compare
 The function `compare` returns a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar. Its syntax is:
 
 ```julia
-compare(::AbstractString, ::AbstractString, ::PreMetric = TokenMax(Levenshtein()))
+compare(::AbstractString, ::AbstractString, ::StringDistance)
 ```
 
-## Distances
 - Edit Distances
-	- [Hamming Distance](https://en.wikipedia.org/wiki/Hamming_distance) `Hamming()`
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
@@ -35,38 +33,35 @@ compare(::AbstractString, ::AbstractString, ::PreMetric = TokenMax(Levenshtein()
 	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
 	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths.
 
-	```julia
-	compare("martha", "marhta", Jaro())
-	compare("martha", "marhta", Winkler(Jaro()))
-	compare("william", "williams", QGram(2))
-	compare("william", "williams", Winkler(QGram(2)))
-	compare("New York Yankees", "Yankees", Levenshtein())
-	compare("New York Yankees", "Yankees", Partial(Levenshtein()))
-	compare("mariners vs angels", "los angeles angels at seattle mariners", Jaro())
-	compare("mariners vs angels", "los angeles angels at seattle mariners", TokenSet(Jaro()))
-	compare("mariners vs angels", "los angeles angels at seattle mariners", TokenMax(RatcliffObershelp()))
-	```
+Some examples:
+```julia
+compare("martha", "marhta", Jaro())
+compare("martha", "marhta", Winkler(Jaro()))
+compare("william", "williams", QGram(2))
+compare("william", "williams", Winkler(QGram(2)))
+compare("New York Yankees", "Yankees", Levenshtein())
+compare("New York Yankees", "Yankees", Partial(Levenshtein()))
+compare("mariners vs angels", "los angeles angels at seattle mariners", Jaro())
+compare("mariners vs angels", "los angeles angels at seattle mariners", TokenSet(Jaro()))
+compare("mariners vs angels", "los angeles angels at seattle mariners", TokenMax(RatcliffObershelp()))
+```
+
+A good distance to link adresses etc (where the word order does not matter) is `TokenMax(Levenshtein()`
 
 ## Find
-`find_best` returns the index of the element with the highest similarity score.
-It returns nothing if all elements have a similarity score below `min_score` (default to 0.0)
-```julia
-find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
-#> 1
-```
+- `findmax` returns the value and index of the element in `iter` with the highest similarity score with `x`. Its syntax is:
+	```julia
+	findmax(x::AbstractString, iter::AbstractString, dist::StringDistance)
+	```
 
-`find_all` returns the indices of the elements with a similarity score higher than a minimum value (default to 0.8)
+- `findall` returns the indices of all elements in `iter` with a similarity score with `x` higher than a minimum value (default to 0.8). Its syntax is:
+	```julia
+	findall(x::AbstractString, iter::AbstractVector, dist::StringDistance)
+	```
 
-```julia
-find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.8)
-#> 1-element Array{String,1}:
-#> [1]
-```
-
-While these functions are defined for any distance, they are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
+The functions `findmax` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
 
 ## Evaluate
-
 The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar. In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. Some distances are between 0 and 1, while others are unbouded.
 
 ```julia
@@ -75,12 +70,6 @@ compare("New York", "New York", Levenshtein())
 evaluate(Levenshtein(), "New York", "New York")
 #> 0
 ```
-
-## Which distance should I use?
-
-As a rule of thumb, 
-- Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
-- The distance `TokenMax(Levenshtein())` (the default for `compare`) is a good choice to link sequence of words (adresses, names) across datasets (see [`fuzzywuzzy`](https://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/))
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo

@@ -3,14 +3,6 @@ using StringDistances, Test
 
 @testset "Modifiers" begin
 
-	# Hamming
-	@test compare("", "abc", Hamming()) ≈ 0.0 atol = 1e-4
-	@test compare("acc", "abc", Hamming()) ≈ 2/3 atol = 1e-4
-	@test compare("saturday", "sunday", Hamming()) ≈ 1/8 atol = 1e-4
-	@test compare("New York Yankees",  "Yankees", Partial(Hamming())) ≈ 1
-	@test compare("New York Yankees",  "", Partial(Hamming())) ≈ 1
-	compare("aüa", "aua", Hamming())
-
 	# Qgram
 	@test compare("", "abc", QGram(1)) ≈ 0.0 atol = 1e-4
 	@test compare("abc", "cba", QGram(1)) ≈ 1.0 atol = 1e-4
@@ -104,12 +96,12 @@ using StringDistances, Test
 	end
 
 	# check find_best and find_all
-	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == 1
-	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == nothing
-	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == 1
-	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
-	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
-	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
+	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ("NewYork", 1)
+	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
+	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
+	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
+	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
+	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
 
 end
 

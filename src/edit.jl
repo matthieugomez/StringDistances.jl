@@ -1,24 +1,6 @@
 
 ##############################################################################
 ##
-## Hamming
-##
-##############################################################################
-function evaluate(dist::Hamming, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-    current = abs(length(s2) - length(s1))
-    for (ch1, ch2) in zip(s1, s2)
-        current += ch1 != ch2
-    end
-    return current
-end
-
-evaluate(dist::Hamming, s1::Missing, s2::AbstractString) = missing
-evaluate(dist::Hamming, s1::AbstractString, s2::Missing) = missing
-
-
-
-##############################################################################
-##
 ## Jaro
 ##
 ##############################################################################
@@ -35,7 +17,7 @@ The Jaro distance is defined as
 where ``m`` is the number of matching characters and 
 ``t`` is half the number of transpositions.
 """
-struct Jaro <: SemiMetric end
+struct Jaro <: StringDistance end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function evaluate(dist::Jaro, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
@@ -110,7 +92,7 @@ Creates the Levenshtein metric
 
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein <: SemiMetric end
+struct Levenshtein <: StringDistance end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 function evaluate(dist::Levenshtein, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}; max_dist = nothing)
@@ -165,7 +147,7 @@ Creates the DamerauLevenshtein metric
 
 The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, deletions or substitutions of a single character, or transposition of two adjacent characters) required to change one string into the other.
 """
-struct DamerauLevenshtein <: SemiMetric end
+struct DamerauLevenshtein <: StringDistance end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 function evaluate(dist::DamerauLevenshtein, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}; max_dist = nothing)
@@ -253,7 +235,7 @@ Creates the RatcliffObershelp metric
 
 The distance between two strings is defined as one minus  the number of matching characters divided by the total number of characters in the two strings. Matching characters are those in the longest common subsequence plus, recursively, matching characters in the unmatched region on either side of the longest common subsequence.
 """
-struct RatcliffObershelp <: PreMetric end
+struct RatcliffObershelp <: StringDistance end
 
 function evaluate(dist::RatcliffObershelp, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
     (ismissing(s1) | ismissing(s2)) && return missing
