@@ -32,7 +32,7 @@ Return an iterator that iterates on the QGram of the string
 ```julia
 using StringDistances
 for x in qgram("hello", 2)
-	@show x
+	println(x)
 end
 ```
 """
@@ -131,7 +131,8 @@ end
 ##############################################################################
 abstract type AbstractQGramDistance <: SemiMetric end
 
-function evaluate(dist::AbstractQGramDistance, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::AbstractQGramDistance, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
+	(ismissing(s1) | ismissing(s2)) && return missing
 	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
 	evaluate(dist, x)
 end
@@ -141,11 +142,6 @@ end
 ## q-gram 
 ##
 ##############################################################################
-"""
-For an AbstractString s, denote v(s) the vector on the space of q-grams of length N, that contains the number of times a q-gram appears in s
-The q-gram distance is ||v(s1) - v(s2)||
-"""
-
 """
 	QGram(q::Int)
 

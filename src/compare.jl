@@ -10,31 +10,34 @@
 
 compare returns a similarity score between the strings `s1` and `s2` based on the distance `dist`
 """
-function compare(s1::AbstractString, s2::AbstractString,  dist::Hamming; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Hamming; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
     1.0 - evaluate(dist, s1, s2) / len2
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     1.0 - evaluate(dist, s1, s2)
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::AbstractQGramDistance; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::AbstractQGramDistance; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 <= dist.q - 1 && return convert(Float64, s1 == s2)
     if typeof(dist) <: QGram
-        1 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
+        1.0 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
     else
-        1 - evaluate(dist, s1, s2)
+        1.0 - evaluate(dist, s1, s2)
     end
 end
 
-
-function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing},  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -48,10 +51,7 @@ function compare(s1::AbstractString, s2::AbstractString,  dist::Union{Levenshtei
     end
 end
 
-
-
-
-@deprecate compare(dist::PreMetric, s1::AbstractString, s2::AbstractString) compare(s1, s2, dist)
+@deprecate compare(dist::PreMetric, s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}) compare(s1, s2, dist)
 
 ##############################################################################
 ##
@@ -76,7 +76,8 @@ end
 Winkler(x) = Winkler(x, 0.1, 0.7, 4)
 
 # hard to use min_score because of whether there is boost or not in the end
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Winkler; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     l = remove_prefix(s1, s2, dist.l)[1]
     # cannot do min_score because of boosting threshold
     score = compare(s1, s2, dist.dist)
@@ -103,7 +104,8 @@ struct Partial{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Partial; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
@@ -117,8 +119,8 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_scor
     return out
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; 
-    min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::Partial{RatcliffObershelp}; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -134,7 +136,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffO
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        i2_start =  nextind(s2, 0, s2_start)
+        i2_start = nextind(s2, 0, s2_start)
         i2_end = nextind(s2, 0, s2_end)
         curr = compare(s1, SubString(s2, i2_start, i2_end), RatcliffObershelp())
         out = max(out, curr)
@@ -157,7 +159,8 @@ struct TokenSort{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenSort; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
     compare(s1, s2, dist.dist; min_score = min_score)
@@ -178,7 +181,8 @@ struct TokenSet{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenSet; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     v1 = SortedSet(split(s1))
     v2 = SortedSet(split(s2))
     v0 = intersect(v1, v2)
@@ -209,7 +213,8 @@ struct TokenMax{T <: PreMetric} <: PreMetric
     dist::T
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = 0.0)
+function compare(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, dist::TokenMax; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist0 = compare(s1, s2, dist.dist; min_score = min_score)
@@ -240,21 +245,3 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_sco
         return max(dist0, dist1, dist2)
     end
 end
-
-
-##############################################################################
-##
-## Missing Values
-##
-##############################################################################
-
-function compare(s1::AbstractString, ::Missing, dist::PreMetric; min_score = nothing)
-    missing
-end
-function compare(::Missing, s2::AbstractString, dist::PreMetric; min_score = nothing)
-    missing
-end
-function compare(::Missing, ::Missing, dist::PreMetric; min_score = nothing)
-    missing
-end
-

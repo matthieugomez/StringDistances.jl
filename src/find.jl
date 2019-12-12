@@ -18,7 +18,6 @@ function find_best(s1::AbstractString, iter_s2, dist::PreMetric; min_score = 0.0
 end
 
 
-
 """
     find_all(s1::AbstractString, iter, dist::PreMetric; min_score = 0.8)
 `find_all` returns the vector with all the elements of `iter` that have a similarity score higher than `min_score` according to the distance `dist`. 

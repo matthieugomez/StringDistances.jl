@@ -1,13 +1,17 @@
 module StringDistances
 
+
+
+using Distances
+import Distances: evaluate, result_type
+using DataStructures  # for SortedSet in TokenSort
+
 ##############################################################################
 ##
 ## Export
 ##
 ##############################################################################
-using DataStructures
-import Base: eltype, length, iterate, ==, hash, isless, convert, show, @deprecate
-import Distances: evaluate, Hamming, hamming, PreMetric, result_type, SemiMetric
+
 export
 evaluate,
 compare,
@@ -45,7 +49,6 @@ include("find.jl")
 function result_type(m::Union{Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, AbstractQGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}, a::AbstractString, b::AbstractString)
     typeof(evaluate(m, oneunit(a), oneunit(b)))
 end
-
 
 end
 
