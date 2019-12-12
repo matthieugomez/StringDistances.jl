@@ -8,7 +8,7 @@ The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances (
 function Base.findmax(s::AbstractString, iter::AbstractVector, dist::StringDistance; min_score = 0.0)
     min_score >= 0 || throw("min_score should be positive")
     is = [0 for _ in 1:Threads.nthreads()]
-    xs = ["" for _ in 1:Threads.nthreads()]
+    xs = eltype(iter)["" for _ in 1:Threads.nthreads()]
     scores = [-1.0 for _ in 1:Threads.nthreads()]
     min_score_atomic = Threads.Atomic{typeof(min_score)}(min_score)
     Threads.@threads for i in 1:length(iter)
