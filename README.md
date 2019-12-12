@@ -121,7 +121,7 @@ evaluate(Levenshtein(), "New York", "New York")
 
 As a rule of thumb, 
 - Standardize strings before comparing them (cases, whitespaces, accents, abbreviations...)
-- The distance `Tokenmax(Levenshtein())` is a good choice to link sequence of words (adresses, names) across datasets.
+- The distance `Tokenmax(Levenshtein())` is a good choice to link sequence of words (adresses, names) across datasets (see [`fuzzywuzzy`](https://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/))
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo
