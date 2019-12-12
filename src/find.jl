@@ -10,7 +10,7 @@ function Base.findmax(s::AbstractString, itr, dist::StringDistance; min_score = 
     vs = [0.0 for _ in 1:Threads.nthreads()]
     xs = eltype(itr)["" for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
-    Threads.@threads for i in (itr isa Base.SkipMissing ? collect(keys(itr)) : keys(itr))
+    Threads.@threads for i in collect(keys(itr))
         v = compare(s, itr[i], dist; min_score = vmin[])
         v_old = Threads.atomic_max!(vmin, v)
         if v >= v_old
@@ -31,7 +31,7 @@ The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances (
 """
 function Base.findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
-    Threads.@threads for i in (itr isa Base.SkipMissing ? collect(keys(itr)) : keys(itr))
+    Threads.@threads for i in collect(keys(itr))
         score = compare(s, itr[i], dist; min_score = min_score)
         if score >= min_score
             push!(out[Threads.threadid()], i)
