@@ -104,10 +104,12 @@ using StringDistances, Test
 	end
 
 	# check find_best and find_all
-	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == "NewYork"
-	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == "NewYork"
-	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ["NewYork"]
-	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ["NewYork", "Newark"]
+	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == 1
+	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == nothing
+	@test find_best("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == 1
+	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
+	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
+	@test find_all("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
 
 end
 

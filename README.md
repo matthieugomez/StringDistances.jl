@@ -48,18 +48,19 @@ compare(::AbstractString, ::AbstractString, ::PreMetric = TokenMax(Levenshtein()
 	```
 
 ## Find
-`find_best` returns the element of an iterator with the highest similarity score
+`find_best` returns the index of the element with the highest similarity score.
+It returns nothing if all elements have a similarity score below `min_score` (default to 0.0)
 ```julia
 find_best("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein())
-#> "NewYork"
+#> 1
 ```
 
-`find_all` returns all the elements of an iterator with a similarity score higher than a minimum value (default to 0.8)
+`find_all` returns the indices of the elements with a similarity score higher than a minimum value (default to 0.8)
 
 ```julia
 find_all("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.8)
 #> 1-element Array{String,1}:
-#> "NewYork"
+#> [1]
 ```
 
 While these functions are defined for any distance, they are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
