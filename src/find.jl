@@ -23,19 +23,6 @@ function Base.findmax(s::AbstractString, itr, dist::StringDistance; min_score = 
     imax = is[argmax(scores)]
     imax == 0 ? (nothing, nothing) : (itr[imax], imax)
 end
-"""
-    argmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0)
-
-`argmax` returns the index of the element of `itr` that has the 
-highest similarity score with `s` according to the distance `dist`. 
-It returns `nothing` if none of the elements has a similarity score 
-higher or equal to `min_score` (default to 0.0).
-The function is optimized for `Levenshtein` and `DamerauLevenshtein` distances 
-(potentially modified by `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`)
-"""
-function Base.argmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0)
-    findmax(s, itr, dist; min_score = min_score)[2]
-end
 
 """
     findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
