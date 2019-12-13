@@ -20,8 +20,8 @@ function Base.findmax(s::AbstractString, itr, dist::StringDistance; min_score = 
             is[Threads.threadid()] = i
         end
     end
-    i = argmax(vs)
-    is[i] == 0 ? (nothing, nothing) : (itr[is[i]], is[i])
+    imax = is[argmax(vs)]
+    imax == 0 ? (nothing, nothing) : (itr[imax], imax)
 end
 
 
