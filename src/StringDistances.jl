@@ -2,7 +2,6 @@ module StringDistances
 
 using Distances
 import Distances: evaluate, result_type
-using DataStructures  # for SortedSet in TokenSort
 
 ##############################################################################
 ##

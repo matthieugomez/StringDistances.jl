@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/matthieugomez/StringDistances.jl.svg?branch=master)](https://travis-ci.org/matthieugomez/StringDistances.jl)
 [![Coverage Status](https://coveralls.io/repos/matthieugomez/StringDistances.jl/badge.svg?branch=master)](https://coveralls.io/r/matthieugomez/StringDistances.jl?branch=master)
 
-This Julia package computes various distances between `AbstractString`s
+This Julia package computes various distances between AbstractStrings
 
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
@@ -46,7 +46,7 @@ compare("martha", "marhta", TokenSet(Jaro()))
 compare("martha", "marhta", TokenMax(RatcliffObershelp()))
 ```
 
-In case the word order does not matter, a good distance is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
+A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
 ## Find
 - `findmax` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:

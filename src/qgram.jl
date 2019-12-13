@@ -48,7 +48,7 @@ abstract type QGramDistance <: StringDistance end
 
 function evaluate(dist::QGramDistance, s1::AbstractString, s2::AbstractString)
 	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
-	evaluate(dist, x)
+	evaluate(dist, values(x))
 end
 
 # For two iterators x1 and x2, this returns a dictionary which, for each element in x1 or x2, 
@@ -98,9 +98,9 @@ struct QGram <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::QGram, count_dict)
+function evaluate(dist::QGram, itr)
 	n = 0
-	for (n1, n2) in values(count_dict)
+	for (n1, n2) in itr
 		n += abs(n1 - n2)
 	end
 	n
@@ -122,9 +122,9 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, count_dict)
+function evaluate(dist::Cosine, itr)
 	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in values(count_dict)
+	for (n1, n2) in itr
 		norm1 += n1^2
 		norm2 += n2^2
 		prodnorm += n1 * n2
@@ -147,9 +147,9 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, count_dict)
+function evaluate(dist::Jaccard, itr)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in values(count_dict)
+	for (n1, n2) in itr
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -172,9 +172,9 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, count_dict)
+function evaluate(dist::SorensenDice, itr)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in values(count_dict)
+	for (n1, n2) in itr
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -197,9 +197,9 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, count_dict)
+function evaluate(dist::Overlap, itr)
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in values(count_dict)
+	for (n1, n2) in itr
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)

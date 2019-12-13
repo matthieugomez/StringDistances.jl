@@ -1,8 +1,14 @@
 """
     compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
 
-compare returns a similarity score between 0 and 1 for the strings `s1` and 
-`s2` based on the distance `dist`
+return a similarity score between 0 and 1 for the strings `s1` and 
+`s2` based on the `StringDistance` `dist`
+
+### Examples
+```julia-repl
+julia> compare("martha", "marhta", Levenshtein())
+0.6666666666666667
+```
 """
 function compare(s1::AbstractString, s2::AbstractString, 
     dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
@@ -38,46 +44,56 @@ function compare(s1::AbstractString, s2::AbstractString,
 end
 
 """
-   Winkler(dist::StringDistance, p::Real = 0.1, boosting_threshold::Real = 0.7, l::Integer = 4)
+   Winkler(dist::StringDistance; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
 
-Winkler is a `StringDistance` modifier that boosts the similarity score between 
-two strings by a scale `p` when the strings share a common prefix with lenth lower 
-than `l` (the boost is only applied the similarity score above `boosting_threshold`)
+Creates the `Winkler{dist, p, threshold, maxlength}` distance
+
+`Winkler{dist, p, threshold, length)` modifies the string distance `dist` to boost the 
+similarity score between  two strings, when their original similarity score is above some `threshold`.
+The boost is equal to `min(l,  maxlength) * p * (1 - score)` where `l` denotes the 
+length of their common prefix and `score` denotes the original score
 """
-struct Winkler{T1 <: StringDistance, T2 <: Real, T3 <: Real, T4 <: Integer} <: StringDistance
-    dist::T1
-    p::T2          # scaling factor. Default to 0.1
-    boosting_threshold::T3      # boost threshold. Default to 0.7
-    l::Integer                  # length of common prefix. Default to 4
-    function Winkler(dist::T1, p::T2,  boosting_threshold::T3, l::T4) where {T1, T2, T3, T4}
-        p * l >= 1 && throw("scaling factor times length of common prefix must be lower than one")
-        new{T1, T2, T3, T4}(dist, p, boosting_threshold, l)
-    end
+struct Winkler{S <: StringDistance} <: StringDistance
+    dist::S
+    p::Float64          # scaling factor. Default to 0.1
+    threshold::Float64  # boost threshold. Default to 0.7
+    maxlength::Integer      # max length of common prefix. Default to 4
 end
-Winkler(x) = Winkler(x, 0.1, 0.7, 4)
 
-# hard to use min_score because of whether there is boost or not in the end
+function Winkler(dist::StringDistance; p = 0.1, threshold = 0.7, maxlength = 4)
+    p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
+    Winkler(dist, 0.1, 0.7, 4)
+end
+
 function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_score = 0.0)
-    l = remove_prefix(s1, s2, dist.l)[1]
     # cannot do min_score because of boosting threshold
     score = compare(s1, s2, dist.dist)
-    if score >= dist.boosting_threshold
-        score += l * dist.p * (1 - score)
+    if score >= dist.threshold
+        l = common_prefix(s1, s2)[1]
+        score += min(l, dist.maxlength) * dist.p * (1 - score)
     end
     return score
 end
-
-JaroWinkler() = Winkler(Jaro(), 0.1, 0.7)
 
 
 """
    Partial(dist::StringDistance)
 
-Partial is a `StringDistance` modifier that returns the maximal similarity score 
-between the shorter string and substrings of the longer string
+Creates the `Partial{dist}` distance
+
+`Partial{dist}` modifies the string distance `dist` to return the 
+maximal similarity score  between the shorter string and substrings of the longer string
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> compare(s1, s2, Partial(RatcliffObershelp()))
+0.4516129032258065
+```
 """
-struct Partial{T <: StringDistance} <: StringDistance
-    dist::T
+struct Partial{S <: StringDistance} <: StringDistance
+    dist::S
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_score = 0.0)
@@ -121,8 +137,19 @@ end
 """
    TokenSort(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that adjusts for differences in word orders
-by reording words alphabetically.
+Creates the `TokenSort{dist}` distance
+
+`TokenSort{dist}` modifies the string distance `dist` to adjust for differences 
+in word orders by reording words alphabetically.
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> compare(s1, s2, TokenSort(RatcliffObershelp()))
+1.0
+```
 """
 struct TokenSort{T <: StringDistance} <: StringDistance
     dist::T
@@ -139,8 +166,18 @@ end
 """
    TokenSet(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that adjusts for differences in word orders
-and word numbers by comparing the intersection of two strings with each string.
+Creates the `TokenSet{dist}` distance
+
+`TokenSet{dist}` modifies the string distance `dist` to adjust for differences 
+in  word orders and word numbers, by comparing the intersection of two strings with each string.
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> compare(s1, s2, TokenSet(RatcliffObershelp()))
+1.0
+```
 """
 struct TokenSet{T <: StringDistance} <: StringDistance
     dist::T
@@ -148,8 +185,8 @@ end
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = 0.0)
-    v1 = SortedSet(split(s1))
-    v2 = SortedSet(split(s2))
+    v1 = unique!(sort!(split(s1)))
+    v2 = unique!(sort!(split(s2)))
     v0 = intersect(v1, v2)
     s0 = join(v0, " ")
     s1 = join(v1, " ")
@@ -167,12 +204,22 @@ end
 """
    TokenMax(dist::StringDistance)
 
-TokenSort is a `StringDistance` modifier that combines similarlity scores using the base 
-distance, its Partial, TokenSort and TokenSet modifiers, with penalty terms depending on 
-string lengths.
+Creates the `TokenMax{dist}` distance
+
+`TokenMax{dist}` combines similarity scores of the base distance `dist`,
+its [`Partial`](@ref) modifier, its [`TokenSort`](@ref) modifier, and its 
+[`TokenSet`](@ref) modifier, with penalty terms depending on string lengths.
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> compare(s1, s2, TokenMax(RatcliffObershelp()))
+0.95
+```
 """
-struct TokenMax{T <: StringDistance} <: StringDistance
-    dist::T
+struct TokenMax{S <: StringDistance} <: StringDistance
+    dist::S
 end
 
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = 0.0)

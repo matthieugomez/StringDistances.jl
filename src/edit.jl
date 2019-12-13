@@ -89,7 +89,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString; max
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
-    k, x1, x2start = remove_prefix(s1, s2)
+    k, x1, x2start = common_prefix(s1, s2)
     x1 == nothing && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
@@ -141,7 +141,7 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
-    k, x1, x2start = remove_prefix(s1, s2)
+    k, x1, x2start = common_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
     v0 = collect(1:(len2 - k))
     v2 = similar(v0)

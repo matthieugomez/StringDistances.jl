@@ -97,6 +97,9 @@ using StringDistances, Test
 
 	# check find_best and find_all
 	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ("NewYork", 1)
+	@test findmax("New York", ["San Francisco", "NewYork", "Newark"], Levenshtein()) == ("NewYork", 2)
+	@test findmax("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
+
 	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
 	@test findmax("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
