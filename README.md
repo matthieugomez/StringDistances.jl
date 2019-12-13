@@ -10,7 +10,7 @@ The package is registered in the [`General`](https://github.com/JuliaRegistries/
 The function `compare` returns a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar. Its syntax is:
 
 ```julia
-compare(::AbstractString, ::AbstractString, ::StringDistance)
+compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
 ```
 
 - Edit Distances
@@ -19,11 +19,11 @@ compare(::AbstractString, ::AbstractString, ::StringDistance)
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 - Q-gram distances compare the set of all substrings of length `q` in each string.
-	- QGram Distance `Qgram(q)`
-	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q)`
-	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q)`
-	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q)`
-	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q)`
+	- QGram Distance `Qgram(q::Int)`
+	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q::Int)`
+	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q::Int)`
+	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q::Int)`
+	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q::Int)`
 
 - The package includes distance "modifiers", that can be applied to any distance.
 
@@ -37,26 +37,26 @@ Some examples:
 ```julia
 compare("martha", "marhta", Jaro())
 compare("martha", "marhta", Winkler(Jaro()))
-compare("william", "williams", QGram(2))
-compare("william", "williams", Winkler(QGram(2)))
-compare("New York Yankees", "Yankees", Levenshtein())
-compare("New York Yankees", "Yankees", Partial(Levenshtein()))
-compare("mariners vs angels", "los angeles angels at seattle mariners", Jaro())
-compare("mariners vs angels", "los angeles angels at seattle mariners", TokenSet(Jaro()))
-compare("mariners vs angels", "los angeles angels at seattle mariners", TokenMax(RatcliffObershelp()))
+compare("martha", "marhta", QGram(2))
+compare("martha", "marhta", Winkler(QGram(2)))
+compare("martha", "marhta", Levenshtein())
+compare("martha", "marhta", Partial(Levenshtein()))
+compare("martha", "marhta", Jaro())
+compare("martha", "marhta", TokenSet(Jaro()))
+compare("martha", "marhta", TokenMax(RatcliffObershelp()))
 ```
 
-In case the word order does not matter, a good distance is `TokenMax(Levenshtein())`
+In case the word order does not matter, a good distance is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
 ## Find
-- `findmax` returns the value and index of the element in `itr` with the highest similarity score with `x`. Its syntax is:
+- `findmax` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
-	findmax(x::AbstractString, itr, dist::StringDistance; min_score = 0.0)
+	findmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0)
 	```
 
-- `findall` returns the indices of all elements in `itr` with a similarity score with `x` higher than a minimum value (default to 0.8). Its syntax is:
+- `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
 	```julia
-	findall(x::AbstractString, itr, dist::StringDistance; min_score = 0.8)
+	findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
 	```
 
 The functions `findmax` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
