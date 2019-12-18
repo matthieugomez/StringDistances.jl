@@ -3,11 +3,7 @@ module StringDistances
 using Distances
 import Distances: evaluate, result_type
 
-##############################################################################
-##
-## include
-##
-##############################################################################
+
 abstract type StringDistance <: SemiMetric end
 include("utils.jl")
 include("edit.jl")
@@ -58,12 +54,12 @@ TokenMax,
 evaluate,
 compare,
 result_type,
-qgram
+qgrams
 end
 
 ##############################################################################
 ##
-## Some memo about Strings
+## Some things about Strings
 
 # length: number of characters
 # ncodeunits: Return the number of code units in a string (aking to index of vector). 

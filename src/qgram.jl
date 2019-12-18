@@ -1,11 +1,6 @@
 
-##############################################################################
-##
-## Define a type that iterates through q-grams of a string
-##
-############################################################################
 struct QGramIterator{S <: AbstractString}
-	s::S # string
+	s::S   # string
 	q::Int # Length of Qgram
 end
 
@@ -22,43 +17,34 @@ Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
 Base.eltype(qgram::QGramIterator{S}) where {S} = SubString{S}
 
 """
-Return an iterator that iterates on the QGram of the string
+Return an iterator on the q-gram of a string
 
 ### Arguments
 * `s::AbstractString`
-* `q::Integer`: length of qgram
+* `q::Integer`: length of q-gram
 
 ## Examples
 ```julia
-using StringDistances
-for x in qgram("hello", 2)
+for x in qgrams("hello", 2)
 	println(x)
 end
 ```
 """
-qgram(s::AbstractString, q::Integer) = QGramIterator{typeof(s)}(s, q)
+qgrams(s::AbstractString, q::Integer) = QGramIterator{typeof(s)}(s, q)
 
-##############################################################################
-##
-## Distance on strings is computed by set distance on qgram sets
-##
-##############################################################################
+
 
 abstract type QGramDistance <: StringDistance end
 
-function evaluate(dist::QGramDistance, s1::AbstractString, s2::AbstractString)
-	x = count_map(qgram(s1, dist.q), qgram(s2, dist.q))
-	evaluate(dist, values(x))
-end
-
-# For two iterators x1 and x2, this returns a dictionary which, for each element in x1 or x2, 
+# For two iterators x1 and x2, that define a length and eltype method,
+# this returns a dictionary which, for each element in x1 or x2, 
 # returns a tuple with the numbers of times it appears in x1 and x2
 function count_map(s1, s2)
 	K = promote_type(eltype(s1), eltype(s2))
 	d = Dict{K, Tuple{Int, Int}}()
+	sizehint!(d, length(s1) + length(s2))
 	# I use a faster way to change a dictionary key
 	# see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
-	sizehint!(d, length(s1) + length(s2))
 	for x1 in s1
 		index = Base.ht_keyindex2!(d, x1)
 		if index > 0
@@ -98,8 +84,10 @@ struct QGram <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::QGram, itr)
+function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
+	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
+	itr = 
 	for (n1, n2) in itr
 		n += abs(n1 - n2)
 	end
@@ -122,7 +110,8 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, itr)
+function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
+	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in itr
 		norm1 += n1^2
@@ -147,7 +136,8 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, itr)
+function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
+	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
 		ndistinct1 += n1 > 0
@@ -172,7 +162,8 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, itr)
+function evaluate(dist::SorensenDice, s1::AbstractString, s2::AbstractString)
+	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
 		ndistinct1 += n1 > 0
@@ -197,7 +188,8 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, itr)
+function evaluate(dist::Overlap, s1::AbstractString, s2::AbstractString)
+	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
 		ndistinct1 += n1 > 0

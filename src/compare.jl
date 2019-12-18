@@ -2,7 +2,7 @@
     compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
 
 return a similarity score between 0 and 1 for the strings `s1` and 
-`s2` based on the `StringDistance` `dist`
+`s2` based on the string distance `dist`.
 
 ### Examples
 ```julia-repl
@@ -20,14 +20,9 @@ function compare(s1::AbstractString, s2::AbstractString,
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
-    if min_score == 0.0
-        return 1.0 - evaluate(dist, s1, s2) / len2
-    else
-        d = evaluate(dist, s1, s2; max_dist = ceil(Int, len2 * (1 - min_score)))
-        out = 1.0 - d / len2
-        out < min_score && return 0.0
-        return out
-    end
+    d = evaluate(dist, s1, s2; max_dist = ceil(Int, len2 * (1 - min_score)))
+    out = 1.0 - d / len2
+    out < min_score ? 0.0 : out
 end
 
 function compare(s1::AbstractString, s2::AbstractString, 
@@ -102,7 +97,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_scor
     len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
     len1 == 0 && return 1.0
     out = 0.0
-    for x in qgram(s2, len1)
+    for x in qgrams(s2, len1)
         curr = compare(s1, x, dist.dist; min_score = min_score)
         out = max(out, curr)
         min_score = max(out, min_score)
@@ -169,7 +164,7 @@ end
 Creates the `TokenSet{dist}` distance
 
 `TokenSet{dist}` modifies the string distance `dist` to adjust for differences 
-in  word orders and word numbers, by comparing the intersection of two strings with each string.
+in word orders and word numbers by comparing the intersection of two strings with each string.
 
 ### Examples
 ```julia-repl
@@ -192,12 +187,12 @@ function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_sco
     s1 = join(v1, " ")
     s2 = join(v2, " ")
     isempty(s0) && return compare(s1, s2, dist.dist; min_score = min_score)
-    dist0 = compare(s0, s1, dist.dist; min_score = min_score)
-    min_score = max(min_score, dist0)
-    dist1 = compare(s0, s2, dist.dist; min_score = min_score)
-    min_score = max(min_score, dist1)
-    dist2 = compare(s0, s2, dist.dist; min_score = min_score)
-    max(dist0, dist1, dist2)
+    score_01 = compare(s0, s1, dist.dist; min_score = min_score)
+    min_score = max(min_score, score_01)
+    score_02 = compare(s0, s2, dist.dist; min_score = min_score)
+    min_score = max(min_score, score_02)
+    score_12 = compare(s1, s2, dist.dist; min_score = min_score)
+    max(score_01, score_02, score_12)
 end
 
 
@@ -225,31 +220,31 @@ end
 function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    dist0 = compare(s1, s2, dist.dist; min_score = min_score)
-    min_score = max(min_score, dist0)
+    score = compare(s1, s2, dist.dist; min_score = min_score)
+    min_score = max(min_score, score)
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
     if length(s2) >= 1.5 * length(s1)
         partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
-        dist1 = partial_scale * compare(s1, s2, Partial(dist.dist); 
+        score_partial = partial_scale * compare(s1, s2, Partial(dist.dist); 
                                         min_score = min_score / partial_scale) 
-        min_score = max(min_score, dist1)
-        dist2 = unbase_scale * partial_scale * 
+        min_score = max(min_score, score_partial)
+        score_sort = unbase_scale * partial_scale * 
                 compare(s1, s2, TokenSort(Partial(dist.dist)); 
                             min_score = min_score / (unbase_scale * partial_scale))
-        min_score = max(min_score, dist2)
-        dist3 = unbase_scale * partial_scale * 
+        min_score = max(min_score, score_sort)
+        score_set = unbase_scale * partial_scale * 
                 compare(s1, s2, TokenSet(Partial(dist.dist)); 
                             min_score = min_score / (unbase_scale * partial_scale)) 
-        return max(dist0, dist1, dist2, dist3)
+        return max(score, score_partial, score_sort, score_set)
     else
-        dist1 = unbase_scale * 
+        score_sort = unbase_scale * 
                 compare(s1, s2, TokenSort(dist.dist); 
                             min_score = min_score / unbase_scale)
-        min_score = max(min_score, dist1)
-        dist2 = unbase_scale * 
+        min_score = max(min_score, score_sort)
+        score_set = unbase_scale * 
                 compare(s1, s2, TokenSet(dist.dist); 
                             min_score = min_score / unbase_scale) 
-        return max(dist0, dist1, dist2)
+        return max(score, score_sort, score_set)
     end
 end
