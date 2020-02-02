@@ -13,6 +13,7 @@ where ``m`` is the number of matching characters and
 """
 struct Jaro <: StringDistance end
 
+
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
     s1, s2 = reorder(s1, s2)
@@ -78,7 +79,7 @@ Creates the Levenshtein metric
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein <: StringDistance end
+struct Levenshtein  <: StringDistance end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 # Return max_dist +1 if distance higher than max_dist
@@ -93,7 +94,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString; max
     x1 == nothing && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
-    v0 = collect(1:(len2 - k))
+    v = collect(1:(len2-k))
     current = 0
     i1 = 1
     while x1 !== nothing
@@ -106,12 +107,12 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString; max
         while x2 !== nothing
             ch2, state2 = x2
             #  update
-            above, current, left = current, left, v0[i2]
+            above, current, left = current, left, v[i2]
             if ch1 != ch2
                 current = min(current + 1, above + 1, left + 1)
             end
             min_dist = min(min_dist, left)
-            v0[i2] = current
+            v[i2] = current
             x2 = iterate(s2, state2)
             i2 += 1
         end
@@ -122,6 +123,7 @@ function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString; max
     max_dist !== nothing && current > max_dist && return max_dist + 1 
     return current
 end
+
 
 
 """
@@ -143,8 +145,8 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
     # prefix common to both strings can be ignored
     k, x1, x2start = common_prefix(s1, s2)
     (x1 == nothing) && return len2 - k
-    v0 = collect(1:(len2 - k))
-    v2 = similar(v0)
+    v = collect(1:(len2-k))
+    w = similar(v)
     if max_dist !== nothing
         offset = 1 + max_dist - (len2 - len1)
         i2_start = 1
@@ -170,11 +172,11 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
             if max_dist == nothing || (i2_start <= i2 <= i2_end)
                 above = current
                 thisTransCost = nextTransCost
-                nextTransCost = v2[i2]
+                nextTransCost = w[i2]
                 # cost of diagonal (substitution)
-                v2[i2] = current = left
+                w[i2] = current = left
                 # left now equals current cost (which will be diagonal at next iteration)
-                left = v0[i2]
+                left = v[i2]
                 if ch1 != ch2
                     # insertion
                     if left < current
@@ -192,13 +194,13 @@ function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractStri
                         end
                     end
                 end
-                v0[i2] = current
+                v[i2] = current
             end
             x2 = iterate(s2, state2)
             i2 += 1
             prevch2 = ch2
         end
-        max_dist !== nothing && v0[i1 + len2 - len1] > max_dist && return max_dist + 1
+        max_dist !== nothing && v[i1 + len2 - len1] > max_dist && return max_dist + 1
         x1 = iterate(s1, state1)
         i1 += 1
         prevch1 = ch1
