@@ -17,9 +17,13 @@ include("find.jl")
 ##
 ##############################################################################
 
-evaluate(::StringDistance, ::Missing, ::AbstractString) = missing
-evaluate(::StringDistance, ::AbstractString, ::Missing) = missing
-evaluate(::StringDistance, ::Missing, ::Missing) = missing
+evaluate(::QGramDistance, ::Missing, ::AbstractString) = missing
+evaluate(::QGramDistance, ::AbstractString, ::Missing) = missing
+
+evaluate(::RatcliffObershelp, ::Missing, ::AbstractString) = missing
+evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing
+
+
 
 compare(::Missing, ::AbstractString, ::StringDistance; min_score = 0.0) = missing
 compare(::AbstractString, ::Missing, ::StringDistance; min_score = 0.0) = missing

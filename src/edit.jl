@@ -15,7 +15,8 @@ struct Jaro <: StringDistance end
 
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-function evaluate(dist::Jaro, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Jaro, s1, s2)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     # if both are empty, m = 0 so should be 1.0 according to wikipedia. 
@@ -85,7 +86,8 @@ struct Levenshtein  <: StringDistance end
 # Return max_dist +1 if distance higher than max_dist
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
-function evaluate(dist::Levenshtein, s1::AbstractString, s2::AbstractString; max_dist = nothing)
+function evaluate(dist::Levenshtein, s1, s2; max_dist = nothing)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
@@ -138,7 +140,8 @@ required to change one string into the other.
 struct DamerauLevenshtein <: StringDistance end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
-function evaluate(dist::DamerauLevenshtein, s1::AbstractString, s2::AbstractString; max_dist = nothing)
+function evaluate(dist::DamerauLevenshtein, s1, s2; max_dist = nothing)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1

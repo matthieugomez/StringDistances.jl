@@ -10,17 +10,20 @@ Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)
 Base.ncodeunits(s::StringWithLength) = ncodeunits(s.s)
 Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
 
+
 function reorder(s1::AbstractString, s2::AbstractString)
     s1 = string_with_length(s1)
     s2 = string_with_length(s2)
-    if length(s1) <= length(s2)
-         return s1, s2
-    else
-        return s2, s1
-    end
+    (length(s1) <= length(s2)) ? (s1, s2) : (s2, s1)
 end
 
-function common_prefix(s1::AbstractString, s2::AbstractString)
+function reorder(s1, s2)
+    (length(s1) <= length(s2)) ? (s1, s2) : (s2, s1)
+end
+
+
+
+function common_prefix(s1, s2)
     x1 = iterate(s1)
     x2 = iterate(s2)
     l = 0
