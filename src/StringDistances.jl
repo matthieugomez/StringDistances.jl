@@ -25,10 +25,6 @@ evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing
 
 
 
-compare(::Missing, ::AbstractString, ::StringDistance; min_score = 0.0) = missing
-compare(::AbstractString, ::Missing, ::StringDistance; min_score = 0.0) = missing
-compare(::Missing, ::Missing, ::StringDistance; min_score = 0.0) = missing
-
 function result_type(dist::StringDistance, s1::AbstractString, s2::AbstractString)
     typeof(evaluate(dist, oneunit(s1), oneunit(s2)))
 end

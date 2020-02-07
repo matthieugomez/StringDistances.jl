@@ -144,6 +144,10 @@ end
 
 
 
+evaluate(Jaro(), [1,2,3], [1,2,10])
+evaluate(Levenshtein(), [1,2,3], [1,2,10])
+evaluate(DamerauLevenshtein(), [1,2,3], [1,2,10])
+
 
 #= R test
 library(stringdist)

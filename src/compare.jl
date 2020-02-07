@@ -10,13 +10,12 @@ julia> compare("martha", "marhta", Levenshtein())
 0.6666666666666667
 ```
 """
-function compare(s1::AbstractString, s2::AbstractString, 
-    dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
+function compare(s1, s2, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
     1.0 - evaluate(dist, s1, s2)
 end
 
-function compare(s1::AbstractString, s2::AbstractString,  
-    dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+function compare(s1, s2,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -25,8 +24,8 @@ function compare(s1::AbstractString, s2::AbstractString,
     out < min_score ? 0.0 : out
 end
 
-function compare(s1::AbstractString, s2::AbstractString, 
-    dist::QGramDistance; min_score = 0.0)
+function compare(s1, s2, dist::QGramDistance; min_score = 0.0)
+    (ismissing(s1) | ismissing(s2)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -60,7 +59,7 @@ function Winkler(dist::StringDistance; p = 0.1, threshold = 0.7, maxlength = 4)
     Winkler(dist, 0.1, 0.7, 4)
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Winkler; min_score = 0.0)
+function compare(s1, s2, dist::Winkler; min_score = 0.0)
     # cannot do min_score because of boosting threshold
     score = compare(s1, s2, dist.dist)
     if score >= dist.threshold
@@ -91,7 +90,7 @@ struct Partial{S <: StringDistance} <: StringDistance
     dist::S
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_score = 0.0)
+function compare(s1, s2, dist::Partial; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
@@ -105,7 +104,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial; min_scor
     return out
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; min_score = 0.0)
+function compare(s1, s2, dist::Partial{RatcliffObershelp}; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -151,7 +150,7 @@ struct TokenSort{T <: StringDistance} <: StringDistance
 end
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSort; min_score = 0.0)
+function compare(s1, s2, dist::TokenSort; min_score = 0.0)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
     compare(s1, s2, dist.dist; min_score = min_score)
@@ -179,7 +178,7 @@ struct TokenSet{T <: StringDistance} <: StringDistance
 end
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenSet; min_score = 0.0)
+function compare(s1, s2, dist::TokenSet; min_score = 0.0)
     v1 = unique!(sort!(split(s1)))
     v2 = unique!(sort!(split(s2)))
     v0 = intersect(v1, v2)
@@ -217,7 +216,7 @@ struct TokenMax{S <: StringDistance} <: StringDistance
     dist::S
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::TokenMax; min_score = 0.0)
+function compare(s1, s2, dist::TokenMax; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     score = compare(s1, s2, dist.dist; min_score = min_score)
