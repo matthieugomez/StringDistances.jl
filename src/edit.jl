@@ -15,6 +15,7 @@ struct Jaro <: StringDistance end
 
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
+## accepts any iterator, including AbstractString
 function evaluate(dist::Jaro, s1, s2)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
@@ -86,6 +87,7 @@ struct Levenshtein  <: StringDistance end
 # Return max_dist +1 if distance higher than max_dist
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
+## accepts any iterator, including AbstractString
 function evaluate(dist::Levenshtein, s1, s2; max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
@@ -140,6 +142,7 @@ required to change one string into the other.
 struct DamerauLevenshtein <: StringDistance end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+## accepts any iterator, including AbstractString
 function evaluate(dist::DamerauLevenshtein, s1, s2; max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
