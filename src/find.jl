@@ -1,5 +1,5 @@
 """
-    findmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0) -> (x, index)
+    findmax(s, itr, dist::StringDistance; min_score = 0.0) -> (x, index)
 
 `findmax` returns the value and index of the element of `itr` that has the 
 highest similarity score with `s` according to the distance `dist`. 
@@ -12,7 +12,7 @@ It is particularly optimized for [`Levenshtein`](@ref) and [`DamerauLevenshtein`
 ### Examples
 ```julia-repl
 julia> using StringDistances
-julia> s = ""Newark"
+julia> s = "Newark"
 julia> iter = ["New York", "Princeton", "San Francisco"]
 julia> findmax(s, iter, Levenshtein())
 ("NewYork", 1)
@@ -20,7 +20,7 @@ julia> findmax(s, iter, Levenshtein(); min_score = 0.9)
 (nothing, nothing)
 ```
 """
-function Base.findmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0)
+function Base.findmax(s, itr, dist::StringDistance; min_score = 0.0)
     min_score_atomic = Threads.Atomic{typeof(min_score)}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
@@ -37,7 +37,7 @@ function Base.findmax(s::AbstractString, itr, dist::StringDistance; min_score = 
 end
 
 """
-    findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
+    findall(s, itr, dist::StringDistance; min_score = 0.8)
     
 `findall` returns the vector of indices for elements of `itr` that have a 
 similarity score higher or equal than `min_score` according to the distance `dist`.
@@ -58,7 +58,7 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 0-element Array{Int64,1}
 ```
 """
-function Base.findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
+function Base.findall(s, itr, dist::StringDistance; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
     Threads.@threads for i in collect(keys(itr))
         score = compare(s, itr[i], dist; min_score = min_score)
