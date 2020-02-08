@@ -9,7 +9,6 @@ include("edit.jl")
 include("qgram.jl")
 include("compare.jl")
 const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}
-
 include("find.jl")
 
 ##############################################################################

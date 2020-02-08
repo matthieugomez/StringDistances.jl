@@ -1,5 +1,5 @@
-struct QGramIterator{S}
-	s::S   # String or Iterator
+struct QGramIterator{S <: Union{AbstractString, AbstractVector}}
+	s::S   # Collection
 	q::Int # Length of Qgram
 end
 Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
