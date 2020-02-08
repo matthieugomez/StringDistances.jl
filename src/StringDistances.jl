@@ -7,8 +7,9 @@ import Distances: evaluate, result_type
 include("utils.jl")
 include("edit.jl")
 include("qgram.jl")
-const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance}
 include("compare.jl")
+const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}
+
 include("find.jl")
 
 ##############################################################################

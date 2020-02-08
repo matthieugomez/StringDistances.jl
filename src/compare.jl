@@ -1,8 +1,8 @@
 """
-    compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
+    compare(s1, s2, dist)
 
 return a similarity score between 0 and 1 for the strings `s1` and 
-`s2` based on the string distance `dist`.
+`s2` based on the distance `dist`.
 
 ### Examples
 ```julia-repl
@@ -38,7 +38,7 @@ function compare(s1, s2, dist::QGramDistance; min_score = 0.0)
 end
 
 """
-   Winkler(dist::StringDistance; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
+   Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
 
 Creates the `Winkler{dist, p, threshold, maxlength}` distance
 
@@ -54,7 +54,7 @@ struct Winkler{S <: SemiMetric} <: SemiMetric
     maxlength::Integer      # max length of common prefix. Default to 4
 end
 
-function Winkler(dist::StringDistance; p = 0.1, threshold = 0.7, maxlength = 4)
+function Winkler(dist; p = 0.1, threshold = 0.7, maxlength = 4)
     p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
     Winkler(dist, 0.1, 0.7, 4)
 end
@@ -71,7 +71,7 @@ end
 
 
 """
-   Partial(dist::StringDistance)
+   Partial(dist)
 
 Creates the `Partial{dist}` distance
 
@@ -129,7 +129,7 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffO
 end
 
 """
-   TokenSort(dist::StringDistance)
+   TokenSort(dist)
 
 Creates the `TokenSort{dist}` distance
 
@@ -158,7 +158,7 @@ end
 
 
 """
-   TokenSet(dist::StringDistance)
+   TokenSet(dist)
 
 Creates the `TokenSet{dist}` distance
 
@@ -196,7 +196,7 @@ end
 
 
 """
-   TokenMax(dist::StringDistance)
+   TokenMax(dist)
 
 Creates the `TokenMax{dist}` distance
 
