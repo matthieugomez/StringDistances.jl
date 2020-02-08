@@ -17,8 +17,6 @@ include("find.jl")
 ##
 ##############################################################################
 
-evaluate(::QGramDistance, ::Missing, ::AbstractString) = missing
-evaluate(::QGramDistance, ::AbstractString, ::Missing) = missing
 
 evaluate(::RatcliffObershelp, ::Missing, ::AbstractString) = missing
 evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing

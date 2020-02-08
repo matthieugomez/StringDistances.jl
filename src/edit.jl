@@ -239,7 +239,7 @@ end
 
 function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::AbstractString, 
     len1::Integer, len2::Integer, start1::Integer, start2::Integer)
-    a = longest_common_substring(s1, s2, len1 , len2)
+    a = longest_common_pattern(s1, s2, len1 , len2)
     # exit if there is no common substring
     a[3] == 0 && return x
     # add the info of the common to the existing set
@@ -256,11 +256,9 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     return x
 end
 
-# Return start of commn substring in s1, start of common substring in s2, and length of substring
-# Indexes refer to character number, not index
-function longest_common_substring(s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function longest_common_pattern(s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
     if len1 > len2
-        start2, start1, len = longest_common_substring(s2, s1, len2, len1)
+        start2, start1, len = longest_common_pattern(s2, s1, len2, len1)
     else
         start1, start2, len = 0, 0, 0
         p = zeros(Int, len2)

@@ -143,10 +143,12 @@ using StringDistances, Test
 end
 
 
-
+# allow any iterator 
 evaluate(Jaro(), [1,2,3], [1,2,10])
 evaluate(Levenshtein(), [1,2,3], [1,2,10])
 evaluate(DamerauLevenshtein(), [1,2,3], [1,2,10])
+evaluate(QGram(2), [1,2,3], [1,2,10])
+evaluate(Overlap(2), [1,2,3], [1,2,10])
 
 
 #= R test

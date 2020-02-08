@@ -1,10 +1,11 @@
-
-struct QGramIterator{S <: AbstractString}
-	s::S   # string
+struct QGramIterator{S}
+	s::S   # String or Iterator
 	q::Int # Length of Qgram
 end
+Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
 
-function Base.iterate(qgram::QGramIterator, 
+# q-grams of AbstractString
+function Base.iterate(qgram::QGramIterator{<: AbstractString}, 
 	state = (1, nextind(qgram.s, 0, qgram.q)))
 	istart, iend = state
 	iend > ncodeunits(qgram.s) && return nothing
@@ -12,15 +13,22 @@ function Base.iterate(qgram::QGramIterator,
 	nextstate = nextind(qgram.s, istart), nextind(qgram.s, iend)
 	element, nextstate
 end
-Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
-Base.eltype(qgram::QGramIterator{S}) where {S} = SubString{S}
+Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
+
+
+
+function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstindex(qgram.s))
+	state + qgram.q - 1 > lastindex(qgram.s) && return nothing
+	view(qgram.s, state:(state + qgram.q - 1)), state + 1
+end
+Base.eltype(qgram::QGramIterator{<: AbstractVector}) = typeof(first(qgram))
 
 """
 Return an iterator on the q-gram of a string
 
 ### Arguments
-* `s::AbstractString`
+* `s` iterator
 * `q::Integer`: length of q-gram
 
 ## Examples
@@ -30,7 +38,9 @@ for x in qgrams("hello", 2)
 end
 ```
 """
-qgrams(s::AbstractString, q::Integer) = QGramIterator{typeof(s)}(s, q)
+qgrams(s::AbstractString, q::Integer) = QGramIterator(s, q)
+qgrams(s::AbstractVector, q::Integer) = QGramIterator(s, q)
+qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
 
 
@@ -84,7 +94,8 @@ struct QGram <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::QGram, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::QGram, s1, s2)
+	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
 	itr = 
@@ -110,7 +121,8 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Cosine, s1, s2)
+	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in itr
@@ -136,7 +148,8 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Jaccard, s1, s2)
+	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
@@ -162,7 +175,8 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::SorensenDice, s1, s2)
+	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
@@ -188,7 +202,8 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::Overlap, s1, s2)
+	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
