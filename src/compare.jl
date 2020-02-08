@@ -47,7 +47,7 @@ similarity score between  two strings, when their original similarity score is a
 The boost is equal to `min(l,  maxlength) * p * (1 - score)` where `l` denotes the 
 length of their common prefix and `score` denotes the original score
 """
-struct Winkler{S <: StringDistance} <: StringDistance
+struct Winkler{S <: SemiMetric} <: SemiMetric
     dist::S
     p::Float64          # scaling factor. Default to 0.1
     threshold::Float64  # boost threshold. Default to 0.7
@@ -86,7 +86,7 @@ julia> compare(s1, s2, Partial(RatcliffObershelp()))
 0.4516129032258065
 ```
 """
-struct Partial{S <: StringDistance} <: StringDistance
+struct Partial{S <: SemiMetric} <: SemiMetric
     dist::S
 end
 
@@ -104,7 +104,7 @@ function compare(s1, s2, dist::Partial; min_score = 0.0)
     return out
 end
 
-function compare(s1, s2, dist::Partial{RatcliffObershelp}; min_score = 0.0)
+function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; min_score = 0.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return compare(s1, s2, dist.dist)
@@ -145,8 +145,8 @@ julia> compare(s1, s2, TokenSort(RatcliffObershelp()))
 1.0
 ```
 """
-struct TokenSort{T <: StringDistance} <: StringDistance
-    dist::T
+struct TokenSort{S <: SemiMetric} <: SemiMetric
+    dist::S
 end
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
@@ -173,8 +173,8 @@ julia> compare(s1, s2, TokenSet(RatcliffObershelp()))
 1.0
 ```
 """
-struct TokenSet{T <: StringDistance} <: StringDistance
-    dist::T
+struct TokenSet{S <: SemiMetric} <: SemiMetric
+    dist::S
 end
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
@@ -212,7 +212,7 @@ julia> compare(s1, s2, TokenMax(RatcliffObershelp()))
 0.95
 ```
 """
-struct TokenMax{S <: StringDistance} <: StringDistance
+struct TokenMax{S <: SemiMetric} <: SemiMetric
     dist::S
 end
 

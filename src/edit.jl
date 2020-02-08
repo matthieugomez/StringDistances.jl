@@ -11,8 +11,7 @@ The Jaro distance is defined as
 where ``m`` is the number of matching characters and 
 ``t`` is half the number of transpositions.
 """
-struct Jaro <: StringDistance end
-
+struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ## accepts any iterator, including AbstractString
@@ -81,7 +80,7 @@ Creates the Levenshtein metric
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein  <: StringDistance end
+struct Levenshtein <: Metric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 # Return max_dist +1 if distance higher than max_dist
@@ -139,7 +138,7 @@ The DamerauLevenshtein distance is the minimum number of operations (consisting 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
 required to change one string into the other.
 """
-struct DamerauLevenshtein <: StringDistance end
+struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 ## accepts any iterator, including AbstractString
@@ -225,7 +224,10 @@ divided by the total number of characters in the two strings. Matching character
 in the longest common subsequence plus, recursively, matching characters in the unmatched 
 region on either side of the longest common subsequence.
 """
-struct RatcliffObershelp <: StringDistance end
+struct RatcliffObershelp <: SemiMetric end
+
+evaluate(::RatcliffObershelp, ::Missing, ::AbstractString) = missing
+evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing
 
 function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
     n_matched = sum(last.(matching_blocks(s1, s2)))

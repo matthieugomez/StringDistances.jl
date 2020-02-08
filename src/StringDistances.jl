@@ -4,28 +4,23 @@ using Distances
 import Distances: evaluate, result_type
 
 
-abstract type StringDistance <: SemiMetric end
 include("utils.jl")
 include("edit.jl")
 include("qgram.jl")
+const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance}
 include("compare.jl")
 include("find.jl")
 
 ##############################################################################
 ##
-## Handle missing values
+## Distances API
 ##
 ##############################################################################
 
-
-evaluate(::RatcliffObershelp, ::Missing, ::AbstractString) = missing
-evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing
-
-
-
-function result_type(dist::StringDistance, s1::AbstractString, s2::AbstractString)
-    typeof(evaluate(dist, oneunit(s1), oneunit(s2)))
+function result_type(dist::StringDistance, s1, s2)
+    typeof(evaluate(dist, "", ""))
 end
+
 
 ##############################################################################
 ##

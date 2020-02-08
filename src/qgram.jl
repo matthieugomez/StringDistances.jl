@@ -17,7 +17,7 @@ Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
 Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
 
 
-
+#q-grams of AbstractVector
 function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstindex(qgram.s))
 	state + qgram.q - 1 > lastindex(qgram.s) && return nothing
 	view(qgram.s, state:(state + qgram.q - 1)), state + 1
@@ -38,13 +38,12 @@ for x in qgrams("hello", 2)
 end
 ```
 """
-qgrams(s::AbstractString, q::Integer) = QGramIterator(s, q)
-qgrams(s::AbstractVector, q::Integer) = QGramIterator(s, q)
+qgrams(s::Union{AbstractString, AbstractVector}, q::Integer) = QGramIterator(s, q)
 qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
 
 
-abstract type QGramDistance <: StringDistance end
+abstract type QGramDistance <: SemiMetric end
 
 # For two iterators x1 and x2, that define a length and eltype method,
 # this returns a dictionary which, for each element in x1 or x2, 
