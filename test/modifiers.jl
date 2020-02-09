@@ -1,5 +1,5 @@
 
-using StringDistances, Test
+using StringDistances, Unicode, Test
 
 @testset "Modifiers" begin
 
@@ -45,6 +45,7 @@ using StringDistances, Test
 	@test compare("HSINCHUANG", "SINJHUANG DISTRICT", Partial(RatcliffObershelp())) ≈ 0.8
 	@test compare("HSINCHUANG",  "SINJHUANG", Partial(RatcliffObershelp())) ≈ 0.8888888888888
 	@test compare("New York Mets vs Atlanta Braves", "Atlanta Braves vs New York Mets", TokenSort(RatcliffObershelp()))  ≈ 1.0
+	@test compare(graphemes("New York Mets vs Atlanta Braves"), graphemes("Atlanta Braves vs New York Mets"), Partial(RatcliffObershelp()))  ≈ compare("New York Mets vs Atlanta Braves", "Atlanta Braves vs New York Mets", Partial(RatcliffObershelp()))
 	@test compare("mariners vs angels", "los angeles angels of anaheim at seattle mariners", TokenSet(RatcliffObershelp())) ≈ 1.0 - 0.09090909090909094
 	@test compare("New York Mets vs Atlanta Braves", "", TokenSort(RatcliffObershelp()))  ≈ 0.0
 	@test compare("mariners vs angels", "", TokenSet(RatcliffObershelp())) ≈ 0.0

@@ -1,5 +1,5 @@
 
-using StringDistances, Test
+using StringDistances, Unicode, Test
 
 @testset "Distances" begin
 
@@ -12,6 +12,7 @@ using StringDistances, Test
 		@test evaluate(Levenshtein(), "saturday", "sunday") == 3
 		@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
 		@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
+		@test evaluate(Levenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Levenshtein(), "alborgów", "amoniak")
 		@test result_type(Levenshtein(), "hello", "world") == Int
 		@test ismissing(evaluate(Levenshtein(), "", missing))
 		@inferred evaluate(Levenshtein(), "", "")
@@ -26,6 +27,7 @@ using StringDistances, Test
 		@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
 		@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
 		@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
+		@test evaluate(DamerauLevenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(DamerauLevenshtein(), "alborgów", "amoniak")
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
 		@test ismissing(evaluate(DamerauLevenshtein(), "", missing))
 		@inferred evaluate(DamerauLevenshtein(), "", "")
@@ -38,6 +40,7 @@ using StringDistances, Test
 		@test evaluate(QGram(1), "abc", "ccc") == 4
 		@test evaluate(QGram(4), "aü☃", "aüaüafs") == 4
 		@test evaluate( QGram(2), SubString("aü☃", 1, 4), SubString("aüaüafs", 1, 4)) == 2
+		@test evaluate(QGram(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(QGram(2), "alborgów", "amoniak")
 		@test result_type(QGram(1), "hello", "world") == Int
 		@test ismissing(evaluate(QGram(1), "", missing))
 		@inferred evaluate(QGram(1), "", "")
@@ -47,6 +50,7 @@ using StringDistances, Test
 		@test isnan(evaluate(Cosine(2), "", "abc"))
 		@test evaluate(Cosine(2), "abc", "ccc") ≈ 1 atol = 1e-4
 		@test evaluate(Cosine(2), "leia", "leela") ≈ 0.7113249 atol = 1e-4
+		@test evaluate(Cosine(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Cosine(2), "alborgów", "amoniak")
 		@test result_type(Cosine(2), "hello", "world") == typeof(float(1))
 		@test ismissing(evaluate(Cosine(2), "", missing))
 		@inferred evaluate(Cosine(2), "", "")
@@ -56,6 +60,7 @@ using StringDistances, Test
 		@test evaluate(Jaccard(1), "", "abc") ≈ 1.0
 		@test evaluate(Jaccard(1), "abc", "ccc") ≈ .666666 atol = 1e-4
 		@test evaluate(Jaccard(2), "leia", "leela") ≈ 0.83333 atol = 1e-4
+		@test evaluate(Jaccard(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Jaccard(2), "alborgów", "amoniak")
 		@test result_type(Jaccard(1), "hello", "world") == typeof(float(1))
 		@test ismissing(evaluate(Jaccard(1), "", missing))
 		@inferred evaluate(Jaccard(1), "", "")
@@ -64,6 +69,7 @@ using StringDistances, Test
 	@testset "SorensenDice" begin
 		@test evaluate(SorensenDice(1), "night", "nacht") ≈ 0.4 atol = 1e-4
 		@test evaluate(SorensenDice(2), "night", "nacht") ≈ 0.75 atol = 1e-4
+		@test evaluate(SorensenDice(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(SorensenDice(2), "alborgów", "amoniak")
 		@test result_type(SorensenDice(1), "hello", "world") == typeof(float(1))
 		@test ismissing(evaluate(SorensenDice(1), "", missing))
 		@inferred evaluate(SorensenDice(1), "", "")
@@ -85,6 +91,7 @@ using StringDistances, Test
 		@test evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
 		@test evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") ≈ 0.3913043478260869
 		@test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
+		@test evaluate(RatcliffObershelp(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(RatcliffObershelp(), "alborgów", "amoniak")
 		@test result_type(RatcliffObershelp(), "hello", "world") == typeof(float(1))
 		@test ismissing(evaluate(RatcliffObershelp(), "", missing))
 		@inferred evaluate(RatcliffObershelp(), "", "")

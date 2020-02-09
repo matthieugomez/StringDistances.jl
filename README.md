@@ -6,14 +6,14 @@ This Julia package computes various distances between AbstractStrings
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
-## Compare
-The function `compare` returns a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar. Its syntax is:
+## Evaluate
+The function `evaluate` returns the distance between two strings. Its syntax is:
 
 ```julia
-compare(s1, s2, dist::StringDistance)
+evaluate(dist, s1, s2)
 ```
 
-where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractString`, `GraphemeIterator`, `AbstractVector`...).
+where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractString`, `GraphemeIterator`, `AbstractVector`...), and `dist` is one of the following distances:
 
 - Edit Distances
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
@@ -37,41 +37,43 @@ where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractSt
 
 Some examples:
 ```julia
-compare("martha", "marhta", Jaro())
-compare("martha", "marhta", Winkler(Jaro()))
-compare("martha", "marhta", QGram(2))
-compare("martha", "marhta", Winkler(QGram(2)))
-compare("martha", "marhta", Levenshtein())
-compare("martha", "marhta", Partial(Levenshtein()))
-compare("martha", "marhta", Jaro())
-compare("martha", "marhta", TokenSet(Jaro()))
-compare("martha", "marhta", TokenMax(RatcliffObershelp()))
+evaluate(Jaro(), "martha", "marhta")
+evaluate(Winkler(Jaro()), "martha", "marhta")
+evaluate(QGram(2), "martha", "marhta")
+evaluate(Winkler(QGram(2)), "martha", "marhta")
+evaluate(Levenshtein(), "martha", "marhta")
+evaluate(Partial(Levenshtein()), "martha", "marhta")
+evaluate(Jaro(), "martha", "marhta")
+evaluate(TokenSet(Jaro()), "martha", "marhta")
+evaluate(TokenMax(RatcliffObershelp()), "martha", "marhta")
 ```
 
 A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
+## Compare
+The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a number between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
+```julia
+evaluate(Levenshtein(), "New York", "New York")
+#> 0
+compare("New York", "New York", Levenshtein())
+#> 1.0
+
+```
+
+
 ## Find
 - `findmax` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
-	findmax(s::AbstractString, itr, dist::StringDistance; min_score = 0.0)
+	findmax(s, itr, dist::StringDistance; min_score = 0.0)
 	```
 
 - `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
 	```julia
-	findall(s::AbstractString, itr, dist::StringDistance; min_score = 0.8)
+	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
 The functions `findmax` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
 
-## Evaluate
-The function `compare` returns a similarity score: a value of 0 means completely different and a value of 1 means completely similar. In contrast, the function `evaluate` returns the litteral distance between two strings, with a value of 0 being completely similar. Some distances are between 0 and 1, while others are unbouded.
-
-```julia
-compare("New York", "New York", Levenshtein())
-#> 1.0
-evaluate(Levenshtein(), "New York", "New York")
-#> 0
-```
 
 ## References
 - [The stringdist Package for Approximate String Matching](https://journal.r-project.org/archive/2014-1/loo.pdf) Mark P.J. van der Loo

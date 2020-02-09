@@ -12,6 +12,9 @@ include("qgram.jl")
 include("modifier.jl")
 
 const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}
+function result_type(dist::StringDistance, s1, s2)
+    typeof(evaluate(dist, "", ""))
+end
 
 """
     compare(s1, s2, dist)
@@ -25,14 +28,8 @@ julia> compare("martha", "marhta", Levenshtein())
 0.6666666666666667
 ```
 """
-function compare(s1, s2, dist::StringDistance; min_score = 0.0)
-	1 - evaluate(normalize(dist), s1, s2, 1 - min_score)
-end
+compare(s1, s2, dist::StringDistance; min_score = 0.0) = 1 - evaluate(normalize(dist), s1, s2, 1 - min_score)
 
-# distance API
-function result_type(dist::StringDistance, s1, s2)
-    typeof(evaluate(dist, "", ""))
-end
 include("find.jl")
 
 ##############################################################################
@@ -60,7 +57,8 @@ TokenMax,
 evaluate,
 compare,
 result_type,
-qgrams
+qgrams,
+normalize
 end
 
 ##############################################################################
