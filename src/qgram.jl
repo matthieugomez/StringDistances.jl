@@ -18,11 +18,14 @@ Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
 
 
 #q-grams of AbstractVector
+# Alternatively, I could also use partition in IterTools but it creates a vector for each iteration
+# so it does not seem to be worth it.
 function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstindex(qgram.s))
 	state + qgram.q - 1 > lastindex(qgram.s) && return nothing
 	view(qgram.s, state:(state + qgram.q - 1)), state + 1
 end
 Base.eltype(qgram::QGramIterator{<: AbstractVector}) = typeof(first(qgram))
+
 
 """
 Return an iterator on the q-gram of a string
@@ -120,7 +123,7 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, s1, s2)
+function evaluate(dist::Cosine, s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
@@ -147,7 +150,7 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, s1, s2)
+function evaluate(dist::Jaccard, s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -174,7 +177,7 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, s1, s2)
+function evaluate(dist::SorensenDice, s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -201,7 +204,7 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, s1, s2)
+function evaluate(dist::Overlap, s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0

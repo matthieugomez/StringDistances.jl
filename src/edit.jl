@@ -12,10 +12,11 @@ where ``m`` is the number of matching characters and
 ``t`` is half the number of transpositions.
 """
 struct Jaro <: SemiMetric end
+isnormalized(::Jaro) = true
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ## accepts any iterator, including AbstractString
-function evaluate(dist::Jaro, s1, s2)
+function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -87,7 +88,7 @@ struct Levenshtein <: Metric end
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
 ## accepts any iterator, including AbstractString
-function evaluate(dist::Levenshtein, s1, s2; max_dist = nothing)
+function evaluate(dist::Levenshtein, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -142,7 +143,7 @@ struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 ## accepts any iterator, including AbstractString
-function evaluate(dist::DamerauLevenshtein, s1, s2; max_dist = nothing)
+function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -226,20 +227,20 @@ region on either side of the longest common subsequence.
 """
 struct RatcliffObershelp <: SemiMetric end
 
-evaluate(::RatcliffObershelp, ::Missing, ::AbstractString) = missing
-evaluate(::RatcliffObershelp, ::AbstractString, ::Missing) = missing
+isnormalized(::RatcliffObershelp) = true
 
-function evaluate(dist::RatcliffObershelp, s1::AbstractString, s2::AbstractString)
+function evaluate(dist::RatcliffObershelp, s1, s2, max_dist = nothing)
+    (ismissing(s1) | ismissing(s2)) && return missing
     n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)
     len1 + len2 == 0 ? 0. : 1.0 - 2 *  n_matched / (len1 + len2)
 end
 
-function matching_blocks(s1::AbstractString, s2::AbstractString)
+function matching_blocks(s1, s2)
     matching_blocks!(Set{Tuple{Int, Int, Int}}(), s1, s2, length(s1), length(s2), 1, 1)
 end
 
-function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::AbstractString, 
+function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1, s2, 
     len1::Integer, len2::Integer, start1::Integer, start2::Integer)
     a = longest_common_pattern(s1, s2, len1 , len2)
     # exit if there is no common substring
@@ -247,18 +248,18 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1::AbstractString, s2::
     # add the info of the common to the existing set
     push!(x, (a[1] + start1 - 1, a[2] + start2 - 1, a[3]))
     # add the longest common substring that happens before
-    s1before = SubString(s1, 1, nextind(s1, 0, a[1] - 1))
-    s2before = SubString(s2, 1, nextind(s2, 0, a[2] - 1))
+    s1before = _take(s1, a[1] - 1)
+    s2before = _take(s2, a[2] - 1)
     matching_blocks!(x, s1before, s2before, a[1] - 1, a[2] - 1, start1, start2)
     # add the longest common substring that happens after
-    s1after = SubString(s1, nextind(s1, 0, a[1] + a[3]), lastindex(s1))
-    s2after = SubString(s2, nextind(s2, 0, a[2] + a[3]), lastindex(s2))
+    s1after = _drop(s1, a[1] + a[3] - 1)
+    s2after = _drop(s2, a[2] + a[3] - 1)
     matching_blocks!(x, s1after, s2after, len1 - (a[1] + a[3]) + 1, 
         len2 - (a[2] + a[3]) + 1, start1 + a[1] + a[3] - 1, start2 + a[2] + a[3] - 1)
     return x
 end
 
-function longest_common_pattern(s1::AbstractString, s2::AbstractString, len1::Integer, len2::Integer)
+function longest_common_pattern(s1, s2, len1::Integer, len2::Integer)
     if len1 > len2
         start2, start1, len = longest_common_pattern(s2, s1, len2, len1)
     else

@@ -3,24 +3,37 @@ module StringDistances
 using Distances
 import Distances: evaluate, result_type
 
+isnormalized(dist::SemiMetric) = false
+
 
 include("utils.jl")
 include("edit.jl")
 include("qgram.jl")
-include("compare.jl")
+include("modifier.jl")
+
 const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax}
-include("find.jl")
 
-##############################################################################
-##
-## Distances API
-##
-##############################################################################
+"""
+    compare(s1, s2, dist)
 
+return a similarity score between 0 and 1 for the strings `s1` and 
+`s2` based on the distance `dist`.
+
+### Examples
+```julia-repl
+julia> compare("martha", "marhta", Levenshtein())
+0.6666666666666667
+```
+"""
+function compare(s1, s2, dist::StringDistance; min_score = 0.0)
+	1 - evaluate(normalize(dist), s1, s2, 1 - min_score)
+end
+
+# distance API
 function result_type(dist::StringDistance, s1, s2)
     typeof(evaluate(dist, "", ""))
 end
-
+include("find.jl")
 
 ##############################################################################
 ##

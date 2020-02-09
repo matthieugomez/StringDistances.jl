@@ -10,8 +10,10 @@ The package is registered in the [`General`](https://github.com/JuliaRegistries/
 The function `compare` returns a similarity score between two strings. The function always returns a score between 0 and 1, with a value of 0 being completely different and a value of 1 being completely similar. Its syntax is:
 
 ```julia
-compare(s1::AbstractString, s2::AbstractString, dist::StringDistance)
+compare(s1, s2, dist::StringDistance)
 ```
+
+where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractString`, `GraphemeIterator`, `AbstractVector`...).
 
 - Edit Distances
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`

@@ -1,41 +1,35 @@
-"""
-    compare(s1, s2, dist)
-
-return a similarity score between 0 and 1 for the strings `s1` and 
-`s2` based on the distance `dist`.
-
-### Examples
-```julia-repl
-julia> compare("martha", "marhta", Levenshtein())
-0.6666666666666667
-```
-"""
-function compare(s1, s2, dist::Union{Jaro, RatcliffObershelp}; min_score = 0.0)
-    1.0 - evaluate(dist, s1, s2)
+struct Normalize{S <: SemiMetric} <: SemiMetric
+    dist::S
 end
+function normalize(dist::SemiMetric)
+    isnormalized(dist) ? dist : Normalize{typeof(dist)}(dist)
+end
+isnormalized(dist::Normalize) = true
 
-function compare(s1, s2,  dist::Union{Levenshtein, DamerauLevenshtein}; min_score = 0.0)
+
+function evaluate(dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}}, s1, s2, max_dist = 1.0)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
-    d = evaluate(dist, s1, s2; max_dist = ceil(Int, len2 * (1 - min_score)))
-    out = 1.0 - d / len2
-    out < min_score ? 0.0 : out
+    d = evaluate(dist.dist, s1, s2, ceil(Int, len2 * max_dist))
+    out = d / len2
+    out > max_dist ? 1.0 : out
 end
 
-function compare(s1, s2, dist::QGramDistance; min_score = 0.0)
+function evaluate(dist::Normalize{<: QGramDistance}, s1, s2, max_dist = 1.0)
     (ismissing(s1) | ismissing(s2)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 <= dist.q - 1 && return convert(Float64, s1 == s2)
-    if typeof(dist) <: QGram
-        1.0 - evaluate(dist, s1, s2) / (len1 + len2 - 2 * dist.q + 2)
+    len1 <= dist.dist.q - 1 && return convert(Float64, !(s1 == s2))
+    if typeof(dist.dist) <: QGram
+        evaluate(dist.dist, s1, s2) / (len1 + len2 - 2 * dist.dist.q + 2)
     else
-        1.0 - evaluate(dist, s1, s2)
+        evaluate(dist.dist, s1, s2)
     end
 end
+
 
 """
    Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
@@ -52,19 +46,22 @@ struct Winkler{S <: SemiMetric} <: SemiMetric
     p::Float64          # scaling factor. Default to 0.1
     threshold::Float64  # boost threshold. Default to 0.7
     maxlength::Integer      # max length of common prefix. Default to 4
+    Winkler{S}(dist::S, p, threshold, maxlength) where {S <: SemiMetric} = new(dist, p, threshold, maxlength)
 end
 
-function Winkler(dist; p = 0.1, threshold = 0.7, maxlength = 4)
+function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
     p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
-    Winkler(dist, 0.1, 0.7, 4)
+    Winkler{typeof(normalize(dist))}(normalize(dist), 0.1, 0.7, 4)
 end
+isnormalized(dist::Winkler) = true
 
-function compare(s1, s2, dist::Winkler; min_score = 0.0)
+
+function evaluate(dist::Winkler, s1, s2, max_dist = 1.0)
     # cannot do min_score because of boosting threshold
-    score = compare(s1, s2, dist.dist)
-    if score >= dist.threshold
+    score = evaluate(dist.dist, s1, s2)
+    if score <= 1 - dist.threshold
         l = common_prefix(s1, s2)[1]
-        score += min(l, dist.maxlength) * dist.p * (1 - score)
+        score -= min(l, dist.maxlength) * dist.p * score
     end
     return score
 end
@@ -88,27 +85,30 @@ julia> compare(s1, s2, Partial(RatcliffObershelp()))
 """
 struct Partial{S <: SemiMetric} <: SemiMetric
     dist::S
+    Partial{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
+Partial(dist::SemiMetric) = Partial{typeof(normalize(dist))}(normalize(dist))
+isnormalized(dist::Partial) = true
 
-function compare(s1, s2, dist::Partial; min_score = 0.0)
+function evaluate(dist::Partial, s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 == len2 && return compare(s1, s2, dist.dist; min_score = min_score)
-    len1 == 0 && return 1.0
-    out = 0.0
+    len1 == len2 && return evaluate(dist.dist, s1, s2, max_dist)
+    len1 == 0 && return 0.0
+    out = 1.0
     for x in qgrams(s2, len1)
-        curr = compare(s1, x, dist.dist; min_score = min_score)
-        out = max(out, curr)
-        min_score = max(out, min_score)
+        curr = evaluate(dist.dist, s1, x, max_dist)
+        out = min(out, curr)
+        max_dist = min(out, max_dist)
     end
     return out
 end
 
-function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffObershelp}; min_score = 0.0)
+function evaluate(dist::Partial{RatcliffObershelp}, s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    len1 == len2 && return compare(s1, s2, dist.dist)
-    out = 0.0
+    len1 == len2 && return evaluate(dist.dist, s1, s2)
+    out = 1.0
     for r in matching_blocks(s1, s2)
         # Make sure the substring of s2 has length len1
         s2_start = r[2] - r[1] + 1
@@ -120,10 +120,9 @@ function compare(s1::AbstractString, s2::AbstractString, dist::Partial{RatcliffO
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        i2_start = nextind(s2, 0, s2_start)
-        i2_end = nextind(s2, 0, s2_end)
-        curr = compare(s1, SubString(s2, i2_start, i2_end), RatcliffObershelp())
-        out = max(out, curr)
+        curr = evaluate(dist.dist, s1, _slice(s2, s2_start - 1, s2_end))
+
+        out = min(out, curr)
     end
     return out
 end
@@ -147,13 +146,16 @@ julia> compare(s1, s2, TokenSort(RatcliffObershelp()))
 """
 struct TokenSort{S <: SemiMetric} <: SemiMetric
     dist::S
+    TokenSort{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
+TokenSort(dist::SemiMetric) = TokenSort{typeof(normalize(dist))}(normalize(dist))
+isnormalized(dist::TokenSort) = true
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-function compare(s1, s2, dist::TokenSort; min_score = 0.0)
+function evaluate(dist::TokenSort, s1::AbstractString, s2::AbstractString, max_dist = 1.0)
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
-    compare(s1, s2, dist.dist; min_score = min_score)
+    evaluate(dist.dist, s1, s2, max_dist)
 end
 
 
@@ -175,23 +177,26 @@ julia> compare(s1, s2, TokenSet(RatcliffObershelp()))
 """
 struct TokenSet{S <: SemiMetric} <: SemiMetric
     dist::S
+    TokenSet{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
+TokenSet(dist::SemiMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
+isnormalized(dist::TokenSet) = true
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-function compare(s1, s2, dist::TokenSet; min_score = 0.0)
+function evaluate(dist::TokenSet, s1::AbstractString, s2::AbstractString, max_dist = 1.0)
     v1 = unique!(sort!(split(s1)))
     v2 = unique!(sort!(split(s2)))
     v0 = intersect(v1, v2)
     s0 = join(v0, " ")
     s1 = join(v1, " ")
     s2 = join(v2, " ")
-    isempty(s0) && return compare(s1, s2, dist.dist; min_score = min_score)
-    score_01 = compare(s0, s1, dist.dist; min_score = min_score)
-    min_score = max(min_score, score_01)
-    score_02 = compare(s0, s2, dist.dist; min_score = min_score)
-    min_score = max(min_score, score_02)
-    score_12 = compare(s1, s2, dist.dist; min_score = min_score)
-    max(score_01, score_02, score_12)
+    isempty(s0) && return evaluate(dist.dist, s1, s2, max_dist)
+    score_01 = evaluate(dist.dist, s0, s1, max_dist)
+    max_dist = min(max_dist, score_01)
+    score_02 = evaluate(dist.dist, s0, s2, max_dist)
+    max_dist = min(max_dist, score_02)
+    score_12 = evaluate(dist.dist, s1, s2, max_dist)
+    min(score_01, score_02, score_12)
 end
 
 
@@ -214,36 +219,35 @@ julia> compare(s1, s2, TokenMax(RatcliffObershelp()))
 """
 struct TokenMax{S <: SemiMetric} <: SemiMetric
     dist::S
+    TokenMax{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 
-function compare(s1, s2, dist::TokenMax; min_score = 0.0)
+TokenMax(dist::SemiMetric) = TokenMax{typeof(normalize(dist))}(normalize(dist))
+isnormalized(dist::TokenMax) = true
+
+function evaluate(dist::TokenMax, s1::AbstractString, s2::AbstractString, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    score = compare(s1, s2, dist.dist; min_score = min_score)
-    min_score = max(min_score, score)
+    score = evaluate(dist.dist, s1, s2, max_dist)
+    min_score = min(max_dist, score)
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
     if length(s2) >= 1.5 * length(s1)
         partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
-        score_partial = partial_scale * compare(s1, s2, Partial(dist.dist); 
-                                        min_score = min_score / partial_scale) 
-        min_score = max(min_score, score_partial)
-        score_sort = unbase_scale * partial_scale * 
-                compare(s1, s2, TokenSort(Partial(dist.dist)); 
-                            min_score = min_score / (unbase_scale * partial_scale))
-        min_score = max(min_score, score_sort)
-        score_set = unbase_scale * partial_scale * 
-                compare(s1, s2, TokenSet(Partial(dist.dist)); 
-                            min_score = min_score / (unbase_scale * partial_scale)) 
-        return max(score, score_partial, score_sort, score_set)
+        score_partial = 1 - partial_scale * (1 - evaluate(Partial(dist.dist), s1, s2, 1 - (1 - max_dist) / partial_scale))
+        min_score = min(max_dist, score_partial)
+        score_sort = 1 - unbase_scale * partial_scale * 
+                (1 - evaluate(TokenSort(Partial(dist.dist)), s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale)))
+        max_dist = min(max_dist, score_sort)
+        score_set = 1 - unbase_scale * partial_scale * 
+                (1 - evaluate(TokenSet(Partial(dist.dist)), s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale))) 
+        return min(score, score_partial, score_sort, score_set)
     else
-        score_sort = unbase_scale * 
-                compare(s1, s2, TokenSort(dist.dist); 
-                            min_score = min_score / unbase_scale)
-        min_score = max(min_score, score_sort)
-        score_set = unbase_scale * 
-                compare(s1, s2, TokenSet(dist.dist); 
-                            min_score = min_score / unbase_scale) 
-        return max(score, score_sort, score_set)
+        score_sort = 1 - unbase_scale * 
+                (1 - evaluate(TokenSort(dist.dist), s1, s2, 1 - (1 - max_dist) / unbase_scale))
+        max_dist = min(max_dist, score_sort)
+        score_set = 1 - unbase_scale * 
+                (1 - evaluate(TokenSet(dist.dist), s1, s2, 1 - (1 - max_dist) / unbase_scale))
+        return min(score, score_sort, score_set)
     end
 end

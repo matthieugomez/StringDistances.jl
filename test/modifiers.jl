@@ -24,13 +24,13 @@ using StringDistances, Test
 	compare("aüa", "aua", DamerauLevenshtein())
 
 	# Winkler
-	@test compare("martha", "marhta", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.9611 atol = 1e-4
-	@test compare("dwayne", "duane", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.84 atol = 1e-4
-	@test compare("dixon", "dicksonx", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.81333 atol = 1e-4
-	@test compare("william", "williams", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.975 atol = 1e-4
-	@test compare("", "foo", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.0 atol = 1e-4
-	@test compare("a", "a", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 1.0 atol = 1e-4
-	@test compare("abc", "xyz", Winkler(Jaro(), 0.1, 0.0, 4)) ≈ 0.0 atol = 1e-4
+	@test compare("martha", "marhta", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.9611 atol = 1e-4
+	@test compare("dwayne", "duane", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.84 atol = 1e-4
+	@test compare("dixon", "dicksonx", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.81333 atol = 1e-4
+	@test compare("william", "williams", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.975 atol = 1e-4
+	@test compare("", "foo", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.0 atol = 1e-4
+	@test compare("a", "a", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 1.0 atol = 1e-4
+	@test compare("abc", "xyz", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.0 atol = 1e-4
 
 	# RatcliffObershelp
 	@test compare("New York Mets vs Atlanta Braves", "", RatcliffObershelp())  ≈ 0.0
