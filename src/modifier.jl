@@ -36,10 +36,10 @@ end
 
 Creates the `Winkler{dist, p, threshold, maxlength}` distance
 
-`Winkler{dist, p, threshold, length)` modifies the string distance `dist` to boost the 
-similarity score between  two strings, when their original similarity score is above some `threshold`.
-The boost is equal to `min(l,  maxlength) * p * (1 - score)` where `l` denotes the 
-length of their common prefix and `score` denotes the original score
+`Winkler{dist, p, threshold, length)` modifies the string distance `dist` to decrease the 
+distance between  two strings, when their original distance is below some `threshold`.
+The boost is equal to `min(l,  maxlength) * p * dist` where `l` denotes the 
+length of their common prefix and `dist` denotes the original distance
 """
 struct Winkler{S <: SemiMetric} <: SemiMetric
     dist::S
@@ -73,14 +73,14 @@ end
 Creates the `Partial{dist}` distance
 
 `Partial{dist}` modifies the string distance `dist` to return the 
-maximal similarity score  between the shorter string and substrings of the longer string
+minimum distance  between the shorter string and substrings of the longer string
 
 ### Examples
 ```julia-repl
 julia> s1 = "New York Mets vs Atlanta Braves"
 julia> s2 = "Atlanta Braves vs New York Mets"
-julia> compare(s1, s2, Partial(RatcliffObershelp()))
-0.4516129032258065
+julia> evaluate(Partial(RatcliffObershelp()), s1, s2)
+0.5483870967741935
 ```
 """
 struct Partial{S <: SemiMetric} <: SemiMetric
@@ -140,8 +140,8 @@ in word orders by reording words alphabetically.
 julia> s1 = "New York Mets vs Atlanta Braves"
 julia> s1 = "New York Mets vs Atlanta Braves"
 julia> s2 = "Atlanta Braves vs New York Mets"
-julia> compare(s1, s2, TokenSort(RatcliffObershelp()))
-1.0
+julia> evaluate(TokenSort(RatcliffObershelp()), s1, s2)
+0.0
 ```
 """
 struct TokenSort{S <: SemiMetric} <: SemiMetric
@@ -171,8 +171,8 @@ in word orders and word numbers by comparing the intersection of two strings wit
 ```julia-repl
 julia> s1 = "New York Mets vs Atlanta"
 julia> s2 = "Atlanta Braves vs New York Mets"
-julia> compare(s1, s2, TokenSet(RatcliffObershelp()))
-1.0
+julia> evaluate(TokenSet(RatcliffObershelp()), s1, s2)
+0.0
 ```
 """
 struct TokenSet{S <: SemiMetric} <: SemiMetric
@@ -205,7 +205,7 @@ end
 
 Creates the `TokenMax{dist}` distance
 
-`TokenMax{dist}` combines similarity scores of the base distance `dist`,
+`TokenMax{dist}` is the minimum of the base distance `dist`,
 its [`Partial`](@ref) modifier, its [`TokenSort`](@ref) modifier, and its 
 [`TokenSet`](@ref) modifier, with penalty terms depending on string lengths.
 
@@ -213,8 +213,8 @@ its [`Partial`](@ref) modifier, its [`TokenSort`](@ref) modifier, and its
 ```julia-repl
 julia> s1 = "New York Mets vs Atlanta"
 julia> s2 = "Atlanta Braves vs New York Mets"
-julia> compare(s1, s2, TokenMax(RatcliffObershelp()))
-0.95
+julia> evaluate(TokenMax(RatcliffObershelp()), s1, s2)
+0.05
 ```
 """
 struct TokenMax{S <: SemiMetric} <: SemiMetric
