@@ -100,7 +100,6 @@ function evaluate(dist::QGram, s1, s2)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
-	itr = 
 	for (n1, n2) in itr
 		n += abs(n1 - n2)
 	end

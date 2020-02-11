@@ -20,13 +20,12 @@ function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    # if both are empty, m = 0 so should be 1.0 according to wikipedia. 
+    # If both are empty, the formula in Wikipedia gives 0
     # Add this line so that not the case
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
-    prevstate1 = firstindex(s1)
-    i1_match = fill(prevstate1, len1)
+    ch1_match = Vector{eltype(s1)}(undef, len1)
     #  m counts number matching characters
     m = 0 
     i1 = 1
@@ -48,7 +47,7 @@ function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
             if (ch1 == ch2) && !flag[i2curr] 
                 m += 1
                 flag[i2curr] = true
-                i1_match[m] = prevstate1
+                ch1_match[m] = ch1
                 break
             end
             x2curr = iterate(s2, state2) 
@@ -56,7 +55,6 @@ function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
         end
         x1 = iterate(s1, state1)
         i1 += 1
-        prevstate1 = state1
     end
     m == 0 && return 1.0
     # t counts number of transpositions
@@ -67,7 +65,7 @@ function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
         i2 += 1
         if flag[i2]
             i1 += 1
-            t += ch2 != iterate(s1, i1_match[i1])[1]
+            t += ch2 != ch1_match[i1]
         end
     end
     return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
@@ -87,7 +85,6 @@ struct Levenshtein <: Metric end
 # Return max_dist +1 if distance higher than max_dist
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
-## accepts any iterator, including AbstractString
 function evaluate(dist::Levenshtein, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
@@ -95,7 +92,7 @@ function evaluate(dist::Levenshtein, s1, s2, max_dist = nothing)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k, x1, x2start = common_prefix(s1, s2)
-    x1 == nothing && return len2 - k
+    x1 === nothing && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
     v = collect(1:(len2-k))
@@ -142,7 +139,6 @@ required to change one string into the other.
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
-## accepts any iterator, including AbstractString
 function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
@@ -150,7 +146,7 @@ function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k, x1, x2start = common_prefix(s1, s2)
-    (x1 == nothing) && return len2 - k
+    x1 === nothing && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
     if max_dist !== nothing
@@ -163,7 +159,7 @@ function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
     prevch1, = x1
     while x1 !== nothing
         ch1, state1 = x1
-        left = (i1 - 1) 
+        left = i1 - 1
         current = i1 
         nextTransCost = 0
         prevch2, = x2start
@@ -175,7 +171,7 @@ function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
         i2 = 1
         while x2 !== nothing
             ch2, state2 = x2
-            if max_dist == nothing || (i2_start <= i2 <= i2_end)
+            if max_dist === nothing || (i2_start <= i2 <= i2_end)
                 above = current
                 thisTransCost = nextTransCost
                 nextTransCost = w[i2]
