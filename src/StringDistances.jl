@@ -30,6 +30,14 @@ julia> compare("martha", "marhta", Levenshtein())
 """
 compare(s1, s2, dist::StringDistance; min_score = 0.0) = 1 - evaluate(normalize(dist), s1, s2, 1 - min_score)
 
+const metrics = [Cosine, DamerauLevenshtein, Jaccard, Jaro, Levenshtein, Overlap, Partial, QGram,
+    RatcliffObershelp, SorensenDice, StringDistance,  TokenMax,
+    TokenSet, TokenSort, Winkler]
+
+for M in metrics
+    @eval @inline (dist::$M)(a::AbstractString, b::AbstractString) = evaluate(dist, a, b)
+end
+
 include("find.jl")
 
 ##############################################################################

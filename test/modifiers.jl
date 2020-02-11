@@ -115,6 +115,13 @@ using StringDistances, Unicode, Test
 
 end
 
+# use callables
+@test Partial(Jaccard(2))("aa", "aa ") ≈ 0.0
+@test Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)("martha", "marhta") ≈ 0.0388 atol = 1e-4
+TokenMax(RatcliffObershelp())("aüa", "aua")
+@test Partial(RatcliffObershelp())("New York Yankees",  "Yankees") ≈ 0.0
+@test TokenSort(RatcliffObershelp())("New York Mets vs Atlanta Braves", "") ≈ 1.0
+@test TokenSet(RatcliffObershelp())("mariners vs angels", "") ≈ 1.0
 
 #= Python code
 from fuzzywuzzy import fuzz

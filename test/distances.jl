@@ -157,6 +157,16 @@ evaluate(DamerauLevenshtein(), [1,2,3], [1,2,10])
 evaluate(QGram(2), [1,2,3], [1,2,10])
 evaluate(Overlap(2), [1,2,3], [1,2,10])
 
+# use callable
+@test Levenshtein()("", "abc") == 3
+@test DamerauLevenshtein()("bc", "abc") == 1
+@test QGram(1)("abc", "cba") == 0
+@test Cosine(2)("leia", "leela") ≈ 0.7113249 atol = 1e-4
+@test Jaccard(2)("leia", "leela") ≈ 0.83333 atol = 1e-4
+@test SorensenDice(2)("night", "nacht") ≈ 0.75 atol = 1e-4
+@test Overlap(1)("context", "contact") ≈ .2 atol = 1e-4
+@test RatcliffObershelp()("pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
+@test Jaro()(" vs an", "es an ") ≈ 0.2777777777777777
 
 #= R test
 library(stringdist)

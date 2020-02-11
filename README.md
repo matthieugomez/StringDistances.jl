@@ -48,6 +48,13 @@ evaluate(TokenSet(Jaro()), "martha", "marhta")
 evaluate(TokenMax(RatcliffObershelp()), "martha", "marhta")
 ```
 
+Alternatively, each `dist` struct can be used as a callable to call the evaluate function of each metric or modified metric, for example:
+```julia
+Jaro()("martha", "marhta")
+Winkler(Jaro())("martha", "marhta")
+QGram(2)("martha", "marhta")
+```
+
 A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
 ## Compare
