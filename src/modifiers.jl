@@ -9,6 +9,8 @@ end
 function normalize(dist::PreMetric)
     isnormalized(dist) ? dist : Normalize{typeof(dist)}(dist)
 end
+
+isnormalized(dist::SemiMetric) = false
 isnormalized(dist::Normalize) = true
 
 
