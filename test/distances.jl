@@ -11,7 +11,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Jaro(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Jaro(), "alborgów", "amoniak")
 		@test Jaro()(" vs an", "es an ") ≈ 0.2777777777777777
 		@test result_type(Jaro(), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(Jaro(), "", "")
+		@inferred evaluate(Jaro(), "", "")
 		@test ismissing(evaluate(Jaro(), "", missing))
 	end
 
@@ -31,7 +31,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Levenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Levenshtein(), "alborgów", "amoniak")
 		@test Levenshtein()("", "abc") == 3
 		@test result_type(Levenshtein(), "hello", "world") == Int
-		@inferred Int evaluate(Levenshtein(), "", "")
+		@inferred evaluate(Levenshtein(), "", "")
 		@test ismissing(evaluate(Levenshtein(), "", missing))
 	end
 
@@ -48,7 +48,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(DamerauLevenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(DamerauLevenshtein(), "alborgów", "amoniak")
 		@test DamerauLevenshtein()("bc", "abc") == 1
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
-		@inferred Int evaluate(DamerauLevenshtein(), "", "")
+		@inferred evaluate(DamerauLevenshtein(), "", "")
 		@test ismissing(evaluate(DamerauLevenshtein(), "", missing))
 	end
 
@@ -64,7 +64,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(RatcliffObershelp(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(RatcliffObershelp(), "alborgów", "amoniak")
 		@test RatcliffObershelp()("pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
 		@test result_type(RatcliffObershelp(), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(RatcliffObershelp(), "", "")
+		@inferred evaluate(RatcliffObershelp(), "", "")
 		@test ismissing(evaluate(RatcliffObershelp(), "", missing))
 	end
 
@@ -80,7 +80,7 @@ using StringDistances, Unicode, Test
 		@test QGram(1)("abc", "cba") == 0
 		@test result_type(QGram(1), "hello", "world") == Int
 		@test ismissing(evaluate(QGram(1), "", missing))
-		@inferred Int evaluate(QGram(1), "", "")
+		@inferred evaluate(QGram(1), "", "")
 	end
 
 
@@ -93,7 +93,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Cosine(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Cosine(2), "alborgów", "amoniak")
 		@test Cosine(2)("leia", "leela") ≈ 0.7113249 atol = 1e-4
 		@test result_type(Cosine(2), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(Cosine(2), "", "")
+		@inferred evaluate(Cosine(2), "", "")
 		@test ismissing(evaluate(Cosine(2), "", missing))
 	end
 
@@ -105,7 +105,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Jaccard(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Jaccard(2), "alborgów", "amoniak")
 		@test Jaccard(2)("leia", "leela") ≈ 0.83333 atol = 1e-4
 		@test result_type(Jaccard(1), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(Jaccard(1), "", "")
+		@inferred evaluate(Jaccard(1), "", "")
 		@test ismissing(evaluate(Jaccard(1), "", missing))
 	end
 
@@ -115,7 +115,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(SorensenDice(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(SorensenDice(2), "alborgów", "amoniak")
 		@test SorensenDice(2)("night", "nacht") ≈ 0.75 atol = 1e-4
 		@test result_type(SorensenDice(1), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(SorensenDice(1), "", "")
+		@inferred evaluate(SorensenDice(1), "", "")
 		@test ismissing(evaluate(SorensenDice(1), "", missing))
 	end
 
@@ -124,7 +124,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Overlap(1), "context", "contact") ≈ .2 atol = 1e-4
 		@test Overlap(1)("context", "contact") ≈ .2 atol = 1e-4
 		@test result_type(Overlap(1), "hello", "world") == typeof(float(1))
-		@inferred Float64 evaluate(Overlap(1), "", "")
+		@inferred evaluate(Overlap(1), "", "")
 		@test ismissing(evaluate(Overlap(1), "", missing))
 	end
 
