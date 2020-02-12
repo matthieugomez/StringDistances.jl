@@ -1,12 +1,12 @@
-struct Normalize{S <: PreMetric} <: PreMetric
+struct Normalize{S <: SemiMetric} <: SemiMetric
     dist::S
 end
 """
-   normalize(dist::PreMetric)
+   normalize(dist::SemiMetric)
 
    Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1 (or a `missing` if one element is missing)
 """
-function normalize(dist::PreMetric)
+function normalize(dist::SemiMetric)
     isnormalized(dist) ? dist : Normalize{typeof(dist)}(dist)
 end
 
@@ -48,15 +48,15 @@ distance between  two strings, when their original distance is below some `thres
 The boost is equal to `min(l,  maxlength) * p * dist` where `l` denotes the 
 length of their common prefix and `dist` denotes the original distance
 """
-struct Winkler{S <: PreMetric} <: PreMetric
+struct Winkler{S <: SemiMetric} <: SemiMetric
     dist::S
     p::Float64          # scaling factor. Default to 0.1
     threshold::Float64  # boost threshold. Default to 0.7
     maxlength::Integer      # max length of common prefix. Default to 4
-    Winkler{S}(dist::S, p, threshold, maxlength) where {S <: PreMetric} = new(dist, p, threshold, maxlength)
+    Winkler{S}(dist::S, p, threshold, maxlength) where {S <: SemiMetric} = new(dist, p, threshold, maxlength)
 end
 
-function Winkler(dist::PreMetric; p = 0.1, threshold = 0.7, maxlength = 4)
+function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
     p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
     Winkler{typeof(normalize(dist))}(normalize(dist), 0.1, 0.7, 4)
 end
@@ -90,11 +90,11 @@ julia> evaluate(Partial(RatcliffObershelp()), s1, s2)
 0.5483870967741935
 ```
 """
-struct Partial{S <: PreMetric} <: PreMetric
+struct Partial{S <: SemiMetric} <: SemiMetric
     dist::S
-    Partial{S}(dist::S) where {S <: PreMetric} = new(dist)
+    Partial{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
-Partial(dist::PreMetric) = Partial{typeof(normalize(dist))}(normalize(dist))
+Partial(dist::SemiMetric) = Partial{typeof(normalize(dist))}(normalize(dist))
 isnormalized(dist::Partial) = true
 
 function evaluate(dist::Partial, s1, s2, max_dist = 1.0)
@@ -151,11 +151,11 @@ julia> evaluate(TokenSort(RatcliffObershelp()), s1, s2)
 0.0
 ```
 """
-struct TokenSort{S <: PreMetric} <: PreMetric
+struct TokenSort{S <: SemiMetric} <: SemiMetric
     dist::S
-    TokenSort{S}(dist::S) where {S <: PreMetric} = new(dist)
+    TokenSort{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
-TokenSort(dist::PreMetric) = TokenSort{typeof(normalize(dist))}(normalize(dist))
+TokenSort(dist::SemiMetric) = TokenSort{typeof(normalize(dist))}(normalize(dist))
 isnormalized(dist::TokenSort) = true
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
@@ -182,11 +182,11 @@ julia> evaluate(TokenSet(RatcliffObershelp()), s1, s2)
 0.0
 ```
 """
-struct TokenSet{S <: PreMetric} <: PreMetric
+struct TokenSet{S <: SemiMetric} <: SemiMetric
     dist::S
-    TokenSet{S}(dist::S) where {S <: PreMetric} = new(dist)
+    TokenSet{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
-TokenSet(dist::PreMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
+TokenSet(dist::SemiMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
 isnormalized(dist::TokenSet) = true
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
@@ -224,12 +224,12 @@ julia> evaluate(TokenMax(RatcliffObershelp()), s1, s2)
 0.05
 ```
 """
-struct TokenMax{S <: PreMetric} <: PreMetric
+struct TokenMax{S <: SemiMetric} <: SemiMetric
     dist::S
-    TokenMax{S}(dist::S) where {S <: PreMetric} = new(dist)
+    TokenMax{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 
-TokenMax(dist::PreMetric) = TokenMax{typeof(normalize(dist))}(normalize(dist))
+TokenMax(dist::SemiMetric) = TokenMax{typeof(normalize(dist))}(normalize(dist))
 isnormalized(dist::TokenMax) = true
 
 function evaluate(dist::TokenMax, s1::AbstractString, s2::AbstractString, max_dist = 1.0)
