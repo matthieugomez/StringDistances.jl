@@ -50,6 +50,12 @@ evaluate(TokenMax(RatcliffObershelp()), "martha", "marhta")
 
 A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
+Alternatively, each `dist` struct can be used as a callable to call the evaluate function of each metric or modified metric, for example:
+```julia
+Jaro()("martha", "marhta")
+Winkler(Jaro())("martha", "marhta")
+QGram(2)("martha", "marhta")
+```
 ## Compare
 The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a number between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
 ```julia

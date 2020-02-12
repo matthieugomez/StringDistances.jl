@@ -45,9 +45,6 @@ qgrams(s::Union{AbstractString, AbstractVector}, q::Integer) = QGramIterator(s, 
 qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
 
-
-abstract type QGramDistance <: SemiMetric end
-
 # For two iterators x1 and x2, that define a length and eltype method,
 # this returns a dictionary which, for each element in x1 or x2, 
 # returns a tuple with the numbers of times it appears in x1 and x2
@@ -80,6 +77,9 @@ function count_map(s1, s2)
 	return d
 end
 
+
+abstract type QGramDistance <: SemiMetric end
+
 """
 	QGram(q::Int)
 
@@ -96,7 +96,7 @@ struct QGram <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::QGram, s1, s2)
+function (dist::QGram)(s1, s2)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
@@ -122,7 +122,7 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Cosine, s1, s2, max_dist = nothing)
+function (dist::Cosine)(s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
@@ -149,7 +149,7 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Jaccard, s1, s2, max_dist = nothing)
+function (dist::Jaccard)(s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -176,7 +176,7 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::SorensenDice, s1, s2, max_dist = nothing)
+function (dist::SorensenDice)(s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
@@ -203,7 +203,7 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function evaluate(dist::Overlap, s1, s2, max_dist = nothing)
+function (dist::Overlap)(s1, s2, max_dist = nothing)
 	(ismissing(s1) | ismissing(s2)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0

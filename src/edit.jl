@@ -16,7 +16,7 @@ isnormalized(::Jaro) = true
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ## accepts any iterator, including AbstractString
-function evaluate(dist::Jaro, s1, s2, max_dist = nothing)
+function (dist::Jaro)(s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -85,7 +85,7 @@ struct Levenshtein <: Metric end
 # Return max_dist +1 if distance higher than max_dist
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
-function evaluate(dist::Levenshtein, s1, s2, max_dist = nothing)
+function (dist::Levenshtein)(s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -139,7 +139,7 @@ required to change one string into the other.
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
-function evaluate(dist::DamerauLevenshtein, s1, s2, max_dist = nothing)
+function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -225,7 +225,7 @@ struct RatcliffObershelp <: SemiMetric end
 
 isnormalized(::RatcliffObershelp) = true
 
-function evaluate(dist::RatcliffObershelp, s1, s2, max_dist = nothing)
+function (dist::RatcliffObershelp)(s1, s2, max_dist = nothing)
     (ismissing(s1) | ismissing(s2)) && return missing
     n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)

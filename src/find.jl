@@ -10,7 +10,7 @@ julia> compare("martha", "marhta", Levenshtein())
 0.6666666666666667
 ```
 """
-compare(s1, s2, dist::StringDistance; min_score = 0.0) = 1 - evaluate(normalize(dist), s1, s2, 1 - min_score)
+compare(s1, s2, dist::StringDistance; min_score = 0.0) = 1 - normalize(dist)(s1, s2, 1 - min_score)
 
 
 """
