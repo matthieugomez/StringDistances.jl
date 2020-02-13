@@ -23,6 +23,8 @@ struct StringWithLength{T <: AbstractString} <: AbstractString
     l::Int
 end
 string_with_length(s::AbstractString) = StringWithLength(s, length(s))
+# Not really needed but avoid multi-encapsulation
+string_with_length(s::StringWithLength) = s
 Base.length(s::StringWithLength) = s.l
 Base.iterate(s::StringWithLength, i::Integer = firstindex(s.s)) = iterate(s.s, i)
 Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)

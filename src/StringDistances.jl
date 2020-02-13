@@ -8,8 +8,11 @@ include("qgram.jl")
 include("modifiers.jl")
 
 const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
-Distances.result_type(dist::StringDistance, s1, s2) =  typeof(dist("", ""))
-Distances.evaluate(dist::StringDistance, args...) = dist(args...)
+Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
+
+
+
+
 include("find.jl")
 
 ##############################################################################

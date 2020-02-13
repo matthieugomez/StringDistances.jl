@@ -97,7 +97,7 @@ struct QGram <: QGramDistance
 end
 
 function (dist::QGram)(s1, s2)
-	(ismissing(s1) | ismissing(s2)) && return missing
+	((s1 === missing) | (s2 === missing)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
 	for (n1, n2) in itr
@@ -122,8 +122,8 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function (dist::Cosine)(s1, s2, max_dist = nothing)
-	(ismissing(s1) | ismissing(s2)) && return missing
+function (dist::Cosine)(s1, s2)
+	((s1 === missing) | (s2 === missing)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in itr
@@ -149,8 +149,8 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function (dist::Jaccard)(s1, s2, max_dist = nothing)
-	(ismissing(s1) | ismissing(s2)) && return missing
+function (dist::Jaccard)(s1, s2)
+	((s1 === missing) | (s2 === missing)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
@@ -176,8 +176,8 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function (dist::SorensenDice)(s1, s2, max_dist = nothing)
-	(ismissing(s1) | ismissing(s2)) && return missing
+function (dist::SorensenDice)(s1, s2)
+	((s1 === missing) | (s2 === missing)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr
@@ -203,8 +203,8 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function (dist::Overlap)(s1, s2, max_dist = nothing)
-	(ismissing(s1) | ismissing(s2)) && return missing
+function (dist::Overlap)(s1, s2)
+	((s1 === missing) | (s2 === missing)) && return missing
 	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in itr

@@ -6,16 +6,12 @@ end
 
    Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1 (or a `missing` if one element is missing)
 """
-function normalize(dist::SemiMetric)
-    isnormalized(dist) ? dist : Normalize{typeof(dist)}(dist)
-end
+# also a normalized distance always accept a third argument, max_dist.
 
-isnormalized(dist::SemiMetric) = false
-isnormalized(dist::Normalize) = true
-
+normalize(dist::SemiMetric) = Normalize{typeof(dist)}(dist)
 
 function (dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, max_dist = 1.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+    ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -25,7 +21,7 @@ function (dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, ma
 end
 
 function (dist::Normalize{<: QGramDistance})(s1, s2, max_dist = 1.0)
-    (ismissing(s1) | ismissing(s2)) && return missing
+    ((s1 === missing) | (s2 === missing)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -37,6 +33,9 @@ function (dist::Normalize{<: QGramDistance})(s1, s2, max_dist = 1.0)
     end
 end
 
+function (dist::Normalize)(s1, s2, max_dist = 1.0)
+    dist.dist(s1, s2)
+end
 
 """
    Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
@@ -55,15 +54,15 @@ struct Winkler{S <: SemiMetric} <: SemiMetric
     maxlength::Integer      # max length of common prefix. Default to 4
     Winkler{S}(dist::S, p, threshold, maxlength) where {S <: SemiMetric} = new(dist, p, threshold, maxlength)
 end
-isnormalized(dist::Winkler) = true
 
 function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
     p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
     Winkler{typeof(normalize(dist))}(normalize(dist), 0.1, 0.7, 4)
 end
+normalize(dist::Winkler) = dist
 
 function (dist::Winkler)(s1, s2, max_dist = 1.0)
-    # cannot do min_score because of boosting threshold
+    # cannot do max_dist because of boosting threshold
     score = dist.dist(s1, s2)
     if score <= 1 - dist.threshold
         l = common_prefix(s1, s2)[1]
@@ -94,13 +93,13 @@ struct Partial{S <: SemiMetric} <: SemiMetric
     Partial{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 Partial(dist::SemiMetric) = Partial{typeof(normalize(dist))}(normalize(dist))
-isnormalized(dist::Partial) = true
+normalize(dist::Partial) = dist
 
 function (dist::Partial)(s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2, max_dist)
-    len1 == 0 && return 0.0
+    len1 == 0 && return 1.0
     out = 1.0
     for x in qgrams(s2, len1)
         curr = dist.dist(s1, x, max_dist)
@@ -110,7 +109,7 @@ function (dist::Partial)(s1, s2, max_dist = 1.0)
     return out
 end
 
-function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = 1.0)
+function (dist::Partial{Normalize{RatcliffObershelp}})(s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2)
@@ -127,7 +126,6 @@ function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = 1.0)
             s2_end += len2 - s2_end
         end
         curr = dist.dist(s1, _slice(s2, s2_start - 1, s2_end))
-
         out = min(out, curr)
     end
     return out
@@ -155,7 +153,7 @@ struct TokenSort{S <: SemiMetric} <: SemiMetric
     TokenSort{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 TokenSort(dist::SemiMetric) = TokenSort{typeof(normalize(dist))}(normalize(dist))
-isnormalized(dist::TokenSort) = true
+normalize(dist::TokenSort) = dist
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 function (dist::TokenSort)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
@@ -187,6 +185,7 @@ struct TokenSet{S <: SemiMetric} <: SemiMetric
 end
 TokenSet(dist::SemiMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
 isnormalized(dist::TokenSet) = true
+normalize(dist::TokenSet) = dist
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 function (dist::TokenSet)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
@@ -229,7 +228,7 @@ struct TokenMax{S <: SemiMetric} <: SemiMetric
 end
 
 TokenMax(dist::SemiMetric) = TokenMax{typeof(normalize(dist))}(normalize(dist))
-isnormalized(dist::TokenMax) = true
+normalize(dist::TokenMax) = dist
 
 function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)

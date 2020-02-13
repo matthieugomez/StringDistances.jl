@@ -12,12 +12,11 @@ where ``m`` is the number of matching characters and
 ``t`` is half the number of transpositions.
 """
 struct Jaro <: SemiMetric end
-isnormalized(::Jaro) = true
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 ## accepts any iterator, including AbstractString
-function (dist::Jaro)(s1, s2, max_dist = nothing)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function (dist::Jaro)(s1, s2)
+    ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     # If both are empty, the formula in Wikipedia gives 0
@@ -25,6 +24,7 @@ function (dist::Jaro)(s1, s2, max_dist = nothing)
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
+    prevstate1 = firstindex(s1)
     ch1_match = Vector{eltype(s1)}(undef, len1)
     #  m counts number matching characters
     m = 0 
@@ -55,6 +55,7 @@ function (dist::Jaro)(s1, s2, max_dist = nothing)
         end
         x1 = iterate(s1, state1)
         i1 += 1
+        prevstate1 = state1
     end
     m == 0 && return 1.0
     # t counts number of transpositions
@@ -82,11 +83,11 @@ substitutions of a single character) required to change one string into the othe
 struct Levenshtein <: Metric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-# Return max_dist +1 if distance higher than max_dist
+# Return max_dist + 1 if distance higher than max_dist
 # This makes it possible to differentiate distance equalt to max_dist vs strictly higher
 # This is important for find_all
 function (dist::Levenshtein)(s1, s2, max_dist = nothing)
-    (ismissing(s1) | ismissing(s2)) && return missing
+    ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
@@ -125,8 +126,6 @@ function (dist::Levenshtein)(s1, s2, max_dist = nothing)
     return current
 end
 
-
-
 """
     DamerauLevenshtein()
 
@@ -139,8 +138,9 @@ required to change one string into the other.
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
+# Return max_dist + 1 if distance higher than max_dist
 function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
-    (ismissing(s1) | ismissing(s2)) && return missing
+    ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
@@ -223,10 +223,8 @@ region on either side of the longest common subsequence.
 """
 struct RatcliffObershelp <: SemiMetric end
 
-isnormalized(::RatcliffObershelp) = true
-
-function (dist::RatcliffObershelp)(s1, s2, max_dist = nothing)
-    (ismissing(s1) | ismissing(s2)) && return missing
+function (dist::RatcliffObershelp)(s1, s2)
+    ((s1 === missing) | (s2 === missing)) && return missing
     n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)
     len1 + len2 == 0 ? 0. : 1.0 - 2 *  n_matched / (len1 + len2)
