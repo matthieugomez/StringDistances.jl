@@ -184,7 +184,6 @@ struct TokenSet{S <: SemiMetric} <: SemiMetric
     TokenSet{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 TokenSet(dist::SemiMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
-isnormalized(dist::TokenSet) = true
 normalize(dist::TokenSet) = dist
 
 # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
