@@ -24,7 +24,6 @@ function (dist::Jaro)(s1, s2)
     len2 == 0 && return 0.0
     maxdist = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
-    prevstate1 = firstindex(s1)
     ch1_match = Vector{eltype(s1)}(undef, len1)
     #  m counts number matching characters
     m = 0 
