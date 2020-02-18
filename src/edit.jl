@@ -78,7 +78,7 @@ function (dist::Levenshtein)(s1, s2, max_dist = nothing)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
-    (k == length(s1)) && return len2 - k
+    k == len1 && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
     v = collect(1:(len2-k))
@@ -131,7 +131,7 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
-    (k == length(s1)) && return len2 - k
+    k == len1 && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
     if max_dist !== nothing

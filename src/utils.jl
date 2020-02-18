@@ -51,8 +51,6 @@ function common_prefix(s1, s2)
     return l
 end
 
-
-
 function _take(s, n::Integer)
     Base.Iterators.take(s, n)
 end
