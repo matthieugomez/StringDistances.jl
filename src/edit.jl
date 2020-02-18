@@ -27,34 +27,20 @@ function (dist::Jaro)(s1, s2)
     ch1_match = Vector{eltype(s1)}(undef, len1)
     #  m counts number matching characters
     m = 0 
-    i1 = 1
-    i2 = 1
-    x1 = iterate(s1)
-    x2 = iterate(s2)
-    while x1 !== nothing
-        ch1, state1 = x1
-        if i2 <= i1 - maxdist - 1
-            ch2, state2 = x2
+    i1 = 0
+    for ch1 in s1
+        i1 += 1
+        i2 = 0
+        for ch2 in s2
             i2 += 1
-            x2 = iterate(s2, state2)
-        end 
-        i2curr = i2
-        x2curr = x2
-        while x2curr !== nothing
-            i2curr > i1 + maxdist && break
-            ch2, state2 = x2curr
-            if (ch1 == ch2) && !flag[i2curr] 
+            i2 > i1 + maxdist && break
+            if (i2 >= i1 - maxdist) && (ch1 == ch2) && !flag[i2] 
                 m += 1
-                flag[i2curr] = true
+                flag[i2] = true
                 ch1_match[m] = ch1
                 break
             end
-            x2curr = iterate(s2, state2) 
-            i2curr += 1
         end
-        x1 = iterate(s1, state1)
-        i1 += 1
-        prevstate1 = state1
     end
     m == 0 && return 1.0
     # t counts number of transpositions
@@ -91,35 +77,35 @@ function (dist::Levenshtein)(s1, s2, max_dist = nothing)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
-    k, x1, x2start = common_prefix(s1, s2)
-    x1 === nothing && return len2 - k
+    k = common_prefix(s1, s2)
+    (k == length(s1)) && return len2 - k
     # distance initialized to first row of matrix
     # => distance between "" and s2[1:i}
     v = collect(1:(len2-k))
     current = 0
-    i1 = 1
-    while x1 !== nothing
-        ch1, state1 = x1
-        left = i1 - 1
-        current = i1 - 1
-        min_dist = i1 - 2 
-        i2 = 1
-        x2 = x2start
-        while x2 !== nothing
-            ch2, state2 = x2
+    i1 = 0
+    left = 0
+    current = 0
+    min_dist = 0
+    for ch1 in s1
+        i1 += 1
+        i1 <= k && continue
+        left = i1 - k - 1
+        current = i1 - k - 1
+        min_dist = i1 - k - 2 
+        i2 = 0
+        for ch2 in s2
+            i2 += 1
+            i2 <= k && continue
             #  update
-            above, current, left = current, left, v[i2]
+            above, current, left = current, left, v[i2 - k]
             if ch1 != ch2
                 current = min(current + 1, above + 1, left + 1)
             end
             min_dist = min(min_dist, left)
-            v[i2] = current
-            x2 = iterate(s2, state2)
-            i2 += 1
+            v[i2 - k] = current
         end
         max_dist !== nothing && min_dist > max_dist && return max_dist + 1
-        x1 = iterate(s1, state1)
-        i1 += 1
     end
     max_dist !== nothing && current > max_dist && return max_dist + 1 
     return current
@@ -144,8 +130,8 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
     len1, len2 = length(s1), length(s2)
     max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
-    k, x1, x2start = common_prefix(s1, s2)
-    x1 === nothing && return len2 - k
+    k = common_prefix(s1, s2)
+    (k == length(s1)) && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
     if max_dist !== nothing
@@ -153,57 +139,55 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
         i2_start = 1
         i2_end = max_dist
     end
-    i1 = 1
+    i1 = 0
     current = i1
-    prevch1, = x1
-    while x1 !== nothing
-        ch1, state1 = x1
-        left = i1 - 1
-        current = i1 
+    prevch1 = first(s1)
+    prevch2 = first(s2)
+    for ch1 in s1
+        i1 += 1
+        i1 <= k && continue
+        left = i1 - k - 1
+        current = i1 - k
         nextTransCost = 0
-        prevch2, = x2start
         if max_dist !== nothing
             i2_start += (i1 > offset) ? 1 : 0
             i2_end = min(i2_end + 1, len2)
         end
-        x2 = x2start
-        i2 = 1
-        while x2 !== nothing
-            ch2, state2 = x2
-            if max_dist === nothing || (i2_start <= i2 <= i2_end)
-                above = current
-                thisTransCost = nextTransCost
-                nextTransCost = w[i2]
-                # cost of diagonal (substitution)
-                w[i2] = current = left
-                # left now equals current cost (which will be diagonal at next iteration)
-                left = v[i2]
-                if ch1 != ch2
-                    # insertion
-                    if left < current
-                        current = left
-                    end
-                    # deletion
-                    if above < current
-                        current = above
-                    end
-                    current += 1
-                    if (i1 != 1) & (i2 != 1) & (ch1 == prevch2) & (prevch1 == ch2)
-                        thisTransCost += 1
-                        if thisTransCost < current
-                            current = thisTransCost
-                        end
+        i2 = 0
+        for ch2 in s2
+            i2 += 1
+            if (i2 <= k) || ((max_dist !== nothing) && !(i2_start <= i2 <= i2_end))
+                prevch2 = ch2
+                continue
+            end
+            above = current
+            thisTransCost = nextTransCost
+            nextTransCost = w[i2 - k]
+            # cost of diagonal (substitution)
+            w[i2 - k] = current = left
+            # left now equals current cost (which will be diagonal at next iteration)
+            left = v[i2 - k]
+            if ch1 != ch2
+                # insertion
+                if left < current
+                    current = left
+                end
+                # deletion
+                if above < current
+                    current = above
+                end
+                current += 1
+                if (i1 > 1 + k) & (i2 > 1 + k) & (ch1 == prevch2) & (prevch1 == ch2)
+                    thisTransCost += 1
+                    if thisTransCost < current
+                        current = thisTransCost
                     end
                 end
-                v[i2] = current
             end
-            x2 = iterate(s2, state2)
-            i2 += 1
+            v[i2 - k] = current
             prevch2 = ch2
         end
-        max_dist !== nothing && v[i1 + len2 - len1] > max_dist && return max_dist + 1
-        x1 = iterate(s1, state1)
-        i1 += 1
+        max_dist !== nothing && v[i1 - k + len2 - len1] > max_dist && return max_dist + 1
         prevch1 = ch1
     end
     max_dist !== nothing && current > max_dist && return max_dist + 1

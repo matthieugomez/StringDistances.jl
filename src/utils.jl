@@ -43,18 +43,12 @@ function reorder(s1, s2)
 end
 
 function common_prefix(s1, s2)
-    x1 = iterate(s1)
-    x2 = iterate(s2)
     l = 0
-    while (x1 !== nothing) & (x2 !== nothing)
-        ch1, state1 = x1
-        ch2, state2 = x2
+    for (ch1, ch2) in zip(s1, s2)
         ch1 != ch2 && break
         l += 1
-        x1 = iterate(s1, state1)
-        x2 = iterate(s2, state2)
     end
-    return l, x1, x2
+    return l
 end
 
 
@@ -69,7 +63,12 @@ end
 function _drop(s, n::Integer)
     Base.Iterators.drop(s, n)
 end
+
 function _drop(s::AbstractString, n::Integer)
+    SubString(s, nextind(s, 0, n + 1), lastindex(s))
+end
+
+function _drop(s::StringWithLength, n::Integer)
    StringWithLength(SubString(s, nextind(s, 0, n + 1), lastindex(s)), length(s) - n)
 end
 

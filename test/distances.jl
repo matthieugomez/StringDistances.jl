@@ -27,7 +27,7 @@ using StringDistances, Unicode, Test
 		@test evaluate(Levenshtein(), "saturday", "sunday") == 3
 		@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
 		@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
-		@test evaluate(Levenshtein(), [1, 2, 3], [1,2, 4]) == 1
+		@test evaluate(Levenshtein(), [1, 2, 3], [1, 2, 4]) == 1
 		@test evaluate(Levenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Levenshtein(), "alborgów", "amoniak")
 		@test Levenshtein()("", "abc") == 3
 		@test result_type(Levenshtein(), "hello", "world") == Int
