@@ -123,7 +123,8 @@ required to change one string into the other.
 The restricted distance differs slightly from the classic Damerau-Levenshtein algorithm by imposing 
 the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit 
 distanceof 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
-uses the optimal string alignment algorithm.
+uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
+the triangle inequality.
 
 """
 struct DamerauLevenshtein <: SemiMetric end
