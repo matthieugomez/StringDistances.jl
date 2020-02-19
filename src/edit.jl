@@ -114,11 +114,17 @@ end
 """
     DamerauLevenshtein()
 
-Creates the DamerauLevenshtein metric
+Creates the restricted DamerauLevenshtein metric
 
 The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
 required to change one string into the other.
+
+The restricted distance differs slightly from the classic Damerau-Levenshtein algorithm by imposing 
+the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit 
+distanceof 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
+uses the optimal string alignment algorithm.
+
 """
 struct DamerauLevenshtein <: SemiMetric end
 
@@ -134,57 +140,55 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist = nothing)
     k == len1 && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
+    i2_start = k + 1
+    i2_end = len2
     if max_dist !== nothing
-        offset = 1 + max_dist - (len2 - len1)
-        i2_start = 1
         i2_end = max_dist
     end
     i1 = 0
     current = i1
-    prevch1 = first(s1)
-    prevch2 = first(s2)
+    prevch1, prevch2 = first(s1), first(s2)
     for ch1 in s1
         i1 += 1
         i1 <= k && continue
         left = i1 - k - 1
-        current = i1 - k
+        current = left + 1
         nextTransCost = 0
         if max_dist !== nothing
-            i2_start += (i1 > offset) ? 1 : 0
-            i2_end = min(i2_end + 1, len2)
+            i2_start += (i1 > 1 + max_dist - (len2 - len1)) ? 1 : 0
+            i2_end += (i2_end < len2) ? 1 : 0
         end
         i2 = 0
         for ch2 in s2
             i2 += 1
-            if (i2 <= k) || ((max_dist !== nothing) && !(i2_start <= i2 <= i2_end))
-                prevch2 = ch2
-                continue
-            end
-            above = current
-            thisTransCost = nextTransCost
-            nextTransCost = w[i2 - k]
-            # cost of diagonal (substitution)
-            w[i2 - k] = current = left
-            # left now equals current cost (which will be diagonal at next iteration)
-            left = v[i2 - k]
-            if ch1 != ch2
-                # insertion
-                if left < current
-                    current = left
-                end
-                # deletion
-                if above < current
-                    current = above
-                end
-                current += 1
-                if (i1 > 1 + k) & (i2 > 1 + k) & (ch1 == prevch2) & (prevch1 == ch2)
-                    thisTransCost += 1
-                    if thisTransCost < current
-                        current = thisTransCost
+            # no need to look beyond window of lower right diagonal - maxDistance cells (lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
+            if (i2_start <= i2) && (i2 <= i2_end)
+                above = current
+                thisTransCost = nextTransCost
+                nextTransCost = w[i2 - k]
+                # cost of diagonal (substitution)
+                w[i2 - k] = current = left
+                # left now equals current cost (which will be diagonal at next iteration)
+                left = v[i2 - k]
+                if ch1 != ch2
+                    # insertion
+                    if left < current
+                        current = left
+                    end
+                    # deletion
+                    if above < current
+                        current = above
+                    end
+                    current += 1
+                    if (i1 > 1 + k) & (i2 > 1 + k) & (ch1 == prevch2) & (prevch1 == ch2)
+                        thisTransCost += 1
+                        if thisTransCost < current
+                            current = thisTransCost
+                        end
                     end
                 end
+                v[i2 - k] = current
             end
-            v[i2 - k] = current
             prevch2 = ch2
         end
         max_dist !== nothing && v[i1 - k + len2 - len1] > max_dist && return max_dist + 1
