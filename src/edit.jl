@@ -125,8 +125,8 @@ the restriction that no substring is edited more than once. So for example, "CA"
 distanceof 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
 uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
 the triangle inequality.
-
 """
+
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
