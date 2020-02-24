@@ -15,6 +15,7 @@ function Base.iterate(qgram::QGramIterator{<: AbstractString},
 end
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
 Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
+qgrams(s::AbstractString, q::Integer) = QGramIterator(s, q)
 
 
 #q-grams of AbstractVector
@@ -25,9 +26,11 @@ function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstinde
 	view(qgram.s, state:(state + qgram.q - 1)), state + 1
 end
 Base.eltype(qgram::QGramIterator{<: AbstractVector}) = typeof(first(qgram))
+qgrams(s::AbstractVector, q::Integer) = QGramIterator(s, q)
+qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
 
-"""
+@doc """
 Return an iterator on the q-gram of a string
 
 ### Arguments
@@ -40,15 +43,14 @@ for x in qgrams("hello", 2)
 	println(x)
 end
 ```
-"""
-qgrams(s::Union{AbstractString, AbstractVector}, q::Integer) = QGramIterator(s, q)
-qgrams(s, q::Integer) = QGramIterator(collect(s), q)
+""" 
+qgrams
 
 
-# For two iterators x1 and x2, that define a length and eltype method,
-# this returns a dictionary which, for each element in x1 or x2, 
-# returns a tuple with the numbers of times it appears in x1 and x2
-function count_map(s1, s2)
+# For two iterators s1 and s2, that define a length and eltype method,
+# this returns an iterator that,
+# for each element in s1 ∪ s2, returns (numbers of times it appears in s1, numbers of times it appears in s2)
+function _count(s1, s2)
 	K = promote_type(eltype(s1), eltype(s2))
 	d = Dict{K, Tuple{Int, Int}}()
 	sizehint!(d, length(s1) + length(s2))
@@ -74,7 +76,7 @@ function count_map(s1, s2)
 			@inbounds Base._setindex!(d, (0, 1), x2, -index)
 		end
 	end
-	return d
+	return values(d)
 end
 
 
@@ -98,9 +100,8 @@ end
 
 function (dist::QGram)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
-	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	n = 0
-	for (n1, n2) in itr
+	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		n += abs(n1 - n2)
 	end
 	n
@@ -124,9 +125,8 @@ end
 
 function (dist::Cosine)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
-	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	norm1, norm2, prodnorm = 0, 0, 0
-	for (n1, n2) in itr
+	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		norm1 += n1^2
 		norm2 += n2^2
 		prodnorm += n1 * n2
@@ -151,9 +151,8 @@ end
 
 function (dist::Jaccard)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
-	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in itr
+	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -178,9 +177,8 @@ end
 
 function (dist::SorensenDice)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
-	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in itr
+	for (n1, n2) in  _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)
@@ -205,9 +203,8 @@ end
 
 function (dist::Overlap)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
-	itr = values(count_map(qgrams(s1, dist.q), qgrams(s2, dist.q)))
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
-	for (n1, n2) in itr
+	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		ndistinct1 += n1 > 0
 		ndistinct2 += n2 > 0
 		nintersect += (n1 > 0) & (n2 > 0)

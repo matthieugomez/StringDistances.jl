@@ -237,14 +237,15 @@ function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0
     unbase_scale = 0.95
     # if one string is much shorter than the other, use partial
     if length(s2) >= 1.5 * length(s1)
+        partial_dist = Partial(dist.dist)
         partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
-        score_partial = 1 - partial_scale * (1 - Partial(dist.dist)(s1, s2, 1 - (1 - max_dist) / partial_scale))
+        score_partial = 1 - partial_scale * (1 - partial_dist(s1, s2, 1 - (1 - max_dist) / partial_scale))
         min_score = min(max_dist, score_partial)
         score_sort = 1 - unbase_scale * partial_scale * 
-                (1 - TokenSort(Partial(dist.dist))(s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale)))
+                (1 - TokenSort(partial_dist)(s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale)))
         max_dist = min(max_dist, score_sort)
         score_set = 1 - unbase_scale * partial_scale * 
-                (1 - TokenSet(Partial(dist.dist))(s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale))) 
+                (1 - TokenSet(partial_dist)(s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale))) 
         return min(score, score_partial, score_sort, score_set)
     else
         score_sort = 1 - unbase_scale * 

@@ -27,6 +27,7 @@ function (dist::Jaro)(s1, s2)
     ch1_match = Vector{eltype(s1)}()
     for (i1, ch1) in enumerate(s1)
         for (i2, ch2) in enumerate(s2)
+            # greedy alignement
             if (i2 <= i1 + maxdist) && (i2 >= i1 - maxdist) && (ch1 == ch2) && !flag[i2] 
                 flag[i2] = true
                 push!(ch1_match, ch1)
@@ -191,16 +192,16 @@ function matching_blocks(s1, s2)
 end
 
 function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1, s2, start1::Integer, start2::Integer)
-    a = longest_common_pattern(s1, s2)
+    n1, n2, len = longest_common_pattern(s1, s2)
     # exit if there is no common substring
-    a[3] == 0 && return x
+    len == 0 && return x
     # add the info of the common to the existing set
-    push!(x, (a[1] + start1 - 1, a[2] + start2 - 1, a[3]))
+    push!(x, (n1 + start1 - 1, n2 + start2 - 1, len))
     # add the longest common substring that happens before
-    matching_blocks!(x, _take(s1, a[1] - 1), _take(s2, a[2] - 1), start1, start2)
+    matching_blocks!(x, _take(s1, n1 - 1), _take(s2, n2 - 1), start1, start2)
     # add the longest common substring that happens after
-    matching_blocks!(x, _drop(s1, a[1] + a[3] - 1), _drop(s2, a[2] + a[3] - 1), 
-                    start1 + a[1] + a[3] - 1, start2 + a[2] + a[3] - 1)
+    matching_blocks!(x, _drop(s1, n1 + len - 1), _drop(s2, n2 + len - 1), 
+                    start1 + n1 + len - 1, start2 + n2 + len - 1)
     return x
 end
 
