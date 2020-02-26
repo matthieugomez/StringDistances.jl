@@ -85,7 +85,7 @@ abstract type QGramDistance <: SemiMetric end
 """
 	QGram(q::Int)
 
-Creates a QGram metric.
+Creates a QGram distance.
 
 The distance corresponds to
 
@@ -110,7 +110,7 @@ end
 """
 	Cosine(q::Int)
 
-Creates a Cosine metric.
+Creates a Cosine distance.
 
 The distance corresponds to
 
@@ -137,7 +137,7 @@ end
 """
 	Jaccard(q::Int)
 
-Creates a Jaccard metric.
+Creates a Jaccard distance.
 
 The distance corresponds to 
 
@@ -163,7 +163,7 @@ end
 """
 	SorensenDice(q::Int)
 
-Creates a SorensenDice metric
+Creates a SorensenDice distance.
 
 The distance corresponds to  
 
@@ -189,7 +189,7 @@ end
 """
 	Overlap(q::Int)
 
-Creates a Overlap metric
+Creates a Overlap distance.
 
 The distance corresponds to  
 

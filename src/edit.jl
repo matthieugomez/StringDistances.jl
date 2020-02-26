@@ -1,7 +1,7 @@
 """
     Jaro()
 
-Creates the Jaro metric
+Creates the Jaro distance
 
 The Jaro distance is defined as
 
@@ -53,7 +53,7 @@ end
 """
     Levenshtein()
 
-Creates the Levenshtein metric
+Creates the Levenshtein distance
 
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
@@ -98,7 +98,7 @@ end
 """
     DamerauLevenshtein()
 
-Creates the restricted DamerauLevenshtein metric
+Creates the restricted DamerauLevenshtein distance
 
 The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
@@ -170,7 +170,7 @@ end
 """
     RatcliffObershelp()
 
-Creates the RatcliffObershelp metric
+Creates the RatcliffObershelp distance
 
 The distance between two strings is defined as one minus  the number of matching characters 
 divided by the total number of characters in the two strings. Matching characters are those 

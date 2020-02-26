@@ -40,7 +40,7 @@ end
 """
    Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
 
-Creates the `Winkler{dist, p, threshold, maxlength}` distance
+Creates the `Winkler{dist, p, threshold, maxlength}` distance.
 
 `Winkler{dist, p, threshold, length)` modifies the string distance `dist` to decrease the 
 distance between  two strings, when their original distance is below some `threshold`.
@@ -75,7 +75,7 @@ end
 """
    Partial(dist)
 
-Creates the `Partial{dist}` distance
+Creates the `Partial{dist}` distance.
 
 `Partial{dist}` modifies the string distance `dist` to return the 
 minimum distance  between the shorter string and substrings of the longer string
@@ -134,7 +134,7 @@ end
 """
    TokenSort(dist)
 
-Creates the `TokenSort{dist}` distance
+Creates the `TokenSort{dist}` distance.
 
 `TokenSort{dist}` modifies the string distance `dist` to adjust for differences 
 in word orders by reording words alphabetically.
@@ -166,7 +166,7 @@ end
 """
    TokenSet(dist)
 
-Creates the `TokenSet{dist}` distance
+Creates the `TokenSet{dist}` distance.
 
 `TokenSet{dist}` modifies the string distance `dist` to adjust for differences 
 in word orders and word numbers by comparing the intersection of two strings with each string.
