@@ -43,12 +43,12 @@ Levenshtein()("martha", "marhta")
 ```
 
 ### Compare
-The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a number between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
+The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
 
 ```julia
-evaluate(Levenshtein(), "New York", "New York")
+evaluate(Levenshtein(),  "martha", "martha")
 #> 0
-compare("New York", "New York", Levenshtein())
+compare("martha", "martha", Levenshtein())
 #> 1.0
 ```
 
