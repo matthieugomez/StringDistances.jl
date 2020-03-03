@@ -31,7 +31,7 @@ A good distance to match strings composed of multiple words (like addresses) is 
 
 ## Basic Use
 
-### evaluate
+### Evaluate
 You can always compute a certain distance between two strings (or iterators) using the following syntax:
 
 ```julia
@@ -46,7 +46,7 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
-### compare
+### Compare
 The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a number between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
 
 ```julia
@@ -57,7 +57,7 @@ compare("New York", "New York", Levenshtein())
 ```
 
 
-## find
+### Find
 - `findmax` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
 	findmax(s, itr, dist::StringDistance; min_score = 0.0)
