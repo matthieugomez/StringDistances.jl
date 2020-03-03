@@ -42,7 +42,7 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
-You can also compute the distances between two iterators, as long as there exists a `length` method:
+You can also compute a distance between two iterators:
 ```julia
 evaluate(Levenshtein(), [1, 5, 6], [1, 6, 5])
 2
