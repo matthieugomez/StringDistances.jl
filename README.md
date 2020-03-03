@@ -28,7 +28,7 @@ The available distances are:
 ## Basic Use
 
 ### Evaluate
-You can always compute a certain distance between two strings (or iterators) using the following syntax:
+You can always compute a certain distance between two strings using the following syntax:
 
 ```julia
 evaluate(dist, s1, s2)
@@ -42,7 +42,7 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
-You can also compute the distances between two iterators for which there exists a `length` method:
+You can also compute the distances between two iterators, as long as there exists a `length` method:
 ```julia
 evaluate(Levenshtein(), [1, 5, 6], [1, 6, 5])
 2
