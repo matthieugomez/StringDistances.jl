@@ -5,13 +5,14 @@
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
 ## Evaluate
-The function `evaluate` returns the distance between two strings. Its syntax is:
+To compute the distance between two strings (or between two iterators), you can use one of these two syntaxes:
 
 ```julia
 evaluate(dist, s1, s2)
+dist()(s1, s2)
 ```
 
-where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractString`, `GraphemeIterator`, `AbstractVector`...), and `dist` is one of the following distances:
+where `dist` is one of the following distances::
 
 - Edit Distances
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
@@ -33,27 +34,19 @@ where `s1` and `s2` can be any iterator with a `length` method (e.g. `AbstractSt
 	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by comparing the intersection of two strings with each string.
 	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines scores using the base distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths.
 
-Some examples:
+
+A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
+
 ```julia
-evaluate(Jaro(), "martha", "marhta")
-evaluate(Winkler(Jaro()), "martha", "marhta")
-evaluate(QGram(2), "martha", "marhta")
-evaluate(Winkler(QGram(2)), "martha", "marhta")
 evaluate(Levenshtein(), "martha", "marhta")
-evaluate(Partial(Levenshtein()), "martha", "marhta")
-evaluate(Jaro(), "martha", "marhta")
-evaluate(TokenSet(Jaro()), "martha", "marhta")
-evaluate(TokenMax(RatcliffObershelp()), "martha", "marhta")
-```
+evaluate(QGram(2), "martha", "marhta")
+evaluate(Winkler(Jaro()), "martha", "marhta")
 
-Alternatively, each distance can be used as a callable to call the evaluate function of each metric or modified metric, for example:
-```julia
-Jaro()("martha", "marhta")
-Winkler(Jaro())("martha", "marhta")
+
+Levenshtein()("martha", "marhta")
 QGram(2)("martha", "marhta")
+Winkler(Jaro())("martha", "marhta")
 ```
-
-A good distance to match strings composed of multiple words (like addresses) is `TokenMax(Levenshtein())` (see [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)).
 
 ## Compare
 The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a number between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
