@@ -24,6 +24,7 @@ function Base.findmax(s, itr, dist::StringDistance = Levenshtein(); min_score = 
     min_score_atomic = Threads.Atomic{typeof(min_score)}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
+    # need collect since @threads requires a length method
     Threads.@threads for i in collect(eachindex(itr))
         score = compare(s, itr[i], dist; min_score = min_score_atomic[])
         score_old = Threads.atomic_max!(min_score_atomic, score)
@@ -60,6 +61,7 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 """
 function Base.findall(s, itr, dist::StringDistance = Levenshtein; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
+    # need collect since @threads requires a length method
     Threads.@threads for i in collect(eachindex(itr))
         score = compare(s, itr[i], dist; min_score = min_score)
         if score >= min_score
