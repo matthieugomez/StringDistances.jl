@@ -44,6 +44,8 @@ using StringDistances, Unicode, Test
 		@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
 		@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
 		@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
+		@test DamerauLevenshtein()("abcdef", "abcxyf", 2) == 2
+
 		@test evaluate(DamerauLevenshtein(), [1, 2, 3], [1,2, 4]) == 1
 		@test evaluate(DamerauLevenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(DamerauLevenshtein(), "alborgów", "amoniak")
 		@test DamerauLevenshtein()("bc", "abc") == 1
@@ -161,7 +163,7 @@ using StringDistances, Unicode, Test
 	# Test with R package StringDist
 	for x in solutions
 		t, solution = x
-		for i in 1:length(solution)
+		for i in eachindex(solution)
 			if isnan(evaluate(t, strings[i]...))
 				@test isnan(solution[i])
 			else
@@ -174,7 +176,18 @@ using StringDistances, Unicode, Test
 	for i in eachindex(strings)
 		@test round(Int, (1 - evaluate(RatcliffObershelp(), strings[i]...)) * 100) ≈ solution[i] atol = 1e-4
 	end
+
+	# test max_dist
+	for i in eachindex(strings)
+		d = Levenshtein()(strings[i]...)
+		@test Levenshtein()(strings[i]..., d) == d
+		d = DamerauLevenshtein()(strings[i]...)
+		@test DamerauLevenshtein()(strings[i]..., d) == d
+	end
 end
+
+d = DamerauLevenshtein()("abcdef", "abcxyf")
+@test DamerauLevenshtein()("abcdef", "abcxyf", d) == d
 
 
 
