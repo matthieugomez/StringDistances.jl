@@ -124,8 +124,8 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
     v = collect(1:(len2-k))
     w = similar(v)
     if max_dist !== nothing
-        i2_start = 1
-        i2_end = max_dist + 1
+        i2_start = 0
+        i2_end = max_dist
     end
     prevch1, prevch2 = first(s1), first(s2)
     current = 0
@@ -136,12 +136,12 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
         nextTransCost = 0
         if max_dist !== nothing
             i2_start += (i1 - k - 1 > max_dist - (len2 - len1)) ? 1 : 0
-            i2_end += (i2_end <= len2) ? 1 : 0
+            i2_end += (i2_end < len2) ? 1 : 0
         end
         for (i2, ch2) in enumerate(s2)
             if i2 <= k 
                 prevch2 = ch2
-            elseif (max_dist !== nothing) && ((i2 - k < i2_start) | (i2 - k >= i2_end))
+            elseif (max_dist !== nothing) && ((i2 - k - 1 < i2_start) | (i2 - k - 1 >= i2_end))
                 # no need to look beyond window of lower right diagonal - maxDistance cells 
                 #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
                 prevch2 = ch2
@@ -152,7 +152,7 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
                 if ch1 != ch2
                     current = min(left, current, above) + 1
                     # never happens at i2 = k + 1 because then the two previous characters were equal
-                    if (i1 - k > 1) & (i2 - k > 1) && (ch1 == prevch2) && (prevch1 == ch2)
+                    if (i1 - k - 1 > 0) & (i2 - k - 1 > 0) && (ch1 == prevch2) && (prevch1 == ch2)
                         thisTransCost += 1
                         current = min(current, thisTransCost)
                     end
