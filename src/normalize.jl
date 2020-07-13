@@ -63,7 +63,7 @@ function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
     dist = normalize(dist)
     Winkler{typeof(dist)}(dist, 0.1, 0.7, 4)
 end
-isnormalized(dist::Winkler) = true
+normalize(dist::Winkler) = dist
 
 function (dist::Winkler)(s1, s2, max_dist = 1.0)
     # cannot do max_dist because of boosting threshold
@@ -102,7 +102,7 @@ function TokenMax(dist::SemiMetric)
     dist = normalize(dist)
     TokenMax{typeof(dist)}(dist)
 end
-isnormalized(dist::TokenMax) = true
+normalize(dist::TokenMax) = dist
 
 function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
