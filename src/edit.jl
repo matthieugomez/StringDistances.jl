@@ -14,7 +14,6 @@ where ``m`` is the number of matching characters and
 struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-## accepts any iterator, including AbstractString
 function (dist::Jaro)(s1, s2)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
@@ -61,14 +60,13 @@ substitutions of a single character) required to change one string into the othe
 struct Levenshtein <: Metric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-# Return max_value + 1 if distance higher than max_value
-# This makes it possible to differentiate distance equalt to max_value vs strictly higher
-# This is important for find_all
-function (dist::Levenshtein)(s1, s2, max_value::Union{Integer, Nothing} = nothing)
+# Return max_dist + 1 if distance higher than max_dist 
+# to differentiate distance equal to max_dist or not, which is important for find fctions.
+function (dist::Levenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_value !== nothing && len2 - len1 > max_value && return max_value + 1
+    max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
@@ -79,19 +77,19 @@ function (dist::Levenshtein)(s1, s2, max_value::Union{Integer, Nothing} = nothin
     for (i1, ch1) in enumerate(s1)
         i1 <= k && continue
         left = current = i1 - k - 1
-        max_value !== nothing && (value_lb = left - 1)
+        max_dist !== nothing && (value_lb = left - 1)
         for (i2, ch2) in enumerate(s2)
             i2 <= k && continue
             above, current, left = current, left, v[i2 - k]
             if ch1 != ch2
                 current = min(current, above, left) + 1
             end
-            max_value !== nothing && (value_lb = min(value_lb, left))
+            max_dist !== nothing && (value_lb = min(value_lb, left))
             v[i2 - k] = current
         end
-        max_value !== nothing && value_lb > max_value && return max_value + 1
+        max_dist !== nothing && value_lb > max_dist && return max_dist + 1
     end
-    max_value !== nothing && current > max_value && return max_value + 1 
+    max_dist !== nothing && current > max_dist && return max_dist + 1 
     return current
 end
 
@@ -114,20 +112,20 @@ the triangle inequality.
 struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
-# Return max_value + 1 if distance higher than max_value
-function (dist::DamerauLevenshtein)(s1, s2, max_value::Union{Integer, Nothing} = nothing)
+# Return max_dist + 1 if distance higher than max_dist
+function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_value !== nothing && len2 - len1 > max_value && return max_value + 1
+    max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
-    if max_value !== nothing
+    if max_dist !== nothing
         i2_start = k + 1
-        i2_end = max_value
+        i2_end = max_dist
     end
     prevch1, prevch2 = first(s1), first(s2)
     current = 0
@@ -135,14 +133,15 @@ function (dist::DamerauLevenshtein)(s1, s2, max_value::Union{Integer, Nothing} =
         i1 <= k && continue
         left = current = i1 - k - 1
         nextTransCost = 0
-        if max_value !== nothing
-            i2_start += (i1 > 1 + max_value - (len2 - len1)) ? 1 : 0
+        if max_dist !== nothing
+            i2_start += (i1 > 1 + max_dist - (len2 - len1)) ? 1 : 0
             i2_end += (i2_end < len2) ? 1 : 0
         end
         for (i2, ch2) in enumerate(s2)
             i2 <= k && continue
-            # no need to look beyond window of lower right diagonal - maxDistance cells (lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_value cells (upper left is i1)
-            if (max_value !== nothing) && ((i2 < i2_start) | (i2 > i2_end))
+            # no need to look beyond window of lower right diagonal - maxDistance cells 
+            #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
+            if (max_dist !== nothing) && ((i2 < i2_start) | (i2 > i2_end))
                 prevch2 = ch2
             else
                 above, current, left = current, left, v[i2 - k]
@@ -150,7 +149,7 @@ function (dist::DamerauLevenshtein)(s1, s2, max_value::Union{Integer, Nothing} =
                 # left now equals current cost (which will be diagonal at next iteration)
                 if ch1 != ch2
                     current = min(left, current, above) + 1
-                    # note that it never happens at i2 = k + 1 because then the two previous characters were equal
+                    # never happens at i2 = k + 1 because then the two previous characters were equal
                     if (i1 > 1 + k) & (i2 > 1 + k) && (ch1 == prevch2) && (prevch1 == ch2)
                         thisTransCost += 1
                         current = min(current, thisTransCost)
@@ -160,10 +159,10 @@ function (dist::DamerauLevenshtein)(s1, s2, max_value::Union{Integer, Nothing} =
                 prevch2 = ch2
             end
         end
-        max_value !== nothing && v[i1 - k + len2 - len1] > max_value && return max_value + 1
+        max_dist !== nothing && v[i1 - k + len2 - len1] > max_dist && return max_dist + 1
         prevch1 = ch1
     end
-    max_value !== nothing && current > max_value && return max_value + 1
+    max_dist !== nothing && current > max_dist && return max_dist + 1
     return current
 end
 
