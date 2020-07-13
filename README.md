@@ -5,6 +5,9 @@
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
 ## Supported Distances
+
+Each distance can be computed on iterators that defines a `length` function (which includes `AbstractStrings`, `graphemes` and `AbstractVector`)
+
 The available distances are:
 
 - Edit Distances
@@ -42,11 +45,6 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
-You can also compute a distance between two iterators:
-```julia
-evaluate(Levenshtein(), [1, 5, 6], [1, 6, 5])
-2
-```
 
 ### Compare
 The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
