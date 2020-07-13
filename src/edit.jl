@@ -49,6 +49,7 @@ function (dist::Jaro)(s1, s2)
     return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
 end
 
+(dist::Jaro)(s1, s2, ::Nothing) = (dist::Jaro)(s1, s2)
 """
     Levenshtein()
 
@@ -229,3 +230,5 @@ function longest_common_pattern(s1, s2)
     end
     return start1, start2, len
 end
+
+(dist::RatcliffObershelp)(s1, s2, ::Nothing) = dist(s1, s2)

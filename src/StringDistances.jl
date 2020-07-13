@@ -5,9 +5,10 @@ using Distances
 include("utils.jl")
 include("edit.jl")
 include("qgram.jl")
+include("modifiers.jl")
 include("normalize.jl")
 
-const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
+const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalized}
 Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
 
 """

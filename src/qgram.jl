@@ -107,6 +107,8 @@ function (dist::QGram)(s1, s2)
 	n
 end
 
+(dist::QGram)(s1, s2, ::Nothing) = dist(s1, s2)
+
 """
 	Cosine(q::Int)
 
@@ -134,6 +136,8 @@ function (dist::Cosine)(s1, s2)
 	1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
 end
 
+(dist::Cosine)(s1, s2, ::Nothing) = dist(s1, s2)
+
 """
 	Jaccard(q::Int)
 
@@ -159,6 +163,8 @@ function (dist::Jaccard)(s1, s2)
 	end
 	1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
+
+(dist::Jaccard)(s1, s2, ::Nothing) = dist(s1, s2)
 
 """
 	SorensenDice(q::Int)
@@ -186,6 +192,8 @@ function (dist::SorensenDice)(s1, s2)
 	1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
 end
 
+(dist::SorensenDice)(s1, s2, ::Nothing) = dist(s1, s2)
+
 """
 	Overlap(q::Int)
 
@@ -211,3 +219,5 @@ function (dist::Overlap)(s1, s2)
 	end
 	1.0 - nintersect / min(ndistinct1, ndistinct2)
 end
+
+(dist::Overlap)(s1, s2, ::Nothing) = dist(s1, s2)
