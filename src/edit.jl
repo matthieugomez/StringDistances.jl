@@ -64,7 +64,7 @@ struct Levenshtein <: Metric end
 # Return max_value + 1 if distance higher than max_value
 # This makes it possible to differentiate distance equalt to max_value vs strictly higher
 # This is important for find_all
-function (dist::Levenshtein)(s1, s2, max_value = nothing)
+function (dist::Levenshtein)(s1, s2, max_value::Union{Integer, Nothing} = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -115,7 +115,7 @@ struct DamerauLevenshtein <: SemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_value + 1 if distance higher than max_value
-function (dist::DamerauLevenshtein)(s1, s2, max_value = nothing)
+function (dist::DamerauLevenshtein)(s1, s2, max_value::Union{Integer, Nothing} = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
