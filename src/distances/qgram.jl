@@ -98,7 +98,7 @@ struct QGram <: QGramDistance
 	q::Int
 end
 
-function (dist::QGram)(s1, s2)
+function (dist::QGram)(s1, s2, ::Nothing)
 	((s1 === missing) | (s2 === missing)) && return missing
 	n = 0
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -107,7 +107,6 @@ function (dist::QGram)(s1, s2)
 	n
 end
 
-(dist::QGram)(s1, s2, ::Nothing) = dist(s1, s2)
 
 """
 	Cosine(q::Int)
@@ -125,7 +124,7 @@ struct Cosine <: QGramDistance
 	q::Int
 end
 
-function (dist::Cosine)(s1, s2)
+function (dist::Cosine)(s1, s2, ::Nothing)
 	((s1 === missing) | (s2 === missing)) && return missing
 	norm1, norm2, prodnorm = 0, 0, 0
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -136,7 +135,6 @@ function (dist::Cosine)(s1, s2)
 	1.0 - prodnorm / (sqrt(norm1) * sqrt(norm2))
 end
 
-(dist::Cosine)(s1, s2, ::Nothing) = dist(s1, s2)
 
 """
 	Jaccard(q::Int)
@@ -153,7 +151,7 @@ struct Jaccard <: QGramDistance
 	q::Int
 end
 
-function (dist::Jaccard)(s1, s2)
+function (dist::Jaccard)(s1, s2, ::Nothing)
 	((s1 === missing) | (s2 === missing)) && return missing
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -164,7 +162,6 @@ function (dist::Jaccard)(s1, s2)
 	1.0 - nintersect / (ndistinct1 + ndistinct2 - nintersect)
 end
 
-(dist::Jaccard)(s1, s2, ::Nothing) = dist(s1, s2)
 
 """
 	SorensenDice(q::Int)
@@ -181,7 +178,7 @@ struct SorensenDice <: QGramDistance
 	q::Int
 end
 
-function (dist::SorensenDice)(s1, s2)
+function (dist::SorensenDice)(s1, s2, ::Nothing)
 	((s1 === missing) | (s2 === missing)) && return missing
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in  _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -192,7 +189,6 @@ function (dist::SorensenDice)(s1, s2)
 	1.0 - 2.0 * nintersect / (ndistinct1 + ndistinct2)
 end
 
-(dist::SorensenDice)(s1, s2, ::Nothing) = dist(s1, s2)
 
 """
 	Overlap(q::Int)
@@ -209,7 +205,7 @@ struct Overlap <: QGramDistance
 	q::Int
 end
 
-function (dist::Overlap)(s1, s2)
+function (dist::Overlap)(s1, s2, ::Nothing)
 	((s1 === missing) | (s2 === missing)) && return missing
 	ndistinct1, ndistinct2, nintersect = 0, 0, 0
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -220,4 +216,3 @@ function (dist::Overlap)(s1, s2)
 	1.0 - nintersect / min(ndistinct1, ndistinct2)
 end
 
-(dist::Overlap)(s1, s2, ::Nothing) = dist(s1, s2)

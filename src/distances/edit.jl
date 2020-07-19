@@ -14,20 +14,20 @@ where ``m`` is the number of matching characters and
 struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-function (dist::Jaro)(s1, s2)
+function (dist::Jaro)(s1, s2, ::Nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     # If both are empty, the formula in Wikipedia gives 0
     # Add this line so that not the case
     len2 == 0 && return 0.0
-    maxdist = max(0, div(len2, 2) - 1)
+    d = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
     ch1_match = Vector{eltype(s1)}()
     for (i1, ch1) in enumerate(s1)
         for (i2, ch2) in enumerate(s2)
             # greedy alignement
-            if (i2 <= i1 + maxdist) && (i2 >= i1 - maxdist) && (ch1 == ch2) && !flag[i2] 
+            if (i2 <= i1 + d) && (i2 >= i1 - d) && (ch1 == ch2) && !flag[i2] 
                 flag[i2] = true
                 push!(ch1_match, ch1)
                 break
@@ -49,7 +49,6 @@ function (dist::Jaro)(s1, s2)
     return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
 end
 
-(dist::Jaro)(s1, s2, ::Nothing) = (dist::Jaro)(s1, s2)
 """
     Levenshtein()
 
@@ -143,7 +142,7 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
             if i2 <= k 
                 prevch2 = ch2
             elseif (max_dist !== nothing) && ((i2 - k - 1 < i2_start) | (i2 - k - 1 >= i2_end))
-                # no need to look beyond window of lower right diagonal - maxDistance cells 
+                # no need to look beyond window of lower right diagonal - max distance cells 
                 #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
                 prevch2 = ch2
             else
@@ -181,7 +180,7 @@ region on either side of the longest common subsequence.
 """
 struct RatcliffObershelp <: SemiMetric end
 
-function (dist::RatcliffObershelp)(s1, s2)
+function (dist::RatcliffObershelp)(s1, s2, ::Nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     n_matched = sum(last.(matching_blocks(s1, s2)))
@@ -230,5 +229,3 @@ function longest_common_pattern(s1, s2)
     end
     return start1, start2, len
 end
-
-(dist::RatcliffObershelp)(s1, s2, ::Nothing) = dist(s1, s2)

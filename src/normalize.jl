@@ -20,14 +20,16 @@ function (dist::Normalized{<: QGramDistance})(s1, s2, max_dist = 1.0)
     len1, len2 = length(s1), length(s2)
     len1 <= dist.dist.q - 1 && return convert(Float64, s1 != s2)
     if typeof(dist.dist) <: QGram
-        dist.dist(s1, s2) / (len1 + len2 - 2 * dist.dist.q + 2)
+        out = dist.dist(s1, s2) / (len1 + len2 - 2 * dist.dist.q + 2)
     else
-        dist.dist(s1, s2)
+        out = dist.dist(s1, s2)
     end
+    out > max_dist ? 1.0 : out
 end
 
 function (dist::Normalized)(s1, s2, max_dist = 1.0)
-    dist.dist(s1, s2)
+    out = dist.dist(s1, s2)
+    out > max_dist ? 1.0 : out
 end
 
 """
@@ -67,12 +69,12 @@ normalize(dist::Winkler) = dist
 
 function (dist::Winkler)(s1, s2, max_dist = 1.0)
     # cannot do max_dist because of boosting threshold
-    score = dist.dist(s1, s2)
-    if score <= 1 - dist.threshold
+    out = dist.dist(s1, s2)
+    if out <= 1 - dist.threshold
         l = common_prefix(s1, s2)[1]
-        score -= min(l, dist.maxlength) * dist.p * score
+        out -= min(l, dist.maxlength) * dist.p * out
     end
-    return score
+    out > max_dist ? 1.0 : out
 end
 
 
@@ -121,13 +123,14 @@ function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0
         max_dist = min(max_dist, score_sort)
         score_set = 1 - unbase_scale * partial_scale * 
                 (1 - TokenSet(partial_dist)(s1, s2, 1 - (1 - max_dist) / (unbase_scale * partial_scale))) 
-        return min(score, score_partial, score_sort, score_set)
+        out = min(score, score_partial, score_sort, score_set)
     else
         score_sort = 1 - unbase_scale * 
                 (1 - TokenSort(dist.dist)(s1, s2, 1 - (1 - max_dist) / unbase_scale))
         max_dist = min(max_dist, score_sort)
         score_set = 1 - unbase_scale * 
                 (1 - TokenSet(dist.dist)(s1, s2, 1 - (1 - max_dist) / unbase_scale))
-        return min(score, score_sort, score_set)
+        out = min(score, score_sort, score_set)
     end
+    out > max_dist ? 1.0 : out
 end
