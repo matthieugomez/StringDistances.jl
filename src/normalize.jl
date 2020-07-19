@@ -19,7 +19,7 @@ function (dist::Normalized{<: QGramDistance})(s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 <= dist.dist.q - 1 && return convert(Float64, s1 != s2)
-    if typeof(dist.dist) <: QGram
+    if dist.dist isa QGram
         out = dist.dist(s1, s2) / (len1 + len2 - 2 * dist.dist.q + 2)
     else
         out = dist.dist(s1, s2)
