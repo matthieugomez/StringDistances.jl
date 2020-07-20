@@ -172,51 +172,12 @@ function (dist::TokenSet)(s1::AbstractString, s2::AbstractString, max_dist = 1.0
     min(score_01, score_02, score_12)
 end
 
-
-
-
-"""
-   Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
-
-Creates the `Winkler{dist, p, threshold, maxlength}` distance.
-
-`Winkler{dist, p, threshold, length)` normalizes the string distance `dist` and modify it to decrease the 
-distance between  two strings, when their original distance is below some `threshold`.
-The boost is equal to `min(l,  maxlength) * p * dist` where `l` denotes the 
-length of their common prefix and `dist` denotes the original distance
-"""
-struct Winkler{S <: SemiMetric} <: SemiMetric
-    dist::S
-    p::Float64          # scaling factor. Default to 0.1
-    threshold::Float64  # boost threshold. Default to 0.7
-    maxlength::Integer      # max length of common prefix. Default to 4
-    Winkler{S}(dist::S, p, threshold, maxlength) where {S <: SemiMetric} = new(dist, p, threshold, maxlength)
-end
-
-function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
-    p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
-    dist = normalize(dist)
-    Winkler{typeof(dist)}(dist, 0.1, 0.7, 4)
-end
-normalize(dist::Winkler) = dist
-
-function (dist::Winkler)(s1, s2, max_dist = 1.0)
-    # cannot do max_dist because of boosting threshold
-    out = dist.dist(s1, s2)
-    if out <= 1 - dist.threshold
-        l = common_prefix(s1, s2)[1]
-        out -= min(l, dist.maxlength) * dist.p * out
-    end
-    out > max_dist ? 1.0 : out
-end
-
-
 """
    TokenMax(dist)
 
 Creates the `TokenMax{dist}` distance
 
-`TokenMax{dist}` is the minimum of the base distance `normalize(dist)`,
+`TokenMax{dist}` normalizes the distance `dist` and returns the minimum of the distance,
 its [`Partial`](@ref) modifier, its [`TokenSort`](@ref) modifier, and its 
 [`TokenSet`](@ref) modifier, with penalty terms depending on string lengths.
 
@@ -261,6 +222,41 @@ function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0
         score_set = 1 - unbase_scale * 
                 (1 - TokenSet(dist.dist)(s1, s2, 1 - (1 - max_dist) / unbase_scale))
         out = min(score, score_sort, score_set)
+    end
+    out > max_dist ? 1.0 : out
+end
+
+"""
+   Winkler(dist; p::Real = 0.1, threshold::Real = 0.7, maxlength::Integer = 4)
+
+Creates the `Winkler{dist, p, threshold, maxlength}` distance.
+
+`Winkler{dist, p, threshold, length)` normalizes the string distance `dist` and modify it to decrease the 
+distance between  two strings, when their original distance is below some `threshold`.
+The boost is equal to `min(l,  maxlength) * p * dist` where `l` denotes the 
+length of their common prefix and `dist` denotes the original distance
+"""
+struct Winkler{S <: SemiMetric} <: SemiMetric
+    dist::S
+    p::Float64          # scaling factor. Default to 0.1
+    threshold::Float64  # boost threshold. Default to 0.7
+    maxlength::Integer      # max length of common prefix. Default to 4
+    Winkler{S}(dist::S, p, threshold, maxlength) where {S <: SemiMetric} = new(dist, p, threshold, maxlength)
+end
+
+function Winkler(dist::SemiMetric; p = 0.1, threshold = 0.7, maxlength = 4)
+    p * maxlength <= 1 || throw("scaling factor times maxlength of common prefix must be lower than one")
+    dist = normalize(dist)
+    Winkler{typeof(dist)}(dist, 0.1, 0.7, 4)
+end
+normalize(dist::Winkler) = dist
+
+function (dist::Winkler)(s1, s2, max_dist = 1.0)
+    # cannot do max_dist because of boosting threshold
+    out = dist.dist(s1, s2)
+    if out <= 1 - dist.threshold
+        l = common_prefix(s1, s2)[1]
+        out -= min(l, dist.maxlength) * dist.p * out
     end
     out > max_dist ? 1.0 : out
 end
