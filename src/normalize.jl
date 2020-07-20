@@ -79,7 +79,7 @@ function (dist::Partial)(s1, s2, max_dist = 1.0)
     return out
 end
 
-function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = 1.0)
+function (dist::Partial{Normalize{RatcliffObershelp}})(s1, s2, max_dist = 1.0)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2)
@@ -95,7 +95,7 @@ function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = 1.0)
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        curr = dist.dist(s1, _slice(s2, s2_start, s2_end))
+        curr = dist.dist(s1, _slice(s2, s2_start - 1, s2_end))
         out = min(out, curr)
     end
     return out
