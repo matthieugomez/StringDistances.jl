@@ -1,9 +1,19 @@
 
-struct Normalized{S <: SemiMetric} <: SemiMetric
+struct Normalize{S <: SemiMetric} <: SemiMetric
     dist::S
 end
+
+"""
+   normalize(dist::SemiMetric)
+
+   Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1
+"""
+normalize(dist::SemiMetric) = Normalize(dist)
+normalize(dist::Normalize) = dist
+
+
 # A normalized distance is between 0 and 1, and accept a third argument, max_dist.
-function (dist::Normalized{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, max_dist = 1.0)
+function (dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, max_dist = 1.0)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -13,7 +23,7 @@ function (dist::Normalized{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, m
     out > max_dist ? 1.0 : out
 end
 
-function (dist::Normalized{<: QGramDistance})(s1, s2, max_dist = 1.0)
+function (dist::Normalize{<: QGramDistance})(s1, s2, max_dist = 1.0)
     ((s1 === missing) | (s2 === missing)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
@@ -27,21 +37,141 @@ function (dist::Normalized{<: QGramDistance})(s1, s2, max_dist = 1.0)
     out > max_dist ? 1.0 : out
 end
 
-function (dist::Normalized)(s1, s2, max_dist = 1.0)
+function (dist::Normalize)(s1, s2, max_dist = 1.0)
     out = dist.dist(s1, s2)
     out > max_dist ? 1.0 : out
 end
 
 """
-   normalize(dist::SemiMetric)
+   Partial(dist)
 
-   Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1
+Creates the `Partial{dist}` distance.
+
+`Partial{dist}` normalizes the string distance `dist` and modify it to return the 
+minimum distance  between the shorter string and substrings of the longer string
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> evaluate(Partial(RatcliffObershelp()), s1, s2)
+0.5483870967741935
+```
 """
-normalize(dist::Partial) = Partial(normalize(dist.dist))
-normalize(dist::TokenSort) = TokenSort(normalize(dist.dist))
-normalize(dist::TokenSet) = TokenSet(normalize(dist.dist))
-normalize(dist::SemiMetric) = Normalized(dist)
-normalize(dist::Normalized) = dist
+struct Partial{S <: SemiMetric} <: SemiMetric
+    dist::S
+    Partial{S}(dist::S) where {S <: SemiMetric} = new(dist)
+end
+Partial(dist::SemiMetric) = Partial{typeof(normalize(dist))}(normalize(dist))
+normalize(dist::Partial) = dist
+
+function (dist::Partial)(s1, s2, max_dist = 1.0)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    out = dist.dist(s1, s2, max_dist)
+    len1 == len2 && return out
+    len1 == 0 && return out
+    for x in qgrams(s2, len1)
+        curr = dist.dist(s1, x, max_dist)
+        out = min(out, curr)
+        max_dist = min(out, max_dist)
+    end
+    return out
+end
+
+function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = 1.0)
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    len1 == len2 && return dist.dist(s1, s2)
+    out = 1.0
+    for r in matching_blocks(s1, s2)
+        # Make sure the substring of s2 has length len1
+        s2_start = r[2] - r[1] + 1
+        s2_end = s2_start + len1 - 1
+        if s2_start < 1
+            s2_end += 1 - s2_start
+            s2_start += 1 - s2_start
+        elseif s2_end > len2
+            s2_start += len2 - s2_end
+            s2_end += len2 - s2_end
+        end
+        curr = dist.dist(s1, _slice(s2, s2_start, s2_end))
+        out = min(out, curr)
+    end
+    return out
+end
+
+"""
+   TokenSort(dist)
+
+Creates the `TokenSort{dist}` distance.
+
+`TokenSort{dist}` normalizes the string distance `dist` and modify it to adjust for differences 
+in word orders by reording words alphabetically.
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s1 = "New York Mets vs Atlanta Braves"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> evaluate(TokenSort(RatcliffObershelp()), s1, s2)
+0.0
+```
+"""
+struct TokenSort{S <: SemiMetric} <: SemiMetric
+    dist::S
+    TokenSort{S}(dist::S) where {S <: SemiMetric} = new(dist)
+end
+TokenSort(dist::SemiMetric) = TokenSort{typeof(normalize(dist))}(normalize(dist))
+normalize(dist::TokenSort) = dist
+
+# http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
+function (dist::TokenSort)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
+    s1 = join(sort!(split(s1)), " ")
+    s2 = join(sort!(split(s2)), " ")
+    out = dist.dist(s1, s2, max_dist)
+end
+
+"""
+   TokenSet(dist)
+
+Creates the `TokenSet{dist}` distance.
+
+`TokenSet{dist}` normalizes the string distance `dist` and modify it to adjust for differences 
+in word orders and word numbers by comparing the intersection of two strings with each string.
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> evaluate(TokenSet(RatcliffObershelp()), s1, s2)
+0.0
+```
+"""
+struct TokenSet{S <: SemiMetric} <: SemiMetric
+    dist::S
+    TokenSet{S}(dist::S) where {S <: SemiMetric} = new(dist)
+end
+TokenSet(dist::SemiMetric) = TokenSet{typeof(normalize(dist))}(normalize(dist))
+normalize(dist::TokenSet) = dist
+
+# http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
+function (dist::TokenSet)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)
+    v1 = unique!(sort!(split(s1)))
+    v2 = unique!(sort!(split(s2)))
+    v0 = intersect(v1, v2)
+    s0 = join(v0, " ")
+    s1 = join(v1, " ")
+    s2 = join(v2, " ")
+    isempty(s0) && return dist.dist(s1, s2, max_dist)
+    score_01 = dist.dist(s0, s1, max_dist)
+    max_dist = min(max_dist, score_01)
+    score_02 = dist.dist(s0, s2, max_dist)
+    max_dist = min(max_dist, score_02)
+    score_12 = dist.dist(s1, s2, max_dist)
+    min(score_01, score_02, score_12)
+end
+
 
 
 
@@ -50,7 +180,7 @@ normalize(dist::Normalized) = dist
 
 Creates the `Winkler{dist, p, threshold, maxlength}` distance.
 
-`Winkler{dist, p, threshold, length)` modifies the string distance `normalize(dist)` to decrease the 
+`Winkler{dist, p, threshold, length)` normalizes the string distance `dist` and modify it to decrease the 
 distance between  two strings, when their original distance is below some `threshold`.
 The boost is equal to `min(l,  maxlength) * p * dist` where `l` denotes the 
 length of their common prefix and `dist` denotes the original distance
@@ -103,10 +233,7 @@ struct TokenMax{S <: SemiMetric} <: SemiMetric
     TokenMax{S}(dist::S) where {S <: SemiMetric} = new(dist)
 end
 
-function TokenMax(dist::SemiMetric)
-    dist = normalize(dist)
-    TokenMax{typeof(dist)}(dist)
-end
+TokenMax(dist::SemiMetric) = TokenMax{typeof(normalize(dist))}(normalize(dist))
 normalize(dist::TokenMax) = dist
 
 function (dist::TokenMax)(s1::AbstractString, s2::AbstractString, max_dist = 1.0)

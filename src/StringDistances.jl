@@ -3,12 +3,11 @@ module StringDistances
 using Distances
 
 include("utils.jl")
-include("distances/edit.jl")
-include("distances/qgram.jl")
-include("modifiers.jl")
+include("edit.jl")
+include("qgram.jl")
 include("normalize.jl")
 
-const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalized}
+const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
 # Distances API
 Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
 

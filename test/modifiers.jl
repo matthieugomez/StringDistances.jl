@@ -23,7 +23,7 @@ using StringDistances, Unicode, Test
 	compare("aüa", "aua", Levenshtein())
 	compare("aüa", "aua", DamerauLevenshtein())
 	@test compare("ab", "de", Partial(DamerauLevenshtein())) == 0
-
+	@test normalize(Partial(DamerauLevenshtein()))("ab", "cde") == 1.0
 	# Winkler
 	@test compare("martha", "marhta", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.9611 atol = 1e-4
 	@test compare("dwayne", "duane", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.84 atol = 1e-4
