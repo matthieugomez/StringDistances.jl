@@ -14,7 +14,7 @@ where ``m`` is the number of matching characters and
 struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
-function (dist::Jaro)(s1, s2, ::Nothing)
+function (dist::Jaro)(s1, s2, nothing::Nothing = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -180,7 +180,7 @@ region on either side of the longest common subsequence.
 """
 struct RatcliffObershelp <: SemiMetric end
 
-function (dist::RatcliffObershelp)(s1, s2, ::Nothing)
+function (dist::RatcliffObershelp)(s1, s2, nothing::Nothing = nothing)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     n_matched = sum(last.(matching_blocks(s1, s2)))

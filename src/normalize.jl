@@ -37,6 +37,9 @@ end
 
    Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1
 """
+normalize(dist::Partial) = Partial(normalize(dist.dist))
+normalize(dist::TokenSort) = TokenSort(normalize(dist.dist))
+normalize(dist::TokenSet) = TokenSet(normalize(dist.dist))
 normalize(dist::SemiMetric) = Normalized(dist)
 normalize(dist::Normalized) = dist
 

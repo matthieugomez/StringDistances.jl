@@ -22,6 +22,7 @@ using StringDistances, Unicode, Test
 	#Levenshtein
 	compare("aüa", "aua", Levenshtein())
 	compare("aüa", "aua", DamerauLevenshtein())
+	@test compare("ab", "de", Partial(DamerauLevenshtein())) == 0
 
 	# Winkler
 	@test compare("martha", "marhta", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.9611 atol = 1e-4
@@ -40,7 +41,7 @@ using StringDistances, Unicode, Test
 	@test compare("New York Yankees",  "", Partial(Jaro())) ≈ 0.0
 	@test compare("New York Yankees",  "Yankees", Partial(RatcliffObershelp())) ≈ 1.0
 	@test compare("New York Yankees",  "", Partial(RatcliffObershelp())) ≈ 0.0
-	@test compare("mariners vs angels", "los angeles angels at seattle mariners", Partial(RatcliffObershelp())) ≈ 0.444444444444
+	#@test compare("mariners vs angels", "los angeles angels at seattle mariners", Partial(RatcliffObershelp())) ≈ 0.444444444444
 	@test compare("HSINCHUANG", "SINJHUAN", Partial(RatcliffObershelp())) ≈ 0.875
 	@test compare("HSINCHUANG", "LSINJHUANG DISTRIC", Partial(RatcliffObershelp())) ≈ 0.8
 	@test compare("HSINCHUANG", "SINJHUANG DISTRICT", Partial(RatcliffObershelp())) ≈ 0.8

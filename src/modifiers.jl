@@ -41,14 +41,14 @@ function (dist::Partial{RatcliffObershelp})(s1, s2, max_dist = nothing)
         # Make sure the substring of s2 has length len1
         s2_start = r[2] - r[1] + 1
         s2_end = s2_start + len1 - 1
-        if s2_start <= 0
+        if s2_start < 1
             s2_end += 1 - s2_start
             s2_start += 1 - s2_start
         elseif s2_end > len2
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        curr = dist.dist(s1, _slice(s2, s2_start - 1, s2_end))
+        curr = dist.dist(s1, _slice(s2, s2_start, s2_end))
         out = min(out, curr)
     end
     return out
