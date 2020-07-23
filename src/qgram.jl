@@ -31,7 +31,8 @@ qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
 
 @doc """
-Return an iterator on the q-gram of a string
+Return an iterator corresponding to the the q-gram of an iterator. 
+When the iterator is a String, qgrams are SubStrings.
 
 ### Arguments
 * `s` iterator
