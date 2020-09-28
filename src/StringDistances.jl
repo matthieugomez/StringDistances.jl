@@ -54,6 +54,6 @@ compare,
 result_type,
 qgrams,
 normalize,
-findbest
+findclosest
 end
 

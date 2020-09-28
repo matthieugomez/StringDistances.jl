@@ -1,7 +1,7 @@
 """
-    findbest(s, itr, dist::StringDistance; min_score = 0.0) -> (x, index)
+    findclosest(s, itr, dist::StringDistance; min_score = 0.0) -> (x, index)
 
-`findbest` returns the value and index of the element of `itr` that has the 
+`findclosest` returns the value and index of the element of `itr` that has the 
 highest similarity score with `s` according to the distance `dist`. 
 It returns `(nothing, nothing)` if none of the elements has a similarity score 
 higher or equal to `min_score` (default to 0.0).
@@ -14,13 +14,13 @@ It is particularly optimized for [`Levenshtein`](@ref) and [`DamerauLevenshtein`
 julia> using StringDistances
 julia> s = "Newark"
 julia> iter = ["New York", "Princeton", "San Francisco"]
-julia> findbest(s, iter, Levenshtein())
+julia> findclosest(s, iter, Levenshtein())
 ("NewYork", 1)
-julia> findbest(s, iter, Levenshtein(); min_score = 0.9)
+julia> findclosest(s, iter, Levenshtein(); min_score = 0.9)
 (nothing, nothing)
 ```
 """
-function findbest(s, itr, dist::StringDistance; min_score = 0.0)
+function findclosest(s, itr, dist::StringDistance; min_score = 0.0)
     min_score_atomic = Threads.Atomic{typeof(min_score)}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
@@ -39,8 +39,8 @@ end
 
 
 function Base.findmax(s, itr, dist::StringDistance; min_score = 0.0)
-    @warn "findmax(s, itr, dist; min_score) is deprecated. Use findbest(s, itr, dist; min_score)"
-    findbest(s, itr, dist; min_score = min_score)
+    @warn "findmax(s, itr, dist; min_score) is deprecated. Use findclosest(s, itr, dist; min_score)"
+    findclosest(s, itr, dist; min_score = min_score)
 end
 """
     findall(s, itr , dist::StringDistance; min_score = 0.8)
