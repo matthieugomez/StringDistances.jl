@@ -58,9 +58,9 @@ compare("martha", "martha", Levenshtein())
 
 
 ### Find
-- `findmax` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
+- `findbest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
-	findmax(s, itr, dist::StringDistance; min_score = 0.0)
+	findbest(s, itr, dist::StringDistance; min_score = 0.0)
 	```
 
 - `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
@@ -68,7 +68,7 @@ compare("martha", "martha", Levenshtein())
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
-The functions `findmax` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
+The functions `findbest` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
 
 
 ## References

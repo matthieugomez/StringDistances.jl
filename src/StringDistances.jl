@@ -53,6 +53,7 @@ evaluate,
 compare,
 result_type,
 qgrams,
-normalize
+normalize,
+findbest
 end
 
