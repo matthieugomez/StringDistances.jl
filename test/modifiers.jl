@@ -99,18 +99,18 @@ using StringDistances, Unicode, Test
 	end
 
 	# check find_best and find_all
-	@test findclosest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ("NewYork", 1)
-	@test findclosest("New York", ["San Francisco", "NewYork", "Newark"], Levenshtein()) == ("NewYork", 2)
-	@test findclosest("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == ("NewYork", 1)
+	@test findnearest("New York", ["San Francisco", "NewYork", "Newark"], Levenshtein()) == ("NewYork", 2)
+	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
 
-	@test findclosest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
-	@test findclosest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
 	if VERSION >= v"1.2.0"
-		@test findclosest("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == ("NewYork", 1)
-		@test findclosest("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == (nothing, nothing)
+		@test findnearest("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == ("NewYork", 1)
+		@test findnearest("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == (nothing, nothing)
 		@test findall("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == [1]
 		@test findall("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == []
 	end
