@@ -260,3 +260,5 @@ function (dist::Winkler)(s1, s2, max_dist = 1.0)
     end
     out > max_dist ? 1.0 : out
 end
+
+
