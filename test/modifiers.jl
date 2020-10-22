@@ -16,6 +16,10 @@ using StringDistances, Unicode, Test
 	@test compare("martha", "martha", Overlap(2)) ≈ 1.0 atol = 1e-4
 	@test compare("martha", "martha", SorensenDice(2)) ≈ 1.0 atol = 1e-4
 
+	#Hamming
+	compare("aüa", "aua", Hamming()) ≈ 2/3 atol = 1e-4
+	compare("aaua", "aa", Partial(Hamming())) ≈ 1.0 atol = 1e-4
+
 	# Jaro
 	compare("aüa", "aua", Jaro())
 

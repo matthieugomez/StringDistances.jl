@@ -3,6 +3,14 @@ using StringDistances, Unicode, Test
 
 @testset "Distances" begin
 
+	@testset "Hamming" begin
+		@test evaluate(Hamming(), "martha", "marhta") ≈  2
+		@test evaluate(Hamming(), "es an ", " vs an") ≈ 6
+		@test result_type(Hamming(), "hello", "world") == typeof(1)
+		@inferred evaluate(Hamming(), "", "")
+		@test ismissing(evaluate(Hamming(), "", missing))
+	end
+
 	@testset "Jaro" begin
 		@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547
 		@test evaluate(Jaro(), "es an ", " vs an") ≈ 0.2777777777777777

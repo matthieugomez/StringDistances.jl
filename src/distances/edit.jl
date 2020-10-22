@@ -1,3 +1,16 @@
+
+function (dist::Hamming)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}, max_dist::Union{Integer, Nothing} = nothing)
+    ((s1 === missing) | (s2 === missing)) && return missing
+    current = abs(length(s2) - length(s1))
+    max_dist !== nothing && current > max_dist && return max_dist + 1
+    for (ch1, ch2) in zip(s1, s2)
+        current += ch1 != ch2
+        max_dist !== nothing && current > max_dist && return max_dist + 1
+    end
+    return current
+end
+
+
 """
     Jaro()
 

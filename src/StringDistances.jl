@@ -7,7 +7,7 @@ include("distances/edit.jl")
 include("distances/qgram.jl")
 include("normalize.jl")
 
-const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
+const StringDistance = Union{Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
 # Distances API
 Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
 include("find.jl")
@@ -21,6 +21,7 @@ include("find.jl")
 
 export
 StringDistance,
+Hamming,
 Levenshtein,
 DamerauLevenshtein,
 Jaro,
