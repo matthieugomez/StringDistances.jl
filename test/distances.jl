@@ -1,5 +1,4 @@
-
-using StringDistances, Unicode, Test
+using StringDistances, Unicode, Test, Random
 
 @testset "Distances" begin
 
@@ -14,9 +13,6 @@ using StringDistances, Unicode, Test
 		@inferred evaluate(Jaro(), "", "")
 		@test ismissing(evaluate(Jaro(), "", missing))
 	end
-
-
-
 
 	@testset "Levenshtein" begin
 		@test evaluate(Levenshtein(), "", "") == 0
@@ -70,7 +66,6 @@ using StringDistances, Unicode, Test
 		@test ismissing(evaluate(RatcliffObershelp(), "", missing))
 	end
 
-
 	@testset "QGram" begin
 		@test evaluate(QGram(1), "abc", "abc") == 0
 		@test evaluate(QGram(1), "", "abc") == 3
@@ -84,8 +79,6 @@ using StringDistances, Unicode, Test
 		@test ismissing(evaluate(QGram(1), "", missing))
 		@inferred evaluate(QGram(1), "", "")
 	end
-
-
 
 	@testset "Cosine" begin
 		@test isnan(evaluate(Cosine(2), "", "abc"))
@@ -130,8 +123,31 @@ using StringDistances, Unicode, Test
 		@test ismissing(evaluate(Overlap(1), "", missing))
 	end
 
+	@testset "Differential testing of String, QGramDict, and QGramSortedArray" begin
+		for D in [QGram, Cosine, Jaccard, SorensenDice, Overlap]
+			for _ in 1:100
+				qlen = rand(2:9)
+				dist = D(qlen)
 
+				# 2 random strings with some overlap
+				str1 = randstring(rand(5:10000))
+				ci1 = rand(2:div(length(str1), 2))
+				ci2 = rand((ci1+1):(length(str1)-1))
+				str2 = randstring(ci1-1) * str1[ci1:ci2] * randstring(length(str1)-ci2)
 
+				# QGramDict gets same result as for standard string
+				qd1 = QGramDict(str1, qlen)
+				qd2 = QGramDict(str2, qlen)
+				expected = evaluate(dist, str1, str2)
+				@test expected == evaluate(dist, qd1, qd2)
+
+				# QGramSortedArray gets same result as for standard string
+				qc1 = QGramSortedArray(str1, qlen)
+				qc2 = QGramSortedArray(str2, qlen)
+				@test expected == evaluate(dist, qc1, qc2)
+			end
+		end
+	end
 
 	strings = [
 	("martha", "marhta"),
