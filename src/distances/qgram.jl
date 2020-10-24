@@ -107,18 +107,20 @@ function QGramDict(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
     qgs = qgrams(s, q)
     QGramDict{q, eltype(qgs)}(countdict(qgs))
 end
+QGramDict(s, q::Integer = 2) = QGramDict(collect(s), q)
 
 # Faster (than QgramDict) with the qgrams presorted
-struct QGramSortedArray{Q,K} <: AbstractQGramCounts{Q,K}
+struct QGramSortedVector{Q,K} <: AbstractQGramCounts{Q,K}
     counts::Vector{Pair{K,Int}}
 end
-function QGramSortedArray(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
+function QGramSortedVector(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
     @assert q >= 1
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
-    QGramSortedArray{q, eltype(qgs)}(countpairs)
+    QGramSortedVector{q, eltype(qgs)}(countpairs)
 end
+QGramSortedVector(s, q::Integer = 2) = QGramSortedVector(collect(s), q)
 
 # To implement the distances we will count qgram matches
 # between strings or pre-calculated AbstractQgramCounts objects.
