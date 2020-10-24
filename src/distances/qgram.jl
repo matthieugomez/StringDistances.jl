@@ -99,6 +99,24 @@ abstract type AbstractQGramCounts{Q,K} end
 q(qc::AbstractQGramCounts{Q,K}) where {Q,K} = Q
 counts(qc::AbstractQGramCounts) = qc.counts
 
+"""
+	QGramDict(s, q::Integer = 2)
+
+Creates a QGramDict that pre-calculates (pre-counts) the qgrams
+of a string or stream. This enables faster calculation of QGram 
+distances.
+
+Note that the qgram length must correspond with the q length used
+in the distance.
+
+## Examples
+```julia
+str1, str2 = "my string", "another string"
+qd1 = QGramDict(str1, 2)
+qd2 = QGramDict(str2, 2)
+evaluate(Overlap(2), qd1, qd2)
+```
+"""
 struct QGramDict{Q,K} <: AbstractQGramCounts{Q,K}
     counts::Dict{K,Int}
 end
@@ -109,7 +127,30 @@ function QGramDict(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
 end
 QGramDict(s, q::Integer = 2) = QGramDict(collect(s), q)
 
-# Faster (than QgramDict) with the qgrams presorted
+"""
+	QGramSortedVector(s, q::Integer = 2)
+
+Creates a QGramSortedVector that pre-calculates (pre-counts) the 
+qgrams of a string or stream. This enables faster calculation of
+QGram distances.
+
+Since qgrams are sorted in lexicographic order QGram distances can be 
+calculated even faster than when using a QGramDict. However, the 
+sorting means that updating the counts after creation is less 
+efficient. However, for most use cases QGramSortedVector is preferred
+over a QgramDict.
+
+Note that the qgram length must correspond with the q length used
+in the distance.
+
+## Examples
+```julia
+str1, str2 = "my string", "another string"
+qs1 = QGramSortedVector(str1, 2)
+qs2 = QGramSortedVector(str2, 2)
+evaluate(Jaccard(2), qs1, qs2)
+```
+"""
 struct QGramSortedVector{Q,K} <: AbstractQGramCounts{Q,K}
     counts::Vector{Pair{K,Int}}
 end
