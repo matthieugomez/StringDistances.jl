@@ -154,28 +154,23 @@ using StringDistances, Unicode, Test, Random
 		@test totuples(qd3b) == [(["g", "ó"], 1), (["r", "g"], 1), (["w", "ó"], 1), (["ó", "w"], 2)]
 	end
 
-	function partlyoverlappingstrings(sizerange, chars = [])
-		str1 = if length(chars) < 1
-			randstring(rand(sizerange))
-		else
-			randstring(chars, rand(sizerange))
-		end
-		elems = collect(str1)
-		ci1 = prevind(str1, rand(2:div(length(elems), 2)))
-		ci2 = prevind(str1, rand((ci1+1):(length(elems)-1)))
-		str2 = if length(chars) < 1
-			randstring(ci1-1) * join(elems[ci1:ci2]) * randstring(length(str1)-ci2)
-		else
-			randstring(chars, ci1-1) * join(elems[ci1:ci2]) * randstring(chars, length(str1)-ci2)
-		end
-		return str1, str2
+	function partlyoverlappingstrings(sizerange, chars = nothing)
+		l = rand(sizerange)
+		str1 = isnothing(chars) ? randstring(l) : randstring(chars, l)
+		ci1 = thisind(str1, rand(1:l))
+		ci2 = thisind(str1, rand(ci1:l))
+		copied = join(str1[ci1:ci2])
+		prefix = isnothing(chars) ? randstring(ci1-1) : randstring(chars, ci1-1)
+		slen = l - length(copied) - length(prefix)
+		suffix = isnothing(chars) ? randstring(slen) : randstring(chars, slen)
+		return str1, (prefix * copied * suffix)
 	end
 
 	@testset "Precalculation on unicode strings" begin
 		Chars = vcat(map(collect, ["δσμΣèìòâôîêûÊÂÛ", 'a':'z', '0':'9'])...)
 		for _ in 1:100
-			str1, str2 = partlyoverlappingstrings(10:100, Chars)
 			qlen = rand(2:5)
+			str1, str2 = partlyoverlappingstrings(6:100, Chars)
 			d = Jaccard(qlen)
 
 			qd1 = QGramDict(str1, qlen)
@@ -196,12 +191,25 @@ using StringDistances, Unicode, Test, Random
 		end
 	end
 
+	@testset "QGram distance on short strings" begin
+		@test isnan(evaluate(Overlap(2),  "1",  "2"))
+		@test isnan(evaluate(Jaccard(3), "s1", "s2"))
+		@test isnan(evaluate(Cosine(5),  "s1", "s2"))
+
+		@test !isnan(evaluate(Overlap(2),  "s1",  "s2"))
+		@test !isnan(evaluate(Jaccard(3), "st1", "st2"))
+		@test !isnan(evaluate(Cosine(5),  "stri1", "stri2"))
+
+		@test !isnan(evaluate(Jaccard(3), "st1", "str2"))
+		@test !isnan(evaluate(Jaccard(3), "str1", "st2"))
+	end
+
 	@testset "Differential testing of String, QGramDict, and QGramSortedVector" begin
 		for D in [QGram, Cosine, Jaccard, SorensenDice, Overlap]
 			for _ in 1:100
 				qlen = rand(2:9)
 				dist = D(qlen)
-				str1, str2 = partlyoverlappingstrings(5:10000)
+				str1, str2 = partlyoverlappingstrings(10:10000)
 
 				# QGramDict gets same result as for standard string
 				qd1 = QGramDict(str1, qlen)
