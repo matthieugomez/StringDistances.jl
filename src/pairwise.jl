@@ -33,18 +33,18 @@ julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
 pairwise
 
 pairwise(dist::StringDistance, X, Y; eltype = Float64, precalc = nothing) =
-    pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; precalc)
+    pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; precalc = precalc)
 
 pairwise(dist::StringDistance, X; eltype = Float64, precalc = nothing) =
-    pairwise!(_allocmatrix(X, eltype), dist, X; precalc)
+    pairwise!(_allocmatrix(X, eltype), dist, X; precalc = precalc)
 
 pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X; precalc = nothing) where {N<:Number} =
     (dist isa SemiMetric) ?
-        _symmetric_pairwise!(R, dist, X; precalc) :
-        _asymmetric_pairwise!(R, dist, X, X; precalc)
+        _symmetric_pairwise!(R, dist, X; precalc = precalc) :
+        _asymmetric_pairwise!(R, dist, X, X; precalc = precalc)
 
 pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X, Y; precalc = nothing) where {N<:Number} =
-    _asymmetric_pairwise!(R, dist, X, Y; precalc)
+    _asymmetric_pairwise!(R, dist, X, Y; precalc = precalc)
 
 _precalc(X, PT, q) = PT[PT(X[i], q) for i in 1:length(X)]
 
