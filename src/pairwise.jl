@@ -1,6 +1,33 @@
 _allocmatrix(X, Y, T) = Matrix{T}(undef, length(X), length(Y))
 _allocmatrix(X, T) = Matrix{T}(undef, length(X), length(X))
 
+"""
+    pairwise(dist::StringDistance, itr; eltype = Float64, precalc = nothing)
+    pairwise(dist::StringDistance, itr1, itr2; eltype = Float64, precalc = nothing)
+
+`pairwise` returns the distance matrix between all pairs of elements in `itr`
+according to the distance `dist`. The element type of the returned matrix
+can be set via `eltype`. For QGramDistances precalculation will be used either
+if `precalc` is set to true or if there are more than 5 elements in `itr`.
+Set `precalc` to false if no precalculation should be used, regardless of length.
+
+Both symmetric and asymmetric versions are available.
+
+### Examples
+```julia-repl
+julia> using StringDistances
+julia> iter = ["New York", "Princeton"]
+julia> pairwise(Levenshtein(), iter) # symmetric
+2×2 Array{Float64,2}:
+ 0.0  9.0
+ 9.0  0.0
+julia> iter2 = ["San Francisco"]
+julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
+2×1 Array{Float64,2}:
+ 12.0
+ 10.0
+```
+"""
 pairwise(dist::StringDistance, X, Y; eltype = Float64, precalc = nothing) =
     pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; precalc)
 
