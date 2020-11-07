@@ -57,7 +57,7 @@ Creates the Levenshtein distance
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein{V} <: Metric where {V <: Union{Integer, Nothing}}
+struct Levenshtein{V <: Union{Integer, Nothing}} <: Metric
    max_dist::V
 end
 Levenshtein() = Levenshtein(nothing)
@@ -111,7 +111,7 @@ uses the optimal string alignment algorithm. In particular, the restricted dista
 the triangle inequality.
 """
 
-struct DamerauLevenshtein{V} <: SemiMetric where {V <: Union{Integer, Nothing}}
+struct DamerauLevenshtein{V <: Union{Integer, Nothing}} <: SemiMetric
    max_dist::V
 end
 DamerauLevenshtein() = DamerauLevenshtein(nothing)

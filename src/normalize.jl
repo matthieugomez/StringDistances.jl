@@ -1,7 +1,6 @@
 
-struct Normalize{S <: SemiMetric, V <: Union{Float64, nothing}} <: SemiMetric
+struct Normalize{S <: SemiMetric} <: SemiMetric
     dist::S
-    max_dist::V
 end
 
 """
@@ -9,8 +8,8 @@ end
 
    Normalize a metric, so that `evaluate` always return a Float64 between 0 and 1
 """
-normalize(dist::SemiMetric, max_dist = 1.0) = Normalize(dist, max_dist)
-normalize(dist::Normalize, max_dist = 1.0) = Normalize(dist.dist, max_dist)
+normalize(dist::SemiMetric, max_dist = 1.0) = Normalize(dist)
+normalize(dist::Normalize, max_dist = 1.0) = Normalize(dist.dist)
 
 
 # A normalized distance is between 0 and 1, and accept a third argument, max_dist.
@@ -19,7 +18,11 @@ function (dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, ma
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
-    d = typeof(dist.dist)(ceil(Int, len2 * max_dist))(s1, s2)
+    if dist.dist isa Levenshtein
+        d = Levenshtein(ceil(Int, len2 * max_dist))(s1, s2)
+    else
+        d = DamerauLevenshtein(ceil(Int, len2 * max_dist))(s1, s2)
+    end
     out = d / len2
     out > max_dist ? 1.0 : out
 end
@@ -261,5 +264,4 @@ function (dist::Winkler)(s1, s2, max_dist = 1.0)
     end
     out > max_dist ? 1.0 : out
 end
-
 
