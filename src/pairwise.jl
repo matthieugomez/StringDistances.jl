@@ -1,7 +1,9 @@
 _allocmatrix(X, Y, T) = Matrix{T}(undef, length(X), length(Y))
 _allocmatrix(X, T) = Matrix{T}(undef, length(X), length(X))
 
-"""
+import Distances: pairwise
+
+@doc """
     pairwise(dist::StringDistance, itr; eltype = Float64, precalc = nothing)
     pairwise(dist::StringDistance, itr1, itr2; eltype = Float64, precalc = nothing)
 
@@ -28,6 +30,8 @@ julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
  10.0
 ```
 """
+pairwise
+
 pairwise(dist::StringDistance, X, Y; eltype = Float64, precalc = nothing) =
     pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; precalc)
 
