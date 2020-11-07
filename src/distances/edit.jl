@@ -57,16 +57,18 @@ Creates the Levenshtein distance
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein <: Metric end
-
+struct Levenshtein{V} <: Metric where {V <: Union{Integer, Nothing}}
+   max_dist::V
+end
+Levenshtein() = Levenshtein(nothing)
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 # Return max_dist + 1 if distance higher than max_dist 
 # to differentiate distance equal to max_dist or not, which is important for find fctions.
-function (dist::Levenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = nothing)
+function (dist::Levenshtein)(s1, s2)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
+    dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
@@ -77,19 +79,19 @@ function (dist::Levenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = nothing
     for (i1, ch1) in enumerate(s1)
         i1 <= k && continue
         left = current = i1 - k - 1
-        max_dist !== nothing && (value_lb = left - 1)
+        dist.max_dist !== nothing && (value_lb = left - 1)
         for (i2, ch2) in enumerate(s2)
             i2 <= k && continue
             above, current, left = current, left, v[i2 - k]
             if ch1 != ch2
                 current = min(current, above, left) + 1
             end
-            max_dist !== nothing && (value_lb = min(value_lb, left))
+            dist.max_dist !== nothing && (value_lb = min(value_lb, left))
             v[i2 - k] = current
         end
-        max_dist !== nothing && value_lb > max_dist && return max_dist + 1
+        dist.max_dist !== nothing && value_lb > dist.max_dist && return dist.max_dist + 1
     end
-    max_dist !== nothing && current > max_dist && return max_dist + 1 
+    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1 
     return current
 end
 
@@ -109,23 +111,26 @@ uses the optimal string alignment algorithm. In particular, the restricted dista
 the triangle inequality.
 """
 
-struct DamerauLevenshtein <: SemiMetric end
+struct DamerauLevenshtein{V} <: SemiMetric where {V <: Union{Integer, Nothing}}
+   max_dist::V
+end
+DamerauLevenshtein() = DamerauLevenshtein(nothing)
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
-function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = nothing)
+function (dist::DamerauLevenshtein)(s1, s2)
     ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    max_dist !== nothing && len2 - len1 > max_dist && return max_dist + 1
+    dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
     v = collect(1:(len2-k))
     w = similar(v)
-    if max_dist !== nothing
+    if dist.max_dist !== nothing
         i2_start = 0
-        i2_end = max_dist
+        i2_end = dist.max_dist
     end
     prevch1, prevch2 = first(s1), first(s2)
     current = 0
@@ -134,16 +139,16 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
         left = i1 - k - 1
         current = left + 1
         nextTransCost = 0
-        if max_dist !== nothing
-            i2_start += (i1 - k - 1 > max_dist - (len2 - len1)) ? 1 : 0
+        if dist.max_dist !== nothing
+            i2_start += (i1 - k - 1 > dist.max_dist - (len2 - len1)) ? 1 : 0
             i2_end += (i2_end < len2) ? 1 : 0
         end
         for (i2, ch2) in enumerate(s2)
             if i2 <= k 
                 prevch2 = ch2
-            elseif (max_dist !== nothing) && ((i2 - k - 1 < i2_start) | (i2 - k - 1 >= i2_end))
+            elseif (dist.max_dist !== nothing) && ((i2 - k - 1 < i2_start) | (i2 - k - 1 >= i2_end))
                 # no need to look beyond window of lower right diagonal - max distance cells 
-                #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
+                #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
                 prevch2 = ch2
             else
                 above, current, left = current, left, v[i2 - k]
@@ -161,10 +166,10 @@ function (dist::DamerauLevenshtein)(s1, s2, max_dist::Union{Integer, Nothing} = 
                 prevch2 = ch2
             end
         end
-        max_dist !== nothing && v[i1 - k + len2 - len1] > max_dist && return max_dist + 1
+        dist.max_dist !== nothing && v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
         prevch1 = ch1
     end
-    max_dist !== nothing && current > max_dist && return max_dist + 1
+    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
     return current
 end
 
