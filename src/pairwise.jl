@@ -1,17 +1,15 @@
 _allocmatrix(X, Y, T) = Matrix{T}(undef, length(X), length(Y))
 _allocmatrix(X, T) = Matrix{T}(undef, length(X), length(X))
 
-import Distances: pairwise
-
 @doc """
-    pairwise(dist::StringDistance, itr; eltype = Float64, precalc = nothing)
-    pairwise(dist::StringDistance, itr1, itr2; eltype = Float64, precalc = nothing)
+    pairwise(dist::StringDistance, itr; eltype = Float64, preprocess = nothing)
+    pairwise(dist::StringDistance, itr1, itr2; eltype = Float64, preprocess = nothing)
 
 `pairwise` returns the distance matrix between all pairs of elements in `itr`
-according to the distance `dist`. The element type of the returned matrix
-can be set via `eltype`. For QGramDistances precalculation will be used either
-if `precalc` is set to true or if there are more than 5 elements in `itr`.
-Set `precalc` to false if no precalculation should be used, regardless of length.
+according to the `StringDistance` `dist`. The element type of the returned matrix
+can be set via `eltype`. For QGramDistances preprocessing will be used either
+if `preprocess` is set to true or if there are more than 5 elements in `itr`.
+Set `preprocess` to false if no precalculation should be used, regardless of length.
 
 Both symmetric and asymmetric versions are available.
 
@@ -32,37 +30,38 @@ julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
 """
 pairwise
 
-pairwise(dist::StringDistance, X, Y; eltype = Float64, precalc = nothing) =
-    pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; precalc = precalc)
+Distances.pairwise(dist::StringDistance, X, Y; eltype = Float64, preprocess = nothing) =
+    pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; preprocess = preprocess)
 
-pairwise(dist::StringDistance, X; eltype = Float64, precalc = nothing) =
-    pairwise!(_allocmatrix(X, eltype), dist, X; precalc = precalc)
+Distances.pairwise(dist::StringDistance, X; eltype = Float64, preprocess = nothing) =
+    pairwise!(_allocmatrix(X, eltype), dist, X; preprocess = preprocess)
 
-pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X; precalc = nothing) where {N<:Number} =
+pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X; preprocess = nothing) where {N<:Number} =
     (dist isa SemiMetric) ?
-        _symmetric_pairwise!(R, dist, X; precalc = precalc) :
-        _asymmetric_pairwise!(R, dist, X, X; precalc = precalc)
+        _symmetric_pairwise!(R, dist, X; preprocess = preprocess) :
+        _asymmetric_pairwise!(R, dist, X, X; preprocess = preprocess)
 
-pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X, Y; precalc = nothing) where {N<:Number} =
-    _asymmetric_pairwise!(R, dist, X, Y; precalc = precalc)
+pairwise!(R::AbstractMatrix{N}, dist::StringDistance, X, Y; preprocess = nothing) where {N<:Number} =
+    _asymmetric_pairwise!(R, dist, X, Y; preprocess = preprocess)
 
-_precalc(X, PT, q) = PT[PT(X[i], q) for i in 1:length(X)]
+_preprocess(X, PT, q) = PT[PT(X[i], q) for i in 1:length(X)]
 
 const PrecalcMinLength = 5 # Only precalc if length >= 5
 
-function precalc_if_needed(X, dist::StringDistance, precalc, precalcType)
-    # precalc only if a QGramDistance and
+preprocess_if_needed(X, dist::StringDistance, preprocess, preprocessType) = X
+
+function preprocess_if_needed(X, dist::QGramDistance, preprocess, preprocessType)
+    # preprocess only if a QGramDistance and
     # if precalc set to true or if isnothing and length is at least min length
-    !isa(dist, QGramDistance) && return X
-    cond = (precalc === true) ||
-                (isnothing(precalc) & length(X) >= PrecalcMinLength)
-    cond ? _precalc(X, precalcType, dist.q) : X
+    cond = (preprocess === true) ||
+                (isnothing(preprocess) && length(X) >= PrecalcMinLength)
+    cond ? _preprocess(X, preprocessType, dist.q) : X
 end
 
 function _symmetric_pairwise!(R, dist::StringDistance, X;
-    precalc = nothing, precalcType = QGramSortedVector)
+    preprocess = nothing, preprocessType = QGramSortedVector)
 
-    objs = precalc_if_needed(X, dist, precalc, precalcType)
+    objs = preprocess_if_needed(X, dist, preprocess, preprocessType)
 
     for i in 1:length(objs)
         R[i, i] = 0
@@ -74,10 +73,10 @@ function _symmetric_pairwise!(R, dist::StringDistance, X;
 end
 
 function _asymmetric_pairwise!(R, dist::StringDistance, X, Y;
-    precalc = nothing, precalcType = QGramSortedVector)
+    preprocess = nothing, preprocessType = QGramSortedVector)
 
-    objsX = precalc_if_needed(X, dist, precalc, precalcType)
-    objsY = precalc_if_needed(Y, dist, precalc, precalcType)
+    objsX = preprocess_if_needed(X, dist, preprocess, preprocessType)
+    objsY = preprocess_if_needed(Y, dist, preprocess, preprocessType)
 
     for i in 1:length(objsX)
         Threads.@threads for j in 1:length(objsY)

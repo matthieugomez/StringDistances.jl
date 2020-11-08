@@ -71,9 +71,9 @@ TestStrings2 = ["mew", "ab"]
 			end
 		end
 
-		# Ensure same result if precalculating for QGramDistances
+		# Ensure same result if preprocessing for QGramDistances
 		if DT <: QGramDistance
-			R4 = pairwise(d, TestStrings1; precalc = true)
+			R4 = pairwise(d, TestStrings1; preprocess = true)
 			@test typeof(R4) == typeof(R)
 			@test size(R4) == size(R)
 			for i in 1:size(R4, 1)
