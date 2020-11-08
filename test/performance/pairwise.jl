@@ -25,6 +25,8 @@ end
 # add new ones if needed.
 using Serialization
 const CacheFile = joinpath(@__DIR__(), "perfteststrings_$(Maxlength).juliabin")
+SaveCache = false
+
 S = if isfile(CacheFile)
     try
         res = deserialize(CacheFile)
@@ -36,12 +38,17 @@ S = if isfile(CacheFile)
 else
     println("Creating $N random strings.")
     String[randstring(rand(3:Maxlength)) for _ in 1:N]
+    SaveCache = true
 end
 
 if length(S) < N
     for i in (length(S)+1):N
         push!(S, randstring(rand(3:Maxlength)))
     end
+    SaveCache = true
+end
+
+if SaveCache
     println("Saving cache file with $(length(S)) strings: $CacheFile")
     serialize(CacheFile, S)
 end
