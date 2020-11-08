@@ -21,7 +21,31 @@ else
     100 # default value
 end
 
-S = String[randstring(rand(3:Maxlength)) for _ in 1:N]
+# If there are strings already cached to disk we start with them and only
+# add new ones if needed.
+using Serialization
+const CacheFile = joinpath(@__DIR__(), "perfteststrings_$(Maxlength).juliabin")
+S = if isfile(CacheFile)
+    try
+        res = deserialize(CacheFile)
+        println("Read $(length(res)) strings from cache file: $CacheFile")
+        res
+    catch err
+        String[]
+    end
+else
+    println("Creating $N random strings.")
+    String[randstring(rand(3:Maxlength)) for _ in 1:N]
+end
+
+if length(S) < N
+    for i in (length(S)+1):N
+        push!(S, randstring(rand(3:Maxlength)))
+    end
+    println("Saving cache file with $(length(S)) strings: $CacheFile")
+    serialize(CacheFile, S)
+end
+
 
 println("For ", Threads.nthreads(), " threads and ", N, " strings of max length ", Maxlength, ":")
 
