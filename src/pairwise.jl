@@ -28,7 +28,7 @@ julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
  10.0
 ```
 """
-pairwise
+Distances.pairwise
 
 Distances.pairwise(dist::StringDistance, X, Y; eltype = Float64, preprocess = nothing) =
     pairwise!(_allocmatrix(X, Y, eltype), dist, X, Y; preprocess = preprocess)
