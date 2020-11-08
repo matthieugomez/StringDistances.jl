@@ -37,8 +37,8 @@ S = if isfile(CacheFile)
     end
 else
     println("Creating $N random strings.")
-    String[randstring(rand(3:Maxlength)) for _ in 1:N]
     SaveCache = true
+    String[randstring(rand(3:Maxlength)) for _ in 1:N]
 end
 
 if length(S) < N
