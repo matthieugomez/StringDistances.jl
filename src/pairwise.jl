@@ -5,12 +5,13 @@ _allocmatrix(X, T) = Matrix{T}(undef, length(X), length(X))
     pairwise(dist::StringDistance, itr; eltype = Float64, preprocess = nothing)
     pairwise(dist::StringDistance, itr1, itr2; eltype = Float64, preprocess = nothing)
 
-Compute distances between all pairs of elements in `itr`according to the `StringDistance` 
-`dist`. The element type of the returned distance matrix can be set via `eltype`. 
+Compute distances between all pairs of elements in `itr` according to the
+`StringDistance` `dist`. The element type of the returned distance matrix
+can be set via `eltype`.
 
-For QGramDistances preprocessing will be used either if `preprocess` is set to true or 
-if there are more than 5 elements in `itr`. Set `preprocess` to false if no 
-preprocessing should be used, regardless of length.
+For QGramDistances preprocessing will be used either if `preprocess` is set 
+to true or if there are more than 5 elements in `itr`. Set `preprocess` to 
+false if no preprocessing should be used, regardless of length.
 
 Both symmetric and asymmetric versions are available.
 
