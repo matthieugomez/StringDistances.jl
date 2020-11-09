@@ -73,7 +73,7 @@ end
 _preprocess(X, dist::StringDistance, preprocess) = X
 
 
-function _symmetric_pairwise!(R, dist::StringDistance, X; preprocess = nothing)
+function _symmetric_pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X; preprocess = nothing)
     objs = _preprocess(X, dist, preprocess)
     for i in 1:length(objs)
         R[i, i] = 0
@@ -84,7 +84,7 @@ function _symmetric_pairwise!(R, dist::StringDistance, X; preprocess = nothing)
     return R
 end
 
-function _asymmetric_pairwise!(R, dist::StringDistance, X, Y; preprocess = nothing)
+function _asymmetric_pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X, Y; preprocess = nothing)
     objsX = _preprocess(X, dist, preprocess)
     objsY = _preprocess(Y, dist, preprocess)
     for i in 1:length(objsX)
