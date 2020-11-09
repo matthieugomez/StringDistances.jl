@@ -13,7 +13,6 @@ TestStrings2 = ["mew", "ab"]
 		d = (DT <: QGramDistance) ? DT(2) : DT()
 		R = pairwise(d, TestStrings1)
 
-		@test R isa Matrix{Float64}
 		@test size(R) == (4, 4)
 
 		# No distance on the diagonal, since comparing strings to themselves
@@ -46,7 +45,6 @@ TestStrings2 = ["mew", "ab"]
 
 		# Test also the assymetric version
 		R2 = pairwise(d, TestStrings1, TestStrings2)
-		@test R2 isa Matrix{Float64}
 		@test size(R2) == (4, 2)
 
 		@test equalorNaN(R2[1, 1], evaluate(d, "", "mew"))
@@ -62,7 +60,6 @@ TestStrings2 = ["mew", "ab"]
 		@test equalorNaN(R2[4, 2], evaluate(d, "kitten", "ab"))
 
 		R3 = pairwise(d, TestStrings2, TestStrings1)
-		@test R3 isa Matrix{Float64}
 		@test size(R3) == (2, 4)
 
 		for i in 1:length(TestStrings1)

@@ -9,7 +9,9 @@ include("normalize.jl")
 
 const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
 # Distances API
-Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
+Distances.result_type(dist::StringDistance, s1::Type, s2::Type) = typeof(dist("", ""))
+Distances.result_type(dist::StringDistance, s1, s2) = result_type(dist, eltype(s1), eltype(s2))
+
 include("find.jl")
 include("pairwise.jl")
 
@@ -43,6 +45,7 @@ result_type,
 qgrams,
 normalize,
 findnearest,
-pairwise
+pairwise,
+pairwise!
 end
 

@@ -40,7 +40,7 @@ using StringDistances, Unicode, Test, Random
 		@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
 		@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
 		@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
-		@test DamerauLevenshtein()("abcdef", "abcxyf", 2) == 2
+		@test DamerauLevenshtein(2)("abcdef", "abcxyf") == 2
 
 		@test evaluate(DamerauLevenshtein(), [1, 2, 3], [1,2, 4]) == 1
 		@test evaluate(DamerauLevenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(DamerauLevenshtein(), "alborgów", "amoniak")
@@ -272,14 +272,14 @@ using StringDistances, Unicode, Test, Random
 	# test max_dist
 	for i in eachindex(strings)
 		d = Levenshtein()(strings[i]...)
-		@test Levenshtein()(strings[i]..., d) == d
+		@test Levenshtein(d)(strings[i]...) == d
 		d = DamerauLevenshtein()(strings[i]...)
-		@test DamerauLevenshtein()(strings[i]..., d) == d
+		@test DamerauLevenshtein(d)(strings[i]...) == d
 	end
 end
 
 d = DamerauLevenshtein()("abcdef", "abcxyf")
-@test DamerauLevenshtein()("abcdef", "abcxyf", d) == d
+@test DamerauLevenshtein(d)("abcdef", "abcxyf") == d
 
 
 
