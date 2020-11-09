@@ -64,7 +64,6 @@ function Distances.pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, 
 end
 
 function _preprocess(X, dist::QGramDistance, preprocess)
-    # preprocess only precalc set to true or if isnothing and length is at least min length
     if (preprocess === true) || (isnothing(preprocess) && length(X) >= 5)
         return map(x -> QGramSortedVector(x, dist.q), X)
     else
@@ -85,8 +84,7 @@ function _symmetric_pairwise!(R, dist::StringDistance, X; preprocess = nothing)
     return R
 end
 
-function _asymmetric_pairwise!(R, dist::StringDistance, X, Y;
-    preprocess = nothing, preprocessType = QGramSortedVector)
+function _asymmetric_pairwise!(R, dist::StringDistance, X, Y; preprocess = nothing)
     objsX = _preprocess(X, dist, preprocess)
     objsY = _preprocess(Y, dist, preprocess)
     for i in 1:length(objsX)
