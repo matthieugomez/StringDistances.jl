@@ -65,9 +65,11 @@ end
 
 function _preprocess(X, dist::QGramDistance, preprocess)
     # preprocess only precalc set to true or if isnothing and length is at least min length
-    cond = (preprocess === true) ||
-                (isnothing(preprocess) && length(X) >= 5)
-    cond ? [QGramSortedVector(X[i], dist.q) for i in 1:length(X)] : X
+    if (preprocess === true) || (isnothing(preprocess) && length(X) >= 5)
+        return map(x -> QGramSortedVector(x, dist.q), X)
+    else
+        return X
+    end
 end
 _preprocess(X, dist::StringDistance, preprocess) = X
 
