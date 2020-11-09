@@ -11,7 +11,7 @@ const StringDistance = Union{Jaro, Levenshtein, DamerauLevenshtein, RatcliffOber
 # Distances API
 Distances.result_type(dist::StringDistance, s1, s2) = typeof(dist("", ""))
 include("find.jl")
-
+include("pairwise.jl")
 
 ##############################################################################
 ##
@@ -42,6 +42,7 @@ compare,
 result_type,
 qgrams,
 normalize,
-findnearest
+findnearest,
+pairwise
 end
 
