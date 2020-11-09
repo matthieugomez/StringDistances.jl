@@ -28,7 +28,7 @@ julia> pairwise(Levenshtein(), iter, iter2) # asymmetric
 """
 Distances.pairwise
 
-function Distances.pairwise(dist::StringDistance, X, Y; preprocess = nothing)
+function Distances.pairwise(dist::StringDistance, X, Y; preprocess = length(X) >= 5)
     T = result_type(dist, eltype(X), eltype(Y))
     R = Matrix{T}(undef, length(X), length(Y))
     pairwise!(R, dist, X, Y; preprocess = preprocess)
@@ -53,11 +53,11 @@ false if no preprocessing should be used, regardless of length.
 """
 Distances.pairwise!
 
-function Distances.pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X, Y; preprocess = nothing)
+function Distances.pairwise!(R::AbstractMatrix, dist::StringDistance, X, Y; preprocess = nothing)
     _asymmetric_pairwise!(R, dist, X, Y; preprocess = preprocess)
 end
 
-function Distances.pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X; preprocess = nothing)
+function Distances.pairwise!(R::AbstractMatrix, dist::StringDistance, X; preprocess = nothing)
     (dist isa SemiMetric) ?
         _symmetric_pairwise!(R, dist, X; preprocess = preprocess) :
         _asymmetric_pairwise!(R, dist, X, X; preprocess = preprocess)
@@ -73,7 +73,7 @@ end
 _preprocess(X, dist::StringDistance, preprocess) = X
 
 
-function _symmetric_pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X; preprocess = nothing)
+function _symmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, X; preprocess = nothing)
     objs = _preprocess(X, dist, preprocess)
     for i in 1:length(objs)
         R[i, i] = 0
@@ -84,7 +84,7 @@ function _symmetric_pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance,
     return R
 end
 
-function _asymmetric_pairwise!(R::AbstractMatrix{<:Number}, dist::StringDistance, X, Y; preprocess = nothing)
+function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, X, Y; preprocess = nothing)
     objsX = _preprocess(X, dist, preprocess)
     objsY = _preprocess(Y, dist, preprocess)
     for i in 1:length(objsX)
