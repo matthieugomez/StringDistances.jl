@@ -378,3 +378,50 @@ newcounter(d::IntersectionDist) = ThreeCounters{Int, typeof(d)}(0, 0, 0)
 
 calculate(d::Overlap, c::ThreeCounters{Int, Overlap}) =
 	1.0 - c.shared / min(c.left, c.right)
+
+"""
+	MorisitaOverlap(q::Int)
+
+Creates a MorisitaOverlap distance, a general, statistical measure of
+dispersion which can also be used on dictionaries such as created
+from q-grams. See https://en.wikipedia.org/wiki/Morisita%27s_overlap_index
+This is more fine-grained than many of the other QGramDistances since
+it is based on the counts per q-gram rather than only which q-grams are
+in the strings.
+
+The distance corresponds to
+
+``(2 * sum(m(s1) .* m(s2)) / (sum(m(s1).^2)*M(s2)/M(s1) + sum(m(s2).^2)*M(s1)/M(s2))``
+
+where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
+sum of those counts.
+"""
+struct MorisitaOverlap <: QGramDistance
+	q::Int
+end
+
+mutable struct FiveCounters{T, QD<:QGramDistance} <: AbstractQGramMatchCounter
+	leftsum::T    # sum(m(s1))
+	rightsum::T   # sum(m(s2))
+	leftsq::T     # sum(m(s1).^2)
+	rightsq::T    # sum(m(s2).^2)
+	shared::T     # sum(m(s1) .* m(s2))
+end
+
+newcounter(d::MorisitaOverlap) = FiveCounters{Int, MorisitaOverlap}(0, 0, 0, 0, 0)
+
+@inline function countleft!(c::FiveCounters{Int, MorisitaOverlap}, n1::Integer)
+	c.leftsum += n1
+	c.leftsq += (n1^2)
+end
+
+@inline function countright!(c::FiveCounters{Int, MorisitaOverlap}, n2::Integer)
+	c.rightsum += n2
+	c.rightsq += (n2^2)
+end
+
+@inline countshared!(c::FiveCounters{Int, MorisitaOverlap}, n1::Integer, n2::Integer) =
+	c.shared += (n1 * n2)
+
+calculate(d::MorisitaOverlap, c::FiveCounters{Int, MorisitaOverlap}) =
+	(2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum)
