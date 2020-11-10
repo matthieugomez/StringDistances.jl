@@ -17,7 +17,8 @@ using StringDistances, Unicode, Test
 	@test compare("martha", "martha", SorensenDice(2)) ≈ 1.0 atol = 1e-4
 
 	# Jaro
-	compare("aüa", "aua", Jaro())
+	@test compare("aüa", "aua", Hamming()) ≈ 2/3
+	@test compare("aüa", "aua", Jaro()) ≈ 0.77777777 atol = 1e-4
 
 	#Levenshtein
 	compare("aüa", "aua", Levenshtein())
