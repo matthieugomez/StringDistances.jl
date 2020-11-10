@@ -234,7 +234,7 @@ using StringDistances, Unicode, Test, Random
 	end
 
 	@testset "Differential testing of String, QGramDict, and QGramSortedVector" begin
-		for D in [QGram, Cosine, Jaccard, SorensenDice, Overlap]
+		for D in [QGram, Cosine, Jaccard, SorensenDice, Overlap, MorisitaOverlap]
 			for _ in 1:100
 				qlen = rand(2:9)
 				dist = D(qlen)
