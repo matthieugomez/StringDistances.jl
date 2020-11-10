@@ -431,8 +431,9 @@ calculate(d::MorisitaOverlap, c::FiveCounters{Int, MorisitaOverlap}) =
 	NMD(q::Int)
 
 Creates a NormalizedMultisetDistance (NMD) distance as introduced by Besiris and
-Zigouris 2013.
-See https://www.sciencedirect.com/science/article/pii/S1047320313001417
+Zigouris 2013. The goal with this distance is to behave similarly to a normalized
+compression distance without having to do any actual compression (and thus being
+faster to compute).
 
 The distance corresponds to
 
@@ -440,6 +441,9 @@ The distance corresponds to
 
 where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
 sum of those counts.
+
+For details see:
+https://www.sciencedirect.com/science/article/pii/S1047320313001417
 """
 struct NormalizedMultisetDistance <: QGramDistance
 	q::Int
