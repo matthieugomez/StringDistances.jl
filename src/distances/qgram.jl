@@ -424,4 +424,45 @@ end
 	c.shared += (n1 * n2)
 
 calculate(d::MorisitaOverlap, c::FiveCounters{Int, MorisitaOverlap}) =
-	(2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum)
+	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
+
+"""
+	NormalizedMultisetDistance(q::Int)
+	NMD(q::Int)
+
+Creates a NormalizedMultisetDistance (NMD) distance as introduced by Besiris and
+Zigouris 2013.
+See https://www.sciencedirect.com/science/article/pii/S1047320313001417
+
+The distance corresponds to
+
+``(sum(max.(m(s1), m(s2)) - min(M(s1), M(s2))) / max(M(s1), M(s2))``
+
+where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
+sum of those counts.
+"""
+struct NormalizedMultisetDistance <: QGramDistance
+	q::Int
+end
+const NMD = NormalizedMultisetDistance # frequently used acronym
+
+newcounter(d::NMD) = ThreeCounters{Int, NMD}(0, 0, 0)
+
+@inline function countleft!(c::ThreeCounters{Int, NMD}, n1::Integer)
+	c.left += n1
+	c.shared += n1 # max(n1, 0) == n1
+end
+
+@inline function countright!(c::ThreeCounters{Int, NMD}, n2::Integer)
+	c.right += n2
+	c.shared += n2 # max(n2, 0) == n2
+end
+
+@inline function countboth!(c::ThreeCounters{Int, NMD}, n1::Integer, n2::Integer)
+	c.left += n1
+	c.right += n2
+	c.shared += max(n1, n2)
+end
+
+calculate(d::NMD, c::ThreeCounters{Int, NMD}) =
+	(c.shared - min(c.left, c.right)) / max(c.left, c.right)

@@ -22,6 +22,7 @@ The available distances are:
 	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q::Int)`
 	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q::Int)`
 	- [MorisitaOverlap Distance](https://en.wikipedia.org/wiki/Morisita%27s_overlap_index) `MorisitaOverlap(q::Int)`
+	- [NormalizedMultisetDistance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NormalizedMultisetDistance(q::Int)` or `NMD(q::Int)`
 - Distance "modifiers" that can be applied to any distance:
 	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the normalized distance between the shorter string and substrings of the longer string.
 	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the normalized distance of the two strings, after re-ordering words alphabetically. 
