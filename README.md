@@ -11,6 +11,7 @@ Distances are defined for `AbstractStrings`, and any iterator that define `lengt
 The available distances are:
 
 - Edit Distances
+	- Hamming Distance `Hamming()`
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
@@ -32,7 +33,7 @@ The available distances are:
 
 ## Basic Use
 
-### Evaluate
+### evaluate
 You can always compute a certain distance between two strings using the following syntax:
 
 ```julia
@@ -47,19 +48,26 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
+### pairwise
+`pairwise` returns the matrix of distance between two `AbstractVectors`
 
-### Compare
-The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
+```julia
+pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
+```
+It is particularly fast for QGram-distances (each element is processed once).
+
+### compare
+The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0.0 and 1.0: a value of 0 means completely different and a value of 1 means completely similar.
 
 ```julia
 evaluate(Levenshtein(),  "martha", "martha")
-#> 0
+#> 0.0
 compare("martha", "martha", Levenshtein())
 #> 1.0
 ```
 
 
-### Find
+### find
 - `findnearest` returns the value and index of the element in `itr` with the lowest distance with `s`. Its syntax is:
 	```julia
 	findnearest(s, itr, dist::StringDistance; min_score = 0.0)
