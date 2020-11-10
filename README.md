@@ -32,7 +32,7 @@ The available distances are:
 
 ## Basic Use
 
-### Evaluate
+### evaluate
 You can always compute a certain distance between two strings using the following syntax:
 
 ```julia
@@ -48,15 +48,15 @@ Levenshtein()("martha", "marhta")
 ```
 
 ### pairwise
-`pairwise` returns the matrix of distance between two `AbstractVector`s
+`pairwise` returns the matrix of distance between two `AbstractVectors`
 
 ```julia
 pairwise(Levenshtein(), ["martha", "kitten"], ["marhta", "sitting"])
 Levenshtein()("martha", "marhta")
 ```
+It is particularly fast for QGram-distances (each element is processed once).
 
-
-### Compare
+### compare
 The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0.0 and 1.0: a value of 0 means completely different and a value of 1 means completely similar.
 
 ```julia
@@ -67,7 +67,7 @@ compare("martha", "martha", Levenshtein())
 ```
 
 
-### Find
+### find
 - `findnearest` returns the value and index of the element in `itr` with the lowest distance with `s`. Its syntax is:
 	```julia
 	findnearest(s, itr, dist::StringDistance; min_score = 0.0)
