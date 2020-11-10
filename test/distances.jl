@@ -130,6 +130,22 @@ using StringDistances, Unicode, Test, Random
 		@test ismissing(evaluate(Overlap(1), "", missing))
 	end
 
+	@testset "MorisitaOverlap" begin
+		# overlap for 'n', 'h', and 't' and 5 q-grams per string:
+		@test evaluate(MorisitaOverlap(1), "night", "nacht") == 0.6 # ((2*3)/(5*5/5 + 5*5/5))
+
+		# overlap for 'o', 'n', 2-overlap for 'c' and 't' and 7 unique q-grams in total so multiplicity vectors
+		# ms1 = [1, 1, 1, 2, 1, 1, 0]
+		# ms2 = [2, 1, 1, 2, 0, 0, 1]
+		# sum(ms1 .* ms2) = 8, sum(ms1 .^ 2) = 9, sum(ms2 .^ 2) = 11, sum(ms1) = 7, sum(ms2) = 7
+		@test evaluate(MorisitaOverlap(1), "context", "contact") == 0.8 # ((2*8)/(9*7/7 + 11*7/7)) = 14/18
+		@test MorisitaOverlap(1)("context", "contact") == 0.8
+
+		@test result_type(MorisitaOverlap(1), "hello", "world") == typeof(float(1))
+		@inferred evaluate(MorisitaOverlap(1), "", "")
+		@test ismissing(evaluate(MorisitaOverlap(1), "", missing))
+	end
+
 	@testset "QGramDict and QGramSortedVector counts qgrams" begin
 		# To get something we can more easily compare to:
 		stringify(p::Pair{<:AbstractString, <:Integer}) = (string(first(p)), last(p))
