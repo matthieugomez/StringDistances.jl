@@ -1,6 +1,13 @@
 using StringDistances, Unicode, Test, Random
 
 @testset "Distances" begin
+	@testset "Hamming" begin
+		@test evaluate(Hamming(), "martha", "marhta") ≈  2
+		@test evaluate(Hamming(), "es an ", " vs an") ≈ 6
+		@test evaluate(Hamming(), [1, 2, 3], [1,2, 4]) ≈ 1
+		@inferred evaluate(Hamming(), "", "")
+		@test ismissing(evaluate(Hamming(), "", missing))
+	end
 
 	@testset "Jaro" begin
 		@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547

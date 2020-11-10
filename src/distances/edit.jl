@@ -1,4 +1,28 @@
 """
+    Hamming()
+
+Creates the Hamming distance
+
+The Hamming distance is defined as the number of characters that do not match
+"""
+struct Hamming{V <: Union{Integer, Nothing}} <: SemiMetric
+   max_dist::V
+end
+Hamming() = Hamming(nothing)
+
+function (dist::Hamming)(s1, s2)
+    ((s1 === missing) | (s2 === missing)) && return missing
+    current = abs(length(s2) - length(s1))
+    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
+    for (ch1, ch2) in zip(s1, s2)
+        current += ch1 != ch2
+        dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
+    end
+    return current
+end
+
+
+"""
     Jaro()
 
 Creates the Jaro distance

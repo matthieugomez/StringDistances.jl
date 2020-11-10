@@ -1,10 +1,11 @@
 using StringDistances, Unicode, Test, Random
-using StringDistances: pairwise, pairwise!, QGramDistance
-
 @testset "pairwise" begin
 
 TestStrings1 = ["", "abc", "bc", "kitten"]
 TestStrings2 = ["mew", "ab"]
+
+TestStrings1missing = ["", "abc", "bc", missing]
+TestStrings2missing = ["mew", missing]
 
 @testset "pairwise" begin
 	for DT in [Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp,
@@ -79,6 +80,9 @@ TestStrings2 = ["mew", "ab"]
 				end
 			end
 		end
+		# ensures missing
+		R5 = pairwise(d, TestStrings1missing; preprocess = true)
+		@test eltype(R5) == Union{result_type(d, String, String), Missing}
 	end
 end
 

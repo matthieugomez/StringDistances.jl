@@ -11,6 +11,14 @@ end
 normalize(dist::SemiMetric, max_dist = 1.0) = Normalize(dist)
 normalize(dist::Normalize, max_dist = 1.0) = Normalize(dist.dist)
 
+function (dist::Normalize{<:Hamming})(s1, s2, max_dist = 1.0)
+    ((s1 === missing) | (s2 === missing)) && return missing
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    len2 == 0 && return 1.0
+    out = dist.dist(s1, s2) / len2
+    out > max_dist ? 1.0 : out
+end
 
 # A normalized distance is between 0 and 1, and accept a third argument, max_dist.
 function (dist::Normalize{<: Union{Levenshtein, DamerauLevenshtein}})(s1, s2, max_dist = 1.0)
