@@ -138,7 +138,7 @@ using StringDistances, Unicode, Test, Random
 		# ms1 = [1, 1, 1, 2, 1, 1, 0]
 		# ms2 = [2, 1, 1, 2, 0, 0, 1]
 		# sum(ms1 .* ms2) = 8, sum(ms1 .^ 2) = 9, sum(ms2 .^ 2) = 11, sum(ms1) = 7, sum(ms2) = 7
-		@test evaluate(MorisitaOverlap(1), "context", "contact") == 0.8 # ((2*8)/(9*7/7 + 11*7/7)) = 14/18
+		@test evaluate(MorisitaOverlap(1), "context", "contact") == 0.8 # ((2*8)/(9*7/7 + 11*7/7)) = 16/20
 		@test MorisitaOverlap(1)("context", "contact") == 0.8
 
 		@test result_type(MorisitaOverlap(1), "hello", "world") == typeof(float(1))
