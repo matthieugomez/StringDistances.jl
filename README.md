@@ -11,6 +11,7 @@ Distances are defined for `AbstractStrings`, and any iterator that define `lengt
 The available distances are:
 
 - Edit Distances
+	- Hamming Distance `Hamming()`
 	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
@@ -46,13 +47,21 @@ evaluate(Levenshtein(), "martha", "marhta")
 Levenshtein()("martha", "marhta")
 ```
 
+### pairwise
+`pairwise` returns the matrix of distance between two `AbstractVector`s
+
+```julia
+pairwise(Levenshtein(), ["martha", "kitten"], ["marhta", "sitting"])
+Levenshtein()("martha", "marhta")
+```
+
 
 ### Compare
-The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0 and 1: a value of 0 means completely different and a value of 1 means completely similar.
+The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0.0 and 1.0: a value of 0 means completely different and a value of 1 means completely similar.
 
 ```julia
 evaluate(Levenshtein(),  "martha", "martha")
-#> 0
+#> 0.0
 compare("martha", "martha", Levenshtein())
 #> 1.0
 ```

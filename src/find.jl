@@ -35,8 +35,8 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 (nothing, nothing)
 ```
 """
-function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
-    min_score_atomic = Threads.Atomic{typeof(min_score)}(min_score)
+function findnearest(s, itr, dist::StringDistance)
+    min_score_atomic = Threads.Atomic{Float64}(0.0)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
     # need collect since @threads requires a length method
