@@ -51,8 +51,7 @@ Levenshtein()("martha", "marhta")
 `pairwise` returns the matrix of distance between two `AbstractVectors`
 
 ```julia
-pairwise(Levenshtein(), ["martha", "kitten"], ["marhta", "sitting"])
-Levenshtein()("martha", "marhta")
+pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
 ```
 It is particularly fast for QGram-distances (each element is processed once).
 
