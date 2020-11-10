@@ -106,9 +106,17 @@ using StringDistances, Unicode, Test
 
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], QGram(2)) == ("NewYork", 1)
+
+
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == [1, 2]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
+
+	@test findall("New York", ["NewYork", "Newark", "San Francisco"], QGram(2); min_score = 0.99) == Int[]
+
+
+
 	if VERSION >= v"1.2.0"
 		@test findnearest("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == ("NewYork", 1)
 		@test findnearest("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == (nothing, nothing)

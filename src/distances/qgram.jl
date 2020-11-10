@@ -98,7 +98,7 @@ end
 abstract type AbstractQGramCounts{Q,K} end
 q(qc::AbstractQGramCounts{Q,K}) where {Q,K} = Q
 counts(qc::AbstractQGramCounts) = qc.counts
-
+Base.length(qc::AbstractQGramCounts{Q}) where Q = length(qc.counts) + Q - 1
 """
 	QGramDict(s, q::Integer = 2)
 
