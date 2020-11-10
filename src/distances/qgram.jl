@@ -427,10 +427,10 @@ calculate(d::MorisitaOverlap, c::FiveCounters{Int, MorisitaOverlap}) =
 	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
 
 """
-	NormalizedMultisetDistance(q::Int)
+	NMD(q::Int)
 	NMD(q::Int)
 
-Creates a NormalizedMultisetDistance (NMD) distance as introduced by Besiris and
+Creates a NMD (Normalized Multiset Distance) as introduced by Besiris and
 Zigouris 2013. The goal with this distance is to behave similarly to a normalized
 compression distance without having to do any actual compression (and thus being
 faster to compute).
@@ -445,10 +445,9 @@ sum of those counts.
 For details see:
 https://www.sciencedirect.com/science/article/pii/S1047320313001417
 """
-struct NormalizedMultisetDistance <: QGramDistance
+struct NMD <: QGramDistance
 	q::Int
 end
-const NMD = NormalizedMultisetDistance # frequently used acronym
 
 newcounter(d::NMD) = ThreeCounters{Int, NMD}(0, 0, 0)
 
