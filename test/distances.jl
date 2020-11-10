@@ -141,6 +141,12 @@ using StringDistances, Unicode, Test, Random
 		@test evaluate(MorisitaOverlap(1), "context", "contact") == 0.8 # ((2*8)/(9*7/7 + 11*7/7)) = 16/20
 		@test MorisitaOverlap(1)("context", "contact") == 0.8
 
+		# Multiplicity vectors for 2-grams "co", "on", "nt", "te", "ex", "xt", "ta", "ac", "ct"
+		# ms1 = [1, 1, 1, 1, 1, 1, 0, 0, 0]
+		# ms2 = [1, 1, 1, 0, 0, 0, 1, 1, 1]
+		# sum(ms1 .* ms2) = 3, sum(ms1 .^ 2) = 6, sum(ms2 .^ 2) = 6, sum(ms1) = 6, sum(ms2) = 6
+		@test MorisitaOverlap(2)("context", "contact") == 0.5 # ((2*3)/(6*6/6 + 6*6/6))
+
 		@test result_type(MorisitaOverlap(1), "hello", "world") == typeof(float(1))
 		@inferred evaluate(MorisitaOverlap(1), "", "")
 		@test ismissing(evaluate(MorisitaOverlap(1), "", missing))
