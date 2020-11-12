@@ -59,13 +59,13 @@ It is particularly fast for QGram-distances (each element is processed once).
 
 
 ### similarly scores
-- The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
+- The function `compare` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
 
-```julia
-Levenshtein()("martha", "martha")
-#> 0.0
-compare("martha", "martha", Levenshtein())
-#> 1.0
+	```julia
+	Levenshtein()("martha", "martha")
+	#> 0.0
+	compare("martha", "martha", Levenshtein())
+	#> 1.0
 ```
 
 - `findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
