@@ -26,13 +26,13 @@ The available distances are:
 	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int)`
 
 
-The package also defines Distance "modifiers" that can be applied to any distance:
-	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
-	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
-	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
-	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
-## Basic Use
+The package also defines Distance "modifiers" that can be applied to any distance.
+- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
+- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
+- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
+- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 
+## Basic Use
 ### evaluate
 You can always compute a certain distance between two strings using the following syntax:
 
@@ -58,8 +58,8 @@ It is particularly fast for QGram-distances (each element is processed once).
 
 
 
-### compare and find
-The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
+### similarly scores
+- The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
 
 ```julia
 Levenshtein()("martha", "martha")
@@ -68,12 +68,12 @@ compare("martha", "martha", Levenshtein())
 #> 1.0
 ```
 
-`findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
+- `findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
 	findnearest(s, itr, dist::StringDistance)
 	```
 
-`findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
+- `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
 	```julia
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
