@@ -7,7 +7,6 @@ include("distances/edit.jl")
 include("distances/qgram.jl")
 include("modifiers.jl")
 include("normalize.jl")
-include("find.jl")
 include("pairwise.jl")
 # Distances API
 Distances.result_type(dist::StringDistance, s1::Type, s2::Type) = typeof(dist("", ""))

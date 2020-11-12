@@ -3,9 +3,9 @@
 
 Creates the `Partial{dist}` distance.
 
-`Partial{dist}`  returns the  minimum distance  between the shorter string and substrings of the longer string (of the size of the shorter stirng)
+`Partial{dist}`  returns the  minimum distance  between the shorter string and substrings of the longer string (with length equal to the shorter stirng)
 
-See: http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
+See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
 ### Examples
 ```julia-repl
@@ -59,8 +59,9 @@ end
 Creates the `TokenSort{dist}` distance.
 
 `TokenSort{dist}` returns the distance between strings after reording words alphabetically.
+See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
-See: http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
+It is only defined on AbstractStrings.
 
 ### Examples
 ```julia-repl
@@ -87,9 +88,13 @@ end
 
 Creates the `TokenSet{dist}` distance.
 
-`TokenSet{dist}` compares the intersection of two strings with each string, after reording words alphabetically
-
+`TokenSet{dist}` returns the minimum the distances between:
+t0 = [SORTED_INTERSECTION]
+t1 = [SORTED_INTERSECTION] + [SORTED_REST_OF_STRING1]
+t2 = [SORTED_INTERSECTION] + [SORTED_REST_OF_STRING2]
 See: http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
+
+It is only defined on AbstractStrings.
 
 ### Examples
 ```julia-repl
