@@ -12,7 +12,7 @@ The available distances are:
 
 - Edit Distances
 	- Hamming Distance `Hamming()`
-	- [Jaro Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()`
+	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler()`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
@@ -24,13 +24,13 @@ The available distances are:
 	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q::Int)`
 	- [MorisitaOverlap Distance](https://en.wikipedia.org/wiki/Morisita%27s_overlap_index) `MorisitaOverlap(q::Int)`
 	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int)`
-- Distance "modifiers" that can be applied to any distance:
-	- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the normalized distance between the shorter string and substrings of the longer string.
-	- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the normalized distance of the two strings, after re-ordering words alphabetically. 
-	- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the normalized distance between the intersection of two strings with each string.
-	- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) combines the normalized distance, the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
-	- [Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) diminishes the normalized distance of strings with common prefixes.  The Winkler adjustment was originally defined for the Jaro similarity score but it can be defined for any string distance.
 
+
+The package also defines Distance "modifiers" that can be applied to any distance:
+		- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
+		- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
+		- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
+		- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 ## Basic Use
 
 ### evaluate
@@ -49,36 +49,36 @@ Levenshtein()("martha", "marhta")
 ```
 
 ### pairwise
-`pairwise` returns the matrix of distance between two `AbstractVectors`
+`pairwise` returns the matrix of distance between two `AbstractVectors` of AbstractStrings
 
 ```julia
 pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
 ```
 It is particularly fast for QGram-distances (each element is processed once).
 
-### compare
-The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a `Float64` between 0.0 and 1.0: a value of 0 means completely different and a value of 1 means completely similar.
+
+
+### compare and find
+The function `compare` is defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
 
 ```julia
-evaluate(Levenshtein(),  "martha", "martha")
+Levenshtein()("martha", "martha")
 #> 0.0
 compare("martha", "martha", Levenshtein())
 #> 1.0
 ```
 
-
-### find
-- `findnearest` returns the value and index of the element in `itr` with the lowest distance with `s`. Its syntax is:
+`findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
-	findnearest(s, itr, dist::StringDistance; min_score = 0.0)
+	findnearest(s, itr, dist::StringDistance)
 	```
 
-- `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
+`findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
 	```julia
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
-The functions `findnearest` and `findall` are particularly optimized for `Levenshtein` and `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
+The functions `findnearest` and `findall` are particularly optimized for `Levenshtein`, `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
 
 
 ## References

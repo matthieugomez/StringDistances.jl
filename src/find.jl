@@ -1,3 +1,5 @@
+const StringDistance = Union{Hamming, Jaro, JaroWinkler,Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Partial, TokenSort, TokenSet, TokenMax, Normalized}
+
 """
     compare(s1, s2, dist)
 
@@ -10,16 +12,15 @@ julia> compare("martha", "marhta", Levenshtein())
 0.6666666666666667
 ```
 """
-compare(s1, s2, dist::StringDistance; min_score = 0.0) = 1 - normalize(dist)(s1, s2, 1 - min_score)
-
+function compare(s1, s2, dist::StringDistance; min_score = 0.0)
+    1 - normalize(dist, max_dist = 1 - min_score)(s1, s2)
+end 
 
 """
-    findnearest(s, itr, dist::StringDistance; min_score = 0.0) -> (x, index)
+    findnearest(s, itr, dist::StringDistance) -> (x, index)
 
 `findnearest` returns the value and index of the element of `itr` that has the 
-highest similarity score with `s` according to the distance `dist`. 
-It returns `(nothing, nothing)` if none of the elements has a similarity score 
-higher or equal to `min_score` (default to 0.0).
+lowest distance with `s` according to the distance `dist`. 
 
 It is particularly optimized for [`Levenshtein`](@ref) and [`DamerauLevenshtein`](@ref) distances 
 (as well as their modifications via [`Partial`](@ref), [`TokenSort`](@ref), [`TokenSet`](@ref), or [`TokenMax`](@ref)).

@@ -74,7 +74,7 @@ function Distances.pairwise!(R::AbstractMatrix, dist::StringDistance, xs::Abstra
 end
 
 function _preprocess(xs, dist::QGramDistance, preprocess)
-    if (preprocess === true) || (isnothing(preprocess) && length(xs) >= 5)
+    if preprocess === nothing ? length(xs) >= 5 : preprocess 
         return map(x -> x === missing ? x : QGramSortedVector(x, dist.q), xs)
     else
         return xs

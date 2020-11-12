@@ -5,16 +5,17 @@ using Distances
 include("distances/utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
+include("modifiers.jl")
 include("normalize.jl")
-
-const StringDistance = Union{Hamming, Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Winkler, Partial, TokenSort, TokenSet, TokenMax, Normalize}
+include("find.jl")
+include("pairwise.jl")
 # Distances API
 Distances.result_type(dist::StringDistance, s1::Type, s2::Type) = typeof(dist("", ""))
 Distances.result_type(dist::StringDistance, s1, s2) = result_type(dist, typeof(s1), typeof(s2))
 
 
-include("find.jl")
-include("pairwise.jl")
+
+
 
 ##############################################################################
 ##
@@ -28,18 +29,18 @@ Hamming,
 Levenshtein,
 DamerauLevenshtein,
 Jaro,
+JaroWinkler,
 RatcliffObershelp,
 QGramDistance,
 QGram,
+QGramDict,
+QGramSortedVector,
 Cosine,
 Jaccard,
 SorensenDice,
 Overlap,
 MorisitaOverlap,
 NMD,
-QGramDict,
-QGramSortedVector,
-Winkler,
 Partial,
 TokenSort,
 TokenSet,

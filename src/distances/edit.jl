@@ -12,13 +12,13 @@ Hamming() = Hamming(nothing)
 
 function (dist::Hamming)(s1, s2)
     ((s1 === missing) | (s2 === missing)) && return missing
-    current = abs(length(s2) - length(s1))
-    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
+    out = abs(length(s2) - length(s1))
+    dist.max_dist !== nothing && out > dist.max_dist && return dist.max_dist + 1
     for (ch1, ch2) in zip(s1, s2)
-        current += ch1 != ch2
-        dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
+        out += ch1 != ch2
+        dist.max_dist !== nothing && out > dist.max_dist && return dist.max_dist + 1
     end
-    return current
+    return out
 end
 
 
@@ -72,6 +72,37 @@ function (dist::Jaro)(s1, s2)
     end
     return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
 end
+
+
+"""
+    JaroWinkler(;p = 0.1, threshold = 0.3, maxlength = 4)
+
+Creates the JaroWinkler distance
+
+The JaroWinkler distance is defined as the Jaro distance, which is multiplied by
+``(1-min(l,  maxlength) * p)`` as long as it is lower than `threshold`, and where `l` denotes the length of the common prefix.
+"""
+struct JaroWinkler <: SemiMetric
+    p::Float64          # scaling factor. Default to 0.1
+    threshold::Float64  # boost limit. Default to 0.3
+    maxlength::Integer  # max length of common prefix. Default to 4
+end
+
+JaroWinkler(; p = 0.1, threshold = 0.3, maxlength = 4) = JaroWinkler(p, threshold, maxlength)
+
+## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
+function (dist::JaroWinkler)(s1, s2)
+    ((s1 === missing) | (s2 === missing)) && return missing
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    out = Jaro()(s1, s2)
+    if out <= dist.threshold
+        l = common_prefix(s1, s2)[1]
+        out = (1 - min(l, dist.maxlength) * dist.p) * out
+    end
+    return out
+end
+
 
 """
     Levenshtein()

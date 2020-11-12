@@ -26,13 +26,13 @@ using StringDistances, Unicode, Test
 	@test compare("ab", "de", Partial(DamerauLevenshtein())) == 0
 	@test normalize(Partial(DamerauLevenshtein()))("ab", "cde") == 1.0
 	# Winkler
-	@test compare("martha", "marhta", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.9611 atol = 1e-4
-	@test compare("dwayne", "duane", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.84 atol = 1e-4
-	@test compare("dixon", "dicksonx", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.81333 atol = 1e-4
-	@test compare("william", "williams", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.975 atol = 1e-4
-	@test compare("", "foo", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.0 atol = 1e-4
-	@test compare("a", "a", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 1.0 atol = 1e-4
-	@test compare("abc", "xyz", Winkler(Jaro(), p = 0.1, threshold = 0.0, maxlength = 4)) ≈ 0.0 atol = 1e-4
+	@test compare("martha", "marhta", JaroWinkler()) ≈ 0.9611 atol = 1e-4
+	@test compare("dwayne", "duane", JaroWinkler()) ≈ 0.84 atol = 1e-4
+	@test compare("dixon", "dicksonx", JaroWinkler()) ≈ 0.81333 atol = 1e-4
+	@test compare("william", "williams", JaroWinkler()) ≈ 0.975 atol = 1e-4
+	@test compare("", "foo", JaroWinkler()) ≈ 0.0 atol = 1e-4
+	@test compare("a", "a", JaroWinkler()) ≈ 1.0 atol = 1e-4
+	@test compare("abc", "xyz", JaroWinkler()) ≈ 0.0 atol = 1e-4
 
 	# RatcliffObershelp
 	@test compare("New York Mets vs Atlanta Braves", "", RatcliffObershelp())  ≈ 0.0
@@ -104,9 +104,9 @@ using StringDistances, Unicode, Test
 	@test findnearest("New York", ["San Francisco", "NewYork", "Newark"], Levenshtein()) == ("NewYork", 2)
 	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
 
-	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein(); min_score = 0.99) == (nothing, nothing)
+
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
-	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], QGram(2)) == ("NewYork", 1)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], normalize(QGram(2))) == ("NewYork", 1)
 
 
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
