@@ -66,7 +66,7 @@ It is particularly fast for QGram-distances (each element is processed once).
 	#> 0.0
 	compare("martha", "martha", Levenshtein())
 	#> 1.0
-```
+	```
 
 - `findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
 	```julia
