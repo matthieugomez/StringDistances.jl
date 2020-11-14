@@ -1,17 +1,15 @@
 using StringDistances, Unicode, Test, Random
-@testset "pairwise" begin
 
-TestStrings1 = ["", "abc", "bc", "kitten"]
-TestStrings2 = ["mew", "ab"]
+@testset "Pairwise" begin
 
-TestStrings1missing = ["", "abc", "bc", missing]
-TestStrings2missing = ["mew", missing]
+	TestStrings1 = ["", "abc", "bc", "kitten"]
+	TestStrings2 = ["mew", "ab"]
+	TestStrings1missing = ["", "abc", "bc", missing]
+	TestStrings2missing = ["mew", missing]
 
-@testset "pairwise" begin
-	for DT in [Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp,
-				QGram, Cosine, Jaccard, SorensenDice, Overlap]
+	for d in [Jaro(), Levenshtein(), DamerauLevenshtein(), RatcliffObershelp(),
+				QGram(2), Cosine(2), Jaccard(2), SorensenDice(2), Overlap(2)]
 
-		d = (DT <: AbstractQGramDistance) ? DT(2) : DT()
 		R = pairwise(d, TestStrings1)
 
 		@test size(R) == (4, 4)
@@ -70,7 +68,7 @@ TestStrings2missing = ["mew", missing]
 		end
 
 		# Ensure same result if preprocessing for QGramDistances
-		if DT <: AbstractQGramDistance
+		if d isa AbstractQGramDistance
 			R4 = pairwise(d, TestStrings1; preprocess = true)
 			@test typeof(R4) == typeof(R)
 			@test size(R4) == size(R)
@@ -84,6 +82,4 @@ TestStrings2missing = ["mew", missing]
 		R5 = pairwise(d, TestStrings1missing; preprocess = true)
 		@test eltype(R5) == Union{result_type(d, String, String), Missing}
 	end
-end
-
 end
