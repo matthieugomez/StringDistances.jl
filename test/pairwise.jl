@@ -11,7 +11,7 @@ TestStrings2missing = ["mew", missing]
 	for DT in [Jaro, Levenshtein, DamerauLevenshtein, RatcliffObershelp,
 				QGram, Cosine, Jaccard, SorensenDice, Overlap]
 
-		d = (DT <: QGramDistance) ? DT(2) : DT()
+		d = (DT <: AbstractQGramDistance) ? DT(2) : DT()
 		R = pairwise(d, TestStrings1)
 
 		@test size(R) == (4, 4)
@@ -70,7 +70,7 @@ TestStrings2missing = ["mew", missing]
 		end
 
 		# Ensure same result if preprocessing for QGramDistances
-		if DT <: QGramDistance
+		if DT <: AbstractQGramDistance
 			R4 = pairwise(d, TestStrings1; preprocess = true)
 			@test typeof(R4) == typeof(R)
 			@test size(R4) == size(R)

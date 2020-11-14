@@ -5,7 +5,7 @@
 Compute distances between all pairs of elements in `xs`  and `ys` according to the
 `StringDistance` `dist`.
 
-For QGramDistances preprocessing will be used either if `preprocess` is set 
+For AbstractQGramDistances preprocessing will be used either if `preprocess` is set 
 to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
 false if no preprocessing should be used, regardless of length.
 
@@ -53,7 +53,7 @@ end
 Compute distances between all pairs of elements in `xs` and `ys` according to the
 `StringDistance` `dist` and write the result in `R`.
 
-For QGramDistances preprocessing will be used either if `preprocess` is set 
+For AbstractQGramDistances preprocessing will be used either if `preprocess` is set 
 to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
 false if no preprocessing should be used, regardless of length.
 """
@@ -73,7 +73,7 @@ function Distances.pairwise!(R::AbstractMatrix, dist::StringDistance, xs::Abstra
         _asymmetric_pairwise!(R, dist, xs, xs; preprocess = preprocess)
 end
 
-function _preprocess(xs, dist::QGramDistance, preprocess)
+function _preprocess(xs, dist::AbstractQGramDistance, preprocess)
     if preprocess === nothing ? length(xs) >= 5 : preprocess 
         return map(x -> x === missing ? x : QGramSortedVector(x, dist.q), xs)
     else

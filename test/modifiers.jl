@@ -24,7 +24,7 @@ using StringDistances, Unicode, Test
 	compare("aüa", "aua", Levenshtein())
 	compare("aüa", "aua", DamerauLevenshtein())
 	@test compare("ab", "de", Partial(DamerauLevenshtein())) == 0
-	@test normalize(Partial(DamerauLevenshtein()))("ab", "cde") == 1.0
+	@test StringDistances.normalize(Partial(DamerauLevenshtein()))("ab", "cde") == 1.0
 	# Winkler
 	@test compare("martha", "marhta", JaroWinkler()) ≈ 0.9611 atol = 1e-4
 	@test compare("dwayne", "duane", JaroWinkler()) ≈ 0.84 atol = 1e-4
@@ -106,7 +106,7 @@ using StringDistances, Unicode, Test
 
 
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
-	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], normalize(QGram(2))) == ("NewYork", 1)
+	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], StringDistances.normalize(QGram(2))) == ("NewYork", 1)
 
 
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]

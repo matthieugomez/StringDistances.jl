@@ -26,7 +26,7 @@ function (dist::Normalized{<:Union{Levenshtein{Nothing}, DamerauLevenshtein{Noth
     out > dist.max_dist ? 1.0 : out
 end
 
-function (dist::Normalized{<:QGramDistance})(s1, s2)
+function (dist::Normalized{<:AbstractQGramDistance})(s1, s2)
     ((s1 === missing) | (s2 === missing)) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
@@ -94,7 +94,8 @@ end
 TokenMax(dist::SemiMetric; max_dist = 1.0) = TokenMax(dist, max_dist)
 normalize(dist::TokenMax; max_dist = 1.0) = TokenMax(dist.dist, max_dist)
 
-function (dist::TokenMax)(s1::AbstractString, s2::AbstractString)
+function (dist::TokenMax)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
+    ((s1 === missing) | (s2 === missing)) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist = dist.max_dist
@@ -128,7 +129,7 @@ end
 
 
 
-const StringDistance = Union{Hamming, Jaro, JaroWinkler,Levenshtein, DamerauLevenshtein, RatcliffObershelp, QGramDistance, Partial, TokenSort, TokenSet, TokenMax, Normalized}
+const StringDistance = Union{Hamming, Jaro, JaroWinkler,Levenshtein, DamerauLevenshtein, RatcliffObershelp, AbstractQGramDistance, Partial, TokenSort, TokenSet, TokenMax, Normalized}
 
 """
     compare(s1, s2, dist)
@@ -184,7 +185,7 @@ function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
     imax == 0 ? (nothing, nothing) : (itr[imax], imax)
 end
 
-function _helper(s, dist::QGramDistance)
+function _helper(s, dist::AbstractQGramDistance)
     s !== missing ? QGramSortedVector(s, dist.q) : s
 end
 _helper(s, dist::StringDistance) = s

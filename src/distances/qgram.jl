@@ -237,9 +237,9 @@ function countmatches!(mc::AbstractQGramMatchCounter, d1::Dict{K,I}, d2::Dict{K,
     end
 end
 
-abstract type QGramDistance <: SemiMetric end
+abstract type AbstractQGramDistance <: SemiMetric end
 
-function (dist::QGramDistance)(s1, s2)
+function (dist::AbstractQGramDistance)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
 	counter = newcounter(dist)
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
@@ -248,7 +248,7 @@ function (dist::QGramDistance)(s1, s2)
 	calculate(dist, counter)
 end
 
-function (dist::QGramDistance)(qc1::QC, qc2::QC) where {QC<:AbstractQGramCounts}
+function (dist::AbstractQGramDistance)(qc1::QC, qc2::QC) where {QC<:AbstractQGramCounts}
     @assert dist.q == q(qc1)
 	@assert dist.q == q(qc2)
 	counter = newcounter(dist)
@@ -268,11 +268,11 @@ The distance corresponds to
 where ``v(s, q)`` denotes the vector on the space of q-grams of length q, 
 that contains the number of times a q-gram appears for the string s
 """
-struct QGram <: QGramDistance
+struct QGram <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct SingleCounter{T, QD<:QGramDistance} <: AbstractQGramMatchCounter
+mutable struct SingleCounter{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
 	n::T
 end
 
@@ -296,11 +296,11 @@ The distance corresponds to
 where ``v(s, q)`` denotes the vector on the space of q-grams of length q, 
 that contains the  number of times a q-gram appears for the string s
 """
-struct Cosine <: QGramDistance
+struct Cosine <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct ThreeCounters{T, QD<:QGramDistance} <: AbstractQGramMatchCounter
+mutable struct ThreeCounters{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
 	left::T
 	right::T
 	shared::T
@@ -326,7 +326,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct Jaccard <: QGramDistance
+struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
 
@@ -344,7 +344,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct SorensenDice <: QGramDistance
+struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
 
@@ -362,7 +362,7 @@ The distance corresponds to
 
 where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 """
-struct Overlap <: QGramDistance
+struct Overlap <: AbstractQGramDistance
 	q::Int
 end
 
@@ -396,11 +396,11 @@ The distance corresponds to
 where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
 sum of those counts.
 """
-struct MorisitaOverlap <: QGramDistance
+struct MorisitaOverlap <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct FiveCounters{T, QD<:QGramDistance} <: AbstractQGramMatchCounter
+mutable struct FiveCounters{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
 	leftsum::T    # sum(m(s1))
 	rightsum::T   # sum(m(s2))
 	leftsq::T     # sum(m(s1).^2)
@@ -445,7 +445,7 @@ sum of those counts.
 For details see:
 https://www.sciencedirect.com/science/article/pii/S1047320313001417
 """
-struct NMD <: QGramDistance
+struct NMD <: AbstractQGramDistance
 	q::Int
 end
 
