@@ -95,4 +95,4 @@ end
 
 # like `_slice` but get the indices (for indexable collections)
 _slice_inds(::Any, n1::Integer, n2::Integer) = n1:n2
-_slice_inds(s::AbstractString, n1::Integer, n2::Integer) = nextind(s, 0, n1 + 1):nextind(s, 0, n2)
+_slice_inds(s::AbstractString, n1::Integer, n2::Integer) = nextind(s, 0, n1):nextind(s, 0, n2)
