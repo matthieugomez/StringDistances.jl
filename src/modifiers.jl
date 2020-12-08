@@ -7,6 +7,9 @@ Creates the `Partial{dist}` distance.
 
 See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
+See also [`findnearest_partial`](@ref) and [`findall_partial`](@ref).
+
+
 ### Examples
 ```julia-repl
 julia> s1 = "New York Mets vs Atlanta Braves"
@@ -124,5 +127,3 @@ function (dist::TokenSet)(s1::Union{AbstractString, Missing}, s2::Union{Abstract
     score_12 = dist.dist(s1, s2)
     min(score_01, score_02, score_12)
 end
-
-

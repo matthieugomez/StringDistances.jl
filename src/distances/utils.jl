@@ -42,6 +42,22 @@ function reorder(s1, s2)
     (length(s1) <= length(s2)) ? (s1, s2) : (s2, s1)
 end
 
+function _enforce_shorter_first(needle, haystack)
+    if length(needle) > length(haystack)
+        throw(ArgumentError("Shorter argument must come first; used to find matches in the longer second argument."))
+    end
+    return needle, haystack
+end
+
+enforce_shorter_first(needle, haystack) = _enforce_shorter_first(needle, haystack)
+
+function enforce_shorter_first(needle::AbstractString, haystack::AbstractString)
+    needle = string_with_length(needle)
+    haystack = string_with_length(haystack)
+    return _enforce_shorter_first(needle, haystack)
+end
+
+
 function common_prefix(s1, s2)
     l = 0
     for (ch1, ch2) in zip(s1, s2)
@@ -77,4 +93,6 @@ function _slice(s::AbstractString, n1::Integer, n2::Integer)
    SubString(s, nextind(s, 0, n1 + 1),  nextind(s, 0, n2))
 end
 
-
+# like `_slice` but get the indices (for indexable collections)
+_slice_inds(::Any, n1::Integer, n2::Integer) = n1:n2
+_slice_inds(s::AbstractString, n1::Integer, n2::Integer) = nextind(s, 0, n1 + 1):nextind(s, 0, n2)
