@@ -3,7 +3,7 @@
 
 Creates the `Partial{dist}` distance.
 
-`Partial{dist}`  returns the  minimum distance  between the shorter string and substrings of the longer string (with length equal to the shorter stirng)
+`Partial{dist}`  returns the  minimum distance  between the shorter string and substrings of the longer string that have a length equal to the shorter string.
 
 See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
