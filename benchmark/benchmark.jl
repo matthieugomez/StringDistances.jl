@@ -15,26 +15,25 @@ end
 
 
 @time f(Jaro(), x, y)
-#0.3s (now 0.37s)
+#0.3s 
 @time f(Levenshtein(), x, y)
-# 0.48s
+# 0.4s
 @time f(Levenshtein(), x, y, min_score = 0.8)
-# 0.11 (now 0.14)
+# 0.11 
 @time f(DamerauLevenshtein(), x, y)
-# 0.61s.
+# 0.58s.
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8)
 # 0.08 (now 0.09)
 @time f(RatcliffObershelp(), x, y)
-# 1.52s
+# 1.35s
 
 
 
 
 @time findnearest(x[1], y, Levenshtein())
-# 0.14
+# 0.02
 @time findnearest(x[1], y, DamerauLevenshtein())
-# 0.15
-
+# 0.05
 @time findnearest(x[1], y, QGram(2))
 # 0.75
 
