@@ -1,6 +1,7 @@
 module StringDistances
 
 using Distances
+import StatsAPI: pairwise, pairwise!
 
 include("distances/utils.jl")
 include("distances/edit.jl")

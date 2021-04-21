@@ -25,9 +25,7 @@ julia> pairwise(Levenshtein(), iter, iter2)
  10.0
 ```
 """
-Distances.pairwise
-
-function Distances.pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+function pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
     T = result_type(dist, eltype(xs), eltype(ys))
     if Missing <: Union{eltype(xs), eltype(ys)}
         T = Union{T, Missing}
@@ -46,9 +44,7 @@ For AbstractQGramDistances preprocessing will be used either if `preprocess` is 
 to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
 false if no preprocessing should be used, regardless of length.
 """
-Distances.pairwise!
-
-function Distances.pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
     length(ys) == size(R, 2) || throw(DimensionMismatch("inconsistent length"))
     ((xs === ys) & (dist isa SemiMetric)) ?
