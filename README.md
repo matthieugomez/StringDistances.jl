@@ -6,7 +6,7 @@ The package is registered in the [`General`](https://github.com/JuliaRegistries/
 
 ## Supported Distances
 
-Distances are defined for `AbstractStrings`, and any iterator that define `length()` (e.g. `graphemes`, `AbstractVector`...)
+Distances are defined over iterators that define `length` (this includes `AbstractStrings`, but also `GraphemeIterators` or `AbstractVectors`)
 
 The available distances are:
 
