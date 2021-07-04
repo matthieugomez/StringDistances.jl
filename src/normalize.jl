@@ -61,7 +61,6 @@ julia> StringDistances.normalize(Levenshtein())(s1, s2)
 ```
 """
 normalize(dist::SemiMetric; max_dist = 1.0) = Normalized{typeof(dist)}(dist, max_dist)
-normalize(dist::Union{Jaro, JaroWinkler}; max_dist = 1.0) = dist
 normalize(dist::Partial; max_dist = 1.0) = Partial(normalize(dist.dist; max_dist = max_dist))
 normalize(dist::TokenSort; max_dist = 1.0) = TokenSort(normalize(dist.dist; max_dist = max_dist))
 normalize(dist::TokenSet; max_dist = 1.0) = TokenSet(normalize(dist.dist; max_dist = max_dist))
