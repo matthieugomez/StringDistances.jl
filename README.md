@@ -26,12 +26,6 @@ The available distances are:
 	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int)`
 
 
-The package also defines Distance "modifiers" that can be applied to any distance.
-- [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
-- [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
-- [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
-- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
-
 ## Basic Use
 ### evaluate
 You can always compute a certain distance between two strings using the following syntax:
@@ -54,11 +48,11 @@ Levenshtein()("martha", "marhta")
 ```julia
 pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
 ```
-It is particularly fast for QGram-distances (each element is processed once).
+The function `pairwise` is particularly optimized for QGram-distances (each element is processed only once).
 
 
 
-### similarly scores
+### similarly score
 - The function `compare` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns a Float64. A value of 0.0 means completely different and a value of 1.0 means completely similar.
 
 	```julia
@@ -78,7 +72,7 @@ It is particularly fast for QGram-distances (each element is processed once).
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
-The functions `findnearest` and `findall` are particularly optimized for `Levenshtein`, `DamerauLevenshtein` distances (as well as their modifications via `Partial`, `TokenSort`, `TokenSet`, or `TokenMax`).
+The functions `findnearest` and `findall` are particularly optimized for `Levenshtein`, `DamerauLevenshtein` distances (these distances stop early if the distance is higher than a certain threshold).
 
 
 ## References
