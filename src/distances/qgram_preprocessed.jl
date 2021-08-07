@@ -122,7 +122,7 @@ end
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
-    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
+    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1
