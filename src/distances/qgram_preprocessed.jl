@@ -1,10 +1,10 @@
 # sometimes we already preprocess the strings
-# We know define how QgramDistances can be computed from these AbstractQGramCounts
+# We now define special methods for these special string types
 
 """
 	QGramDict(s, q::Integer = 2)
 
-Creates a QGramDict that pre-calculates (pre-counts) the qgrams
+A string that also stores  a dict that pre-calculates (pre-counts) the qgrams
 of a string or stream. This enables faster calculation of QGram 
 distances.
 
@@ -19,16 +19,20 @@ qd2 = QGramDict(str2, 2)
 evaluate(Overlap(2), qd1, qd2)
 ```
 """
-struct QGramDict{Q,K}
+struct QGramDict{Q, K, S} <: AbstractString
     counts::Dict{K,Int}
-    length::Int
+    s::S
 end
-Base.length(q::QGramDict) = q.length
+Base.length(s::QGramDict) = length(s.s)
+Base.iterate(s::QGramDict, i::Integer = firstindex(s.s)) = iterate(s.s, i)
+Base.nextind(s::QGramDict, i::Int, n::Int = 1) = nextind(s.s, i, n)
+Base.ncodeunits(s::QGramDict) = ncodeunits(s.s)
+Base.isvalid(s::QGramDict, i::Int) = isvalid(s.s, i)
 
 function QGramDict(s, q::Integer = 2)
     @assert q >= 1
     qgs = qgrams(s, q)
-    QGramDict{q, eltype(qgs)}(countdict(qgs), length(s))
+    QGramDict{q, eltype(qgs), typeof(s)}(countdict(qgs), s)
 end
 
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
@@ -75,7 +79,7 @@ end
 """
 	QGramSortedVector(s, q::Integer = 2)
 
-Creates a QGramSortedVector that pre-calculates (pre-counts) the 
+A string that also stores a sorted vector that pre-calculates (pre-counts) the 
 qgrams of a string or stream. This enables faster calculation of
 QGram distances.
 
@@ -96,17 +100,22 @@ qs2 = QGramSortedVector(str2, 2)
 evaluate(Jaccard(2), qs1, qs2)
 ```
 """
-struct QGramSortedVector{Q,K}
+struct QGramSortedVector{Q, K, S} <: AbstractString
     counts::Vector{Pair{K,Int}}
-    length::Int
+    s::S
 end
-Base.length(q::QGramSortedVector) = q.length
+Base.length(s::QGramSortedVector) = length(s.s)
+Base.iterate(s::QGramSortedVector, i::Integer = firstindex(s.s)) = iterate(s.s, i)
+Base.nextind(s::QGramSortedVector, i::Int, n::Int = 1) = nextind(s.s, i, n)
+Base.ncodeunits(s::QGramSortedVector) = ncodeunits(s.s)
+Base.isvalid(s::QGramSortedVector, i::Int) = isvalid(s.s, i)
+
 function QGramSortedVector(s, q::Integer = 2)
     @assert q >= 1
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
-    QGramSortedVector{q, eltype(qgs)}(countpairs, length(s))
+    QGramSortedVector{q, eltype(qgs), typeof(s)}(countpairs, s)
 end
 
 
