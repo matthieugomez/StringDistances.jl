@@ -6,7 +6,7 @@ import StatsAPI: pairwise, pairwise!
 include("distances/utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
-include("distances/qgram_pre.jl")
+include("distances/qgram_preprocessed.jl")
 
 include("modifiers.jl")
 include("normalize.jl")

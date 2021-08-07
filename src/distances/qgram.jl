@@ -51,7 +51,7 @@ qgrams
 # for each element in s1 ∪ s2, returns (numbers of times it appears in s1, numbers of times it appears in s2)
 function _count(s1, s2)
 	K = promote_type(eltype(s1), eltype(s2))
-	d = Dict{K, Tuple{Int, Int}}()
+	d = Dict{K, Tuple{Int32, Int32}}()
 	sizehint!(d, length(s1) + length(s2))
 	# I use a faster way to change a dictionary key
 	# see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
@@ -219,48 +219,6 @@ calculate(d::Overlap, c::ThreeCounters{Overlap}) =
 	1.0 - c.shared / min(c.left, c.right)
 
 """
-	MorisitaOverlap(q::Int)
-
-Creates a MorisitaOverlap distance, a general, statistical measure of
-dispersion which can also be used on dictionaries such as created
-from q-grams. See https://en.wikipedia.org/wiki/Morisita%27s_overlap_index
-This is more fine-grained than many of the other QGramDistances since
-it is based on the counts per q-gram rather than only which q-grams are
-in the strings.
-
-The distance corresponds to
-
-``(2 * sum(m(s1) .* m(s2)) / (sum(m(s1).^2)*M(s2)/M(s1) + sum(m(s2).^2)*M(s1)/M(s2))``
-
-where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
-sum of those counts.
-"""
-struct MorisitaOverlap <: AbstractQGramDistance
-	q::Int
-end
-
-mutable struct FiveCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
-	leftsum::Int    # sum(m(s1))
-	rightsum::Int   # sum(m(s2))
-	leftsq::Int     # sum(m(s1).^2)
-	rightsq::Int    # sum(m(s2).^2)
-	shared::Int     # sum(m(s1) .* m(s2))
-end
-
-newcounter(d::MorisitaOverlap) = FiveCounters{MorisitaOverlap}(0, 0, 0, 0, 0)
-
-@inline function count!(c::FiveCounters{MorisitaOverlap}, n1::Integer, n2::Integer)
-	c.leftsum += n1
-	c.rightsum += n2
-	c.leftsq += (n1^2)
-	c.rightsq += (n2^2)
-	c.shared += (n1 * n2)
-end
-
-calculate(d::MorisitaOverlap, c::FiveCounters{MorisitaOverlap}) =
-	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
-
-"""
 	NMD(q::Int)
 	NMD(q::Int)
 
@@ -291,3 +249,45 @@ newcounter(d::NMD) = ThreeCounters{NMD}(0, 0, 0)
 end
 calculate(d::NMD, c::ThreeCounters{NMD}) =
 	(c.shared - min(c.left, c.right)) / max(c.left, c.right)
+
+
+"""
+	MorisitaOverlap(q::Int)
+
+Creates a MorisitaOverlap distance, a general, statistical measure of
+dispersion which can also be used on dictionaries such as created
+from q-grams. See https://en.wikipedia.org/wiki/Morisita%27s_overlap_index
+This is more fine-grained than many of the other QGramDistances since
+it is based on the counts per q-gram rather than only which q-grams are
+in the strings.
+
+The distance corresponds to
+
+``(2 * sum(m(s1) .* m(s2)) / (sum(m(s1).^2)*M(s2)/M(s1) + sum(m(s2).^2)*M(s1)/M(s2))``
+
+where ``m(s)`` is the vector of q-gram counts for string ``s`` and ``M(s)`` is the
+sum of those counts.
+"""
+struct MorisitaOverlap <: AbstractQGramDistance
+	q::Int
+end
+
+mutable struct FiveCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+	leftsum::Int    # sum(m(s1))
+	rightsum::Int   # sum(m(s2))
+	leftsq::Int     # sum(m(s1).^2)
+	rightsq::Int    # sum(m(s2).^2)
+	shared::Int     # sum(m(s1) .* m(s2))
+end
+
+newcounter(d::MorisitaOverlap) = FiveCounters{MorisitaOverlap}(0, 0, 0, 0, 0)
+@inline function count!(c::FiveCounters{MorisitaOverlap}, n1::Integer, n2::Integer)
+	c.leftsum += n1
+	c.rightsum += n2
+	c.leftsq += (n1^2)
+	c.rightsq += (n2^2)
+	c.shared += (n1 * n2)
+end
+calculate(d::MorisitaOverlap, c::FiveCounters{MorisitaOverlap}) =
+	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
+

@@ -1,3 +1,6 @@
+# sometimes we already preprocess the strings as AbstractQGramCounts
+# We know define how QgramDistances can be computed from these AbstractQGramCounts
+
 
 abstract type AbstractQGramCounts{Q,K} end
 q(qc::AbstractQGramCounts{Q,K}) where {Q,K} = Q
@@ -122,6 +125,7 @@ QGramSortedVector(s, q::Integer = 2) = QGramSortedVector(collect(s), q)
 function countmatches!(mc::AbstractQGramMatchCounter, d1::Vector{Pair{K,I}}, d2::Vector{Pair{K,I}}) where {K,I<:Integer}
     i1 = i2 = 1
     while true
+    	# length can be zero
         if i2 > length(d2)
 			for i in i1:length(d1)
 				@inbounds count!(mc, d1[i][2], 0)
@@ -147,7 +151,6 @@ function countmatches!(mc::AbstractQGramMatchCounter, d1::Vector{Pair{K,I}}, d2:
             i1 += 1
             i2 += 1
         end
-
     end
 end
 
