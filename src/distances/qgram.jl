@@ -1,6 +1,13 @@
 struct QGramIterator{S <: Union{AbstractString, AbstractVector}}
 	s::S   # Collection
 	q::Int # Length of Qgram
+	function QGramIterator{S}(s, q) where {S <: Union{AbstractString, AbstractVector}}
+		q > 0 || throw(ArgumentError("The qgram length must be higher than zero"))
+		new(s, q)
+	end
+end
+function QGramIterator(s::Union{AbstractString, AbstractVector}, q::Integer)
+	QGramIterator{typeof(s)}(s, q)
 end
 Base.length(qgram::QGramIterator) = max(length(qgram.s) - qgram.q + 1, 0)
 

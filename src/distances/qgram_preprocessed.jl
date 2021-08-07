@@ -29,7 +29,6 @@ Base.iterate(s::QGramDict, state) = iterate(s.s, state)
 
 function QGramDict(s, q::Integer = 2)
     (s isa QGramDict) && (s.q == q) && return s
-    q > 0 || throw(ArgumentError("The qgram length must be higher than zero"))
     qgs = qgrams(s, q)
     QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
 end
@@ -72,8 +71,6 @@ function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
     calculate(dist, counter)
 end
 
-(dist::AbstractQGramDistance)(qc1::QGramDict, s2) = dist(qc1, QGramDict(s2, dist.q))
-(dist::AbstractQGramDistance)(qc1::QGramDict, ::Missing) = missing
 """
 	QGramSortedVector(s, q::Integer = 2)
 
@@ -108,7 +105,6 @@ Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
 
 function QGramSortedVector(s, q::Integer = 2)
     (s isa QGramSortedVector) && (s.q == q) && return s
-    q > 0 || throw(ArgumentError("The qgram length must be higher than zero"))
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
@@ -156,7 +152,4 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
     end
     calculate(dist, counter)
 end
-
-(dist::AbstractQGramDistance)(qc1::QGramSortedVector, s2) = dist(qc1, QGramSortedVector(s2, dist.q))
-(dist::AbstractQGramDistance)(qc1::QGramSortedVector, ::Missing) = missing
 
