@@ -52,8 +52,7 @@ function countdict(qgrams)
 end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
-    @assert dist.q == qc1.q
-    @assert dist.q == qc2.q    
+    @assert dist.q == qc1.q == qc2.q    
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     for (k1, c1) in d1
@@ -123,8 +122,7 @@ end
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
-    @assert dist.q == qc1.q
-    @assert dist.q == qc2.q
+    @assert dist.q == qc1.q == qc2.q
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1
