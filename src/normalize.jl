@@ -167,13 +167,19 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
+    _findnearest(s, itr, dist; min_score = min_score)
+end
+function findnearest(s, itr, dist::AbstractQGramDistance; min_score = 0.0)
+    _findnearest(QGramSortedVector(s, dist.q), itr, dist; min_score = min_score)
+end
+
+function _findnearest(s, itr, dist::StringDistance; min_score = 0.0)
     min_score_atomic = Threads.Atomic{Float64}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
-    s = _helper(s, dist)
     # need collect since @threads requires a length method
     Threads.@threads for i in collect(eachindex(itr))
-        score = compare(s, _helper(itr[i], dist), dist; min_score = min_score_atomic[])
+        score = compare(s, itr[i], dist; min_score = min_score_atomic[])
         score_old = Threads.atomic_max!(min_score_atomic, score)
         if score >= score_old
             scores[Threads.threadid()] = score
@@ -183,11 +189,6 @@ function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
     imax = is[argmax(scores)]
     imax == 0 ? (nothing, nothing) : (itr[imax], imax)
 end
-
-function _helper(s, dist::AbstractQGramDistance)
-    s !== missing ? QGramSortedVector(s, dist.q) : s
-end
-_helper(s, dist::StringDistance) = s
 
 
 function Base.findmax(s, itr, dist::StringDistance; min_score = 0.0)
@@ -217,11 +218,16 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function Base.findall(s, itr, dist::StringDistance; min_score = 0.8)
+    _findall(s, itr, dist; min_score = min_score)
+end
+function Base.findall(s, itr, dist::AbstractQGramDistance; min_score = 0.8)
+    _findall(QGramSortedVector(s, dist.q), itr, dist; min_score = min_score)
+end
+function _findall(s, itr, dist::StringDistance; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
-    s = _helper(s, dist)
     # need collect since @threads requires a length method
     Threads.@threads for i in collect(eachindex(itr))
-        score = compare(s, _helper(itr[i], dist), dist; min_score = min_score)
+        score = compare(s, itr[i], dist; min_score = min_score)
         if score >= min_score
             push!(out[Threads.threadid()], i)
         end

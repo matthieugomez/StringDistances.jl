@@ -4,8 +4,7 @@
 """
 	QGramDict(s, q::Integer = 2)
 
-A string that also stores  a dict that pre-calculates (pre-counts) the qgrams
-of a string or stream. This enables faster calculation of QGram 
+An iterator with a pre-computed dictionary of its qgrams. This enables faster calculation of QGram 
 distances.
 
 Note that the qgram length must correspond with the q length used
@@ -19,20 +18,20 @@ qd2 = QGramDict(str2, 2)
 evaluate(Overlap(2), qd1, qd2)
 ```
 """
-struct QGramDict{Q, K, S} <: AbstractString
-    counts::Dict{K,Int}
+struct QGramDict{S, K}
     s::S
+    q::Int
+    counts::Dict{K,Int}
 end
 Base.length(s::QGramDict) = length(s.s)
-Base.iterate(s::QGramDict, i::Integer = firstindex(s.s)) = iterate(s.s, i)
-Base.nextind(s::QGramDict, i::Int, n::Int = 1) = nextind(s.s, i, n)
-Base.ncodeunits(s::QGramDict) = ncodeunits(s.s)
-Base.isvalid(s::QGramDict, i::Int) = isvalid(s.s, i)
+Base.iterate(s::QGramDict) = iterate(s.s)
+Base.iterate(s::QGramDict, state) = iterate(s.s, state)
 
 function QGramDict(s, q::Integer = 2)
+    (s isa QGramDict) && (s.q == q) && return s
     @assert q >= 1
     qgs = qgrams(s, q)
-    QGramDict{q, eltype(qgs), typeof(s)}(countdict(qgs), s)
+    QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
 end
 
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
@@ -52,10 +51,9 @@ function countdict(qgrams)
     d
 end
 
-
-
-function (dist::AbstractQGramDistance)(qc1::QGramDict{Q, K}, qc2::QGramDict{Q, K}) where {Q, K}
-    @assert dist.q == Q
+function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
+    @assert dist.q == qc1.q
+    @assert dist.q == qc2.q    
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     for (k1, c1) in d1
@@ -75,13 +73,13 @@ function (dist::AbstractQGramDistance)(qc1::QGramDict{Q, K}, qc2::QGramDict{Q, K
     calculate(dist, counter)
 end
 
-
+(dist::AbstractQGramDistance)(qc1::QGramDict, s2) = dist(qc1, QGramDict(s2, dist.q))
+(dist::AbstractQGramDistance)(qc1::QGramDict, ::Missing) = missing
 """
 	QGramSortedVector(s, q::Integer = 2)
 
-A string that also stores a sorted vector that pre-calculates (pre-counts) the 
-qgrams of a string or stream. This enables faster calculation of
-QGram distances.
+An iterator with a pre-computed sorted vector of its qgrams. This enables faster calculation of QGram 
+distances.
 
 Since qgrams are sorted in lexicographic order QGram distances can be 
 calculated even faster than when using a QGramDict. However, the 
@@ -100,22 +98,22 @@ qs2 = QGramSortedVector(str2, 2)
 evaluate(Jaccard(2), qs1, qs2)
 ```
 """
-struct QGramSortedVector{Q, K, S} <: AbstractString
-    counts::Vector{Pair{K,Int}}
+struct QGramSortedVector{S, K}
     s::S
+    q::Int
+    counts::Vector{Pair{K,Int}}
 end
 Base.length(s::QGramSortedVector) = length(s.s)
-Base.iterate(s::QGramSortedVector, i::Integer = firstindex(s.s)) = iterate(s.s, i)
-Base.nextind(s::QGramSortedVector, i::Int, n::Int = 1) = nextind(s.s, i, n)
-Base.ncodeunits(s::QGramSortedVector) = ncodeunits(s.s)
-Base.isvalid(s::QGramSortedVector, i::Int) = isvalid(s.s, i)
+Base.iterate(s::QGramSortedVector) = iterate(s.s)
+Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
 
 function QGramSortedVector(s, q::Integer = 2)
+    (s isa QGramSortedVector) && (s.q == q) && return s
     @assert q >= 1
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
-    QGramSortedVector{q, eltype(qgs), typeof(s)}(countpairs, s)
+    QGramSortedVector{typeof(s), eltype(qgs)}(s, q, countpairs)
 end
 
 
@@ -124,8 +122,9 @@ end
 # between strings or pre-calculated AbstractQgramCounts objects.
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
-function (dist::AbstractQGramDistance)(qc1::QGramSortedVector{Q, K}, qc2::QGramSortedVector{Q, K}) where {Q, K}
-    @assert dist.q == Q
+function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
+    @assert dist.q == qc1.q
+    @assert dist.q == qc2.q
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1
@@ -160,4 +159,6 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector{Q, K}, qc2::QGramS
     calculate(dist, counter)
 end
 
+(dist::AbstractQGramDistance)(qc1::QGramSortedVector, s2) = dist(qc1, QGramSortedVector(s2, dist.q))
+(dist::AbstractQGramDistance)(qc1::QGramSortedVector, ::Missing) = missing
 
