@@ -78,182 +78,21 @@ function _count(s1, s2)
 	return values(d)
 end
 
-# Turn a sequence of qgrams to a count dict for them, i.e. map each
-# qgram to the number of times it has been seen.
-function countdict(qgrams)
-    d = Dict{eltype(qgrams), Int32}()
-    for qg in qgrams
-        index = Base.ht_keyindex2!(d, qg)
-		if index > 0
-			d.age += 1
-			@inbounds d.keys[index] = qg
-			@inbounds d.vals[index] = d.vals[index][1] + 1
-		else
-			@inbounds Base._setindex!(d, 1, qg, -index)
-		end
-    end
-    d
-end
-
-abstract type AbstractQGramCounts{Q,K} end
-q(qc::AbstractQGramCounts{Q,K}) where {Q,K} = Q
-counts(qc::AbstractQGramCounts) = qc.counts
-Base.length(qc::AbstractQGramCounts{Q}) where Q = length(qc.counts) + Q - 1
-"""
-	QGramDict(s, q::Integer = 2)
-
-Creates a QGramDict that pre-calculates (pre-counts) the qgrams
-of a string or stream. This enables faster calculation of QGram 
-distances.
-
-Note that the qgram length must correspond with the q length used
-in the distance.
-
-## Examples
-```julia
-str1, str2 = "my string", "another string"
-qd1 = QGramDict(str1, 2)
-qd2 = QGramDict(str2, 2)
-evaluate(Overlap(2), qd1, qd2)
-```
-"""
-struct QGramDict{Q,K} <: AbstractQGramCounts{Q,K}
-    counts::Dict{K,Int}
-end
-function QGramDict(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
-    @assert q >= 1
-    qgs = qgrams(s, q)
-    QGramDict{q, eltype(qgs)}(countdict(qgs))
-end
-QGramDict(s, q::Integer = 2) = QGramDict(collect(s), q)
-
-"""
-	QGramSortedVector(s, q::Integer = 2)
-
-Creates a QGramSortedVector that pre-calculates (pre-counts) the 
-qgrams of a string or stream. This enables faster calculation of
-QGram distances.
-
-Since qgrams are sorted in lexicographic order QGram distances can be 
-calculated even faster than when using a QGramDict. However, the 
-sorting means that updating the counts after creation is less 
-efficient. However, for most use cases QGramSortedVector is preferred
-over a QgramDict.
-
-Note that the qgram length must correspond with the q length used
-in the distance.
-
-## Examples
-```julia
-str1, str2 = "my string", "another string"
-qs1 = QGramSortedVector(str1, 2)
-qs2 = QGramSortedVector(str2, 2)
-evaluate(Jaccard(2), qs1, qs2)
-```
-"""
-struct QGramSortedVector{Q,K} <: AbstractQGramCounts{Q,K}
-    counts::Vector{Pair{K,Int}}
-end
-function QGramSortedVector(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
-    @assert q >= 1
-    qgs = qgrams(s, q)
-    countpairs = collect(countdict(qgs))
-    sort!(countpairs, by = first)
-    QGramSortedVector{q, eltype(qgs)}(countpairs)
-end
-QGramSortedVector(s, q::Integer = 2) = QGramSortedVector(collect(s), q)
-
-# To implement the distances we will count qgram matches
-# between strings or pre-calculated AbstractQgramCounts objects.
-# The abstract type defines different fallback versions which can be
-# specialied by subtypes for best performance.
 abstract type AbstractQGramMatchCounter end
-@inline countleft!(c::AbstractQGramMatchCounter, qg, n1::Integer) = countleft!(c, n1)
-@inline countright!(c::AbstractQGramMatchCounter, qg, n2::Integer) = countright!(c, n2)
-@inline countboth!(c::AbstractQGramMatchCounter, qg, n1::Integer, n2::Integer) =
-	countboth!(c, n1, n2)
-@inline function countboth!(c::AbstractQGramMatchCounter, n1::Integer, n2::Integer)
-	countleft!(c, n1)
-	countright!(c, n2)
-	countshared!(c, n1, n2)
-end
-@inline countshared!(c::AbstractQGramMatchCounter, qg, n1::Integer, n2::Integer) = countshared!(c, n1, n2)
-
-# Subtypes must implement these methods:
-@inline countleft!(c::AbstractQGramMatchCounter, n1::Integer) =
-	error("countleft! not implemented for $(typeof(c))")
-@inline countright!(c::AbstractQGramMatchCounter, n2::Integer) =
-	error("countright! not implemented for $(typeof(c))")
-
-# Subtypes either must overwrite countboth! from above (so it not uses countshared!) or implement:
-@inline countshared!(c::AbstractQGramMatchCounter, n1::Integer, n2::Integer) =
-	error("countshared! not implemented for $(typeof(c))")
-
-function countmatches!(mc::AbstractQGramMatchCounter, d1::Vector{Pair{K,I}}, d2::Vector{Pair{K,I}}) where {K,I<:Integer}
-    i1 = i2 = 1
-    while i1 <= length(d1) || i2 <= length(d2)
-        if i2 > length(d2)
-			for i in i1:length(d1)
-				@inbounds countleft!(mc, d1[i][1], d1[i][2])
-            end
-            return
-        elseif i1 > length(d1)
-			for i in i2:length(d2)
-				@inbounds countright!(mc, d2[i][1], d2[i][2])
-            end
-            return
-        end
-        @inbounds k1, n1 = d1[i1]
-        @inbounds k2, n2 = d2[i2]
-        cmpval = Base.cmp(k1, k2)
-		if cmpval == -1 # k1 < k2
-			countleft!(mc, k1, n1)
-            i1 += 1
-        elseif cmpval == +1 # k2 < k1
-			countright!(mc, k2, n2)
-            i2 += 1
-		else
-			countboth!(mc, k1, n1, n2)
-            i1 += 1
-            i2 += 1
-        end
-    end
-end
-
-function countmatches!(mc::AbstractQGramMatchCounter, d1::Dict{K,I}, d2::Dict{K,I}) where {K,I<:Integer}
-    for (k1, c1) in d1
-        index = Base.ht_keyindex2!(d2, k1)
-		if index > 0
-			countboth!(mc, k1, c1, d2.vals[index])
-		else
-			countleft!(mc, k1, c1)
-        end
-    end
-    for (k2, c2) in d2
-        index = Base.ht_keyindex2!(d1, k2)
-		if index <= 0
-			countright!(mc, k2, c2)
-        end
-    end
-end
 
 abstract type AbstractQGramDistance <: SemiMetric end
 
 function (dist::AbstractQGramDistance)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
 	counter = newcounter(dist)
-	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
-		countboth!(counter, n1, n2)
-	end
+	countmatches!(counter, qgrams(s1, dist.q), qgrams(s2, dist.q))
 	calculate(dist, counter)
 end
 
-function (dist::AbstractQGramDistance)(qc1::QC, qc2::QC) where {QC<:AbstractQGramCounts}
-    @assert dist.q == q(qc1)
-	@assert dist.q == q(qc2)
-	counter = newcounter(dist)
-	countmatches!(counter, counts(qc1), counts(qc2))
-    calculate(dist, counter)
+function countmatches!(counter::AbstractQGramMatchCounter, qgram1::QGramIterator, qgram2::QGramIterator)
+	for (n1, n2) in _count(qgram1, qgram2)
+		count!(counter, n1, n2)
+	end
 end
 
 """
@@ -272,17 +111,15 @@ struct QGram <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct SingleCounter{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
-	n::T
+mutable struct SingleCounter{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+	shared::Int
 end
 
-newcounter(d::QGram) = SingleCounter{Int, QGram}(0)
-
-@inline countleft!(c::SingleCounter{Int, QGram}, n1::Integer) = c.n += n1 # n1 === abs(n1 - 0)
-@inline countright!(c::SingleCounter{Int, QGram}, n2::Integer) = c.n += n2 # n2 === abs(0 - n2)
-@inline countboth!(c::SingleCounter{Int, QGram}, n1::Integer, n2::Integer) = c.n += abs(n1 - n2)
-
-calculate(dist::QGram, c::SingleCounter{Int, QGram}) = c.n
+newcounter(d::QGram) = SingleCounter{QGram}(0)
+@inline function count!(c::SingleCounter{QGram}, n1::Integer, n2::Integer)
+	c.shared += abs(n1 - n2)
+end
+calculate(dist::QGram, c::SingleCounter{QGram}) = c.shared
 
 """
 	Cosine(q::Int)
@@ -300,19 +137,19 @@ struct Cosine <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct ThreeCounters{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
-	left::T
-	right::T
-	shared::T
+mutable struct ThreeCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+	left::Int
+	right::Int
+	shared::Int
 end
 
-newcounter(d::Cosine) = ThreeCounters{Int, Cosine}(0, 0, 0)
-
-@inline countleft!(c::ThreeCounters{Int, Cosine}, n1::Integer) = c.left += n1^2
-@inline countright!(c::ThreeCounters{Int, Cosine}, n2::Integer) = c.right += n2^2
-@inline countshared!(c::ThreeCounters{Int, Cosine}, n1::Integer, n2::Integer) = c.shared += n1 * n2
-
-calculate(d::Cosine, c::ThreeCounters{Int, Cosine}) =
+newcounter(d::Cosine) = ThreeCounters{Cosine}(0, 0, 0)
+@inline function count!(c::ThreeCounters{Cosine}, n1::Integer, n2::Integer)
+	c.left += n1^2
+	c.right += n2^2
+	c.shared += n1 * n2
+end
+calculate(d::Cosine, c::ThreeCounters{Cosine}) =
 	1.0 - c.shared / (sqrt(c.left) * sqrt(c.right))
 
 """
@@ -329,8 +166,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
-
-calculate(d::Jaccard, c::ThreeCounters{Int, Jaccard}) =
+newcounter(d::Jaccard) = ThreeCounters{Jaccard}(0, 0, 0)
+@inline function count!(c::ThreeCounters{Jaccard}, n1::Integer, n2::Integer)
+	c.left += (n1 > 0)
+	c.right += (n2 > 0)
+	c.shared += (n1 > 0) & (n2 > 0)
+end
+calculate(d::Jaccard, c::ThreeCounters{Jaccard}) =
 	1.0 - c.shared / (c.left + c.right - c.shared)
 
 """
@@ -347,8 +189,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
-
-calculate(d::SorensenDice, c::ThreeCounters{Int, SorensenDice}) =
+newcounter(d::SorensenDice) = ThreeCounters{SorensenDice}(0, 0, 0)
+@inline function count!(c::ThreeCounters{SorensenDice}, n1::Integer, n2::Integer)
+	c.left += (n1 > 0)
+	c.right += (n2 > 0)
+	c.shared += (n1 > 0) & (n2 > 0)
+end
+calculate(d::SorensenDice, c::ThreeCounters{SorensenDice}) =
 	1.0 - 2.0 * c.shared / (c.left + c.right)
 
 """
@@ -365,18 +212,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct Overlap <: AbstractQGramDistance
 	q::Int
 end
-
-const IntersectionDist = Union{Jaccard, SorensenDice, Overlap}
-newcounter(d::IntersectionDist) = ThreeCounters{Int, typeof(d)}(0, 0, 0)
-
-@inline countleft!(c::ThreeCounters{Int, QD}, n1::Integer) where {QD<:IntersectionDist} =
+newcounter(d::Overlap) = ThreeCounters{Overlap}(0, 0, 0)
+@inline function count!(c::ThreeCounters{Overlap}, n1::Integer, n2::Integer)
 	c.left += (n1 > 0)
-@inline countright!(c::ThreeCounters{Int, QD}, n2::Integer) where {QD<:IntersectionDist} =
 	c.right += (n2 > 0)
-@inline countshared!(c::ThreeCounters{Int, QD}, n1::Integer, n2::Integer) where {QD<:IntersectionDist} =
 	c.shared += (n1 > 0) & (n2 > 0)
-
-calculate(d::Overlap, c::ThreeCounters{Int, Overlap}) =
+end
+calculate(d::Overlap, c::ThreeCounters{Overlap}) =
 	1.0 - c.shared / min(c.left, c.right)
 
 """
@@ -400,30 +242,25 @@ struct MorisitaOverlap <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct FiveCounters{T, QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
-	leftsum::T    # sum(m(s1))
-	rightsum::T   # sum(m(s2))
-	leftsq::T     # sum(m(s1).^2)
-	rightsq::T    # sum(m(s2).^2)
-	shared::T     # sum(m(s1) .* m(s2))
+mutable struct FiveCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+	leftsum::Int    # sum(m(s1))
+	rightsum::Int   # sum(m(s2))
+	leftsq::Int     # sum(m(s1).^2)
+	rightsq::Int    # sum(m(s2).^2)
+	shared::Int     # sum(m(s1) .* m(s2))
 end
 
-newcounter(d::MorisitaOverlap) = FiveCounters{Int, MorisitaOverlap}(0, 0, 0, 0, 0)
+newcounter(d::MorisitaOverlap) = FiveCounters{MorisitaOverlap}(0, 0, 0, 0, 0)
 
-@inline function countleft!(c::FiveCounters{Int, MorisitaOverlap}, n1::Integer)
+@inline function count!(c::FiveCounters{MorisitaOverlap}, n1::Integer, n2::Integer)
 	c.leftsum += n1
-	c.leftsq += (n1^2)
-end
-
-@inline function countright!(c::FiveCounters{Int, MorisitaOverlap}, n2::Integer)
 	c.rightsum += n2
+	c.leftsq += (n1^2)
 	c.rightsq += (n2^2)
+	c.shared += (n1 * n2)
 end
 
-@inline countshared!(c::FiveCounters{Int, MorisitaOverlap}, n1::Integer, n2::Integer) =
-	c.shared += (n1 * n2)
-
-calculate(d::MorisitaOverlap, c::FiveCounters{Int, MorisitaOverlap}) =
+calculate(d::MorisitaOverlap, c::FiveCounters{MorisitaOverlap}) =
 	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
 
 """
@@ -449,23 +286,11 @@ struct NMD <: AbstractQGramDistance
 	q::Int
 end
 
-newcounter(d::NMD) = ThreeCounters{Int, NMD}(0, 0, 0)
-
-@inline function countleft!(c::ThreeCounters{Int, NMD}, n1::Integer)
-	c.left += n1
-	c.shared += n1 # max(n1, 0) == n1
-end
-
-@inline function countright!(c::ThreeCounters{Int, NMD}, n2::Integer)
-	c.right += n2
-	c.shared += n2 # max(n2, 0) == n2
-end
-
-@inline function countboth!(c::ThreeCounters{Int, NMD}, n1::Integer, n2::Integer)
+newcounter(d::NMD) = ThreeCounters{NMD}(0, 0, 0)
+@inline function count!(c::ThreeCounters{NMD}, n1::Integer, n2::Integer)
 	c.left += n1
 	c.right += n2
 	c.shared += max(n1, n2)
 end
-
-calculate(d::NMD, c::ThreeCounters{Int, NMD}) =
+calculate(d::NMD, c::ThreeCounters{NMD}) =
 	(c.shared - min(c.left, c.right)) / max(c.left, c.right)
