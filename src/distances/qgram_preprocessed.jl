@@ -29,7 +29,7 @@ Base.iterate(s::QGramDict, state) = iterate(s.s, state)
 
 function QGramDict(s, q::Integer = 2)
     (s isa QGramDict) && (s.q == q) && return s
-    @assert q >= 1
+    q > 0 || throw(ArgumentError("The qgram length must be higher than zero"))
     qgs = qgrams(s, q)
     QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
 end
@@ -52,7 +52,7 @@ function countdict(qgrams)
 end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
-    @assert dist.q == qc1.q == qc2.q    
+    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     for (k1, c1) in d1
@@ -108,7 +108,7 @@ Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
 
 function QGramSortedVector(s, q::Integer = 2)
     (s isa QGramSortedVector) && (s.q == q) && return s
-    @assert q >= 1
+    q > 0 || throw(ArgumentError("The qgram length must be higher than zero"))
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
@@ -122,7 +122,7 @@ end
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
-    @assert dist.q == qc1.q == qc2.q
+    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
     counter = newcounter(dist)
     d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1

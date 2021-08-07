@@ -38,7 +38,7 @@ end
     pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
 
 Compute distances between all pairs of elements in `xs` and `ys` according to the
-`StringDistance` `dist` and write the result in `R`. `R[i, j]` corrresponds to the distance between `xs[i]` and `ys[j]`.
+`StringDistance` `dist` and write the result in `R`. `R[i, j]` corresponds to the distance between `xs[i]` and `ys[j]`.
 
 For AbstractQGramDistances preprocessing will be used either if `preprocess` is set 
 to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
@@ -75,11 +75,13 @@ function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::Abst
     return R
 end
 
-function _preprocess(xs, dist::AbstractQGramDistance, preprocess)
-    if preprocess === nothing ? length(xs) >= 5 : preprocess 
-        return map(x -> x === missing ? x : QGramSortedVector(x, dist.q), xs)
+function _preprocess(xs, dist::StringDistance, preprocess)
+    if preprocess === nothing
+        preprocess = length(xs) >= 5
+    end
+    if (dist isa AbstractQGramDistance) && preprocess
+        return fetch.(map(x -> (Threads.@spawn x === missing ? x : QGramSortedVector(x, dist.q)), xs))
     else
         return xs
     end
 end
-_preprocess(xs, dist::StringDistance, preprocess) = xs

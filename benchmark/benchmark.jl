@@ -14,47 +14,46 @@ end
 
 
 
-@time f(Jaro(), x, y)
+@time f(Jaro(), x, y);
 #0.3s 
-@time f(Levenshtein(), x, y)
+@time f(Levenshtein(), x, y);
 # 0.4s
-@time f(Levenshtein(), x, y, min_score = 0.8)
+@time f(Levenshtein(), x, y, min_score = 0.8);
 # 0.11 
-@time f(DamerauLevenshtein(), x, y)
+@time f(DamerauLevenshtein(), x, y);
 # 0.58s.
-@time f(DamerauLevenshtein(), x, y, min_score = 0.8)
+@time f(DamerauLevenshtein(), x, y, min_score = 0.8);
 # 0.08 (now 0.09)
-@time f(RatcliffObershelp(), x, y)
+@time f(RatcliffObershelp(), x, y);
 # 1.35s
 
 
 
 
-@time findnearest(x[1], y, Levenshtein())
+@time findnearest(x[1], y, Levenshtein());
 # 0.02
-@time findnearest(x[1], y, DamerauLevenshtein())
+@time findnearest(x[1], y, DamerauLevenshtein());
 # 0.05
-@time findnearest(x[1], y, QGram(2))
+@time findnearest(x[1], y, QGram(2));
 # 0.75
 
 
 
-@time findall(x[1], y, Levenshtein())
+@time findall(x[1], y, Levenshtein());
 # 0.05
-@time findall(x[1], y, DamerauLevenshtein())
+@time findall(x[1], y, DamerauLevenshtein());
 # 0.05
-@time findall(x[1], y, Partial(DamerauLevenshtein()))
+@time findall(x[1], y, Partial(DamerauLevenshtein()));
 # 0.96
-@time findall(x[1], y, QGram(2))
+@time findall(x[1], y, QGram(2));
 # 0.81
-@time findall(x[1], y, TokenSort(DamerauLevenshtein()))
+@time findall(x[1], y, TokenSort(DamerauLevenshtein()));
 # 0.27 (now 0.32)
-@time findall(x[1], y, TokenSet(DamerauLevenshtein()))
+@time findall(x[1], y, TokenSet(DamerauLevenshtein()));
 # 0.55
-@time findall(x[1], y, TokenMax(DamerauLevenshtein()))
+@time findall(x[1], y, TokenMax(DamerauLevenshtein()));
 # 2.25 (now 3.6)
-@time findnearest(x[1], y, DamerauLevenshtein())
-# 0.15
+
 
 x = map(Random.randstring, rand(5:25,1000))
 y = map(Random.randstring, rand(5:25,1000))
