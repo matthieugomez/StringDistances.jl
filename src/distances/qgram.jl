@@ -85,15 +85,12 @@ abstract type AbstractQGramDistance <: SemiMetric end
 function (dist::AbstractQGramDistance)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
 	counter = newcounter(dist)
-	countmatches!(counter, qgrams(s1, dist.q), qgrams(s2, dist.q))
+	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
+		count!(counter, n1, n2)
+	end
 	calculate(dist, counter)
 end
 
-function countmatches!(counter::AbstractQGramMatchCounter, qgram1::QGramIterator, qgram2::QGramIterator)
-	for (n1, n2) in _count(qgram1, qgram2)
-		count!(counter, n1, n2)
-	end
-end
 
 """
 	QGram(q::Int)
