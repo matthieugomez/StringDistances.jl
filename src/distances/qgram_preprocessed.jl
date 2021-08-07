@@ -1,19 +1,5 @@
-# sometimes we already preprocess the strings as AbstractQGramCounts
+# sometimes we already preprocess the strings
 # We know define how QgramDistances can be computed from these AbstractQGramCounts
-
-
-abstract type AbstractQGramCounts{Q,K} end
-q(qc::AbstractQGramCounts{Q,K}) where {Q,K} = Q
-counts(qc::AbstractQGramCounts) = qc.counts
-Base.length(qc::AbstractQGramCounts{Q}) where Q = length(qc.counts) + Q - 1
-
-function (dist::AbstractQGramDistance)(qc1::QC, qc2::QC) where {QC<:AbstractQGramCounts}
-    @assert dist.q == q(qc1)
-	@assert dist.q == q(qc2)
-	counter = newcounter(dist)
-	countmatches!(counter, counts(qc1), counts(qc2))
-    calculate(dist, counter)
-end
 
 """
 	QGramDict(s, q::Integer = 2)
@@ -33,13 +19,16 @@ qd2 = QGramDict(str2, 2)
 evaluate(Overlap(2), qd1, qd2)
 ```
 """
-struct QGramDict{Q,K} <: AbstractQGramCounts{Q,K}
+struct QGramDict{Q,K}
     counts::Dict{K,Int}
+    length::Int
 end
-function QGramDict(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
+Base.length(q::QGramDict) = q.length
+
+function QGramDict(s, q::Integer = 2)
     @assert q >= 1
     qgs = qgrams(s, q)
-    QGramDict{q, eltype(qgs)}(countdict(qgs))
+    QGramDict{q, eltype(qgs)}(countdict(qgs), length(s))
 end
 
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
@@ -59,24 +48,27 @@ function countdict(qgrams)
     d
 end
 
-QGramDict(s, q::Integer = 2) = QGramDict(collect(s), q)
 
 
-function countmatches!(mc::AbstractQGramMatchCounter, d1::Dict{K,I}, d2::Dict{K,I}) where {K,I<:Integer}
+function (dist::AbstractQGramDistance)(qc1::QGramDict{Q, K}, qc2::QGramDict{Q, K}) where {Q, K}
+    @assert dist.q == Q
+    counter = newcounter(dist)
+    d1, d2 = qc1.counts, qc2.counts
     for (k1, c1) in d1
         index = Base.ht_keyindex2!(d2, k1)
 		if index > 0
-			count!(mc, c1, d2.vals[index])
+			count!(counter, c1, d2.vals[index])
 		else
-			count!(mc, c1, 0)
+			count!(counter, c1, 0)
         end
     end
     for (k2, c2) in d2
         index = Base.ht_keyindex2!(d1, k2)
 		if index <= 0
-			count!(mc, 0, c2)
+			count!(counter, 0, c2)
         end
     end
+    calculate(dist, counter)
 end
 
 
@@ -104,17 +96,18 @@ qs2 = QGramSortedVector(str2, 2)
 evaluate(Jaccard(2), qs1, qs2)
 ```
 """
-struct QGramSortedVector{Q,K} <: AbstractQGramCounts{Q,K}
+struct QGramSortedVector{Q,K}
     counts::Vector{Pair{K,Int}}
+    length::Int
 end
-function QGramSortedVector(s::Union{AbstractString, AbstractVector}, q::Integer = 2)
+Base.length(q::QGramSortedVector) = q.length
+function QGramSortedVector(s, q::Integer = 2)
     @assert q >= 1
     qgs = qgrams(s, q)
     countpairs = collect(countdict(qgs))
     sort!(countpairs, by = first)
-    QGramSortedVector{q, eltype(qgs)}(countpairs)
+    QGramSortedVector{q, eltype(qgs)}(countpairs, length(s))
 end
-QGramSortedVector(s, q::Integer = 2) = QGramSortedVector(collect(s), q)
 
 
 
@@ -122,36 +115,40 @@ QGramSortedVector(s, q::Integer = 2) = QGramSortedVector(collect(s), q)
 # between strings or pre-calculated AbstractQgramCounts objects.
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
-function countmatches!(mc::AbstractQGramMatchCounter, d1::Vector{Pair{K,I}}, d2::Vector{Pair{K,I}}) where {K,I<:Integer}
+function (dist::AbstractQGramDistance)(qc1::QGramSortedVector{Q, K}, qc2::QGramSortedVector{Q, K}) where {Q, K}
+    @assert dist.q == Q
+    counter = newcounter(dist)
+    d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1
     while true
     	# length can be zero
         if i2 > length(d2)
 			for i in i1:length(d1)
-				@inbounds count!(mc, d1[i][2], 0)
+				@inbounds count!(counter, d1[i][2], 0)
             end
-            return
+            break
         elseif i1 > length(d1)
 			for i in i2:length(d2)
-				@inbounds count!(mc, 0, d2[i][2])
+				@inbounds count!(counter, 0, d2[i][2])
             end
-            return
+            break
         end
         @inbounds k1, n1 = d1[i1]
         @inbounds k2, n2 = d2[i2]
         cmpval = Base.cmp(k1, k2)
 		if cmpval == -1 # k1 < k2
-			count!(mc, n1, 0)
+			count!(counter, n1, 0)
             i1 += 1
         elseif cmpval == +1 # k2 < k1
-        	count!(mc, 0, n2)
+        	count!(counter, 0, n2)
             i2 += 1
 		else
-			count!(mc, n1, n2)
+			count!(counter, n1, n2)
             i1 += 1
             i2 += 1
         end
     end
+    calculate(dist, counter)
 end
 
 

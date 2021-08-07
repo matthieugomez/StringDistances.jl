@@ -174,7 +174,7 @@ using StringDistances, Unicode, Test, Random
 		# To get something we can more easily compare to:
 		stringify(p::Pair{<:AbstractString, <:Integer}) = (string(first(p)), last(p))
 		stringify(p::Pair{V, <:Integer}) where {S<:AbstractString,V<:AbstractVector{S}} = (map(string, first(p)), last(p))
-		sortedcounts(qc) = sort(collect(StringDistances.counts(qc)), by = first)
+		sortedcounts(qc) = sort(collect(qc.counts), by = first)
 		totuples(qc) = map(stringify, sortedcounts(qc))
 
 		s1, s2   = "arnearne", "arnebeda"
