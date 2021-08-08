@@ -133,6 +133,7 @@ end
 	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], QGram(2)) == ("NewYork", 1)
+	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], QGram(2)) == ("NewYork", 3)
 
 	# findall
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Levenshtein()) == [1]
