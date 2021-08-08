@@ -56,13 +56,13 @@ qgrams
 # For two iterators s1 and s2, that define a length and eltype method,
 # this returns an iterator that,
 # for each element in s1 ∪ s2, returns (numbers of times it appears in s1, numbers of times it appears in s2)
-function _count(s1, s2)
-	K = promote_type(eltype(s1), eltype(s2))
-	d = Dict{K, Tuple{Int32, Int32}}()
-	sizehint!(d, length(s1) + length(s2))
+function _count(qgrams1, qgrams2)
+	K = promote_type(eltype(qgrams1), eltype(qgrams2))
+	d = Dict{K, Tuple{Int, Int}}()
+	sizehint!(d, length(qgrams1) + length(qgrams2))
 	# I use a faster way to change a dictionary key
 	# see setindex! in https://github.com/JuliaLang/julia/blob/master/base/dict.jl#L380
-	for x1 in s1
+	for x1 in qgrams1
 		index = Base.ht_keyindex2!(d, x1)
 		if index > 0
 			d.age += 1
@@ -72,7 +72,7 @@ function _count(s1, s2)
 			@inbounds Base._setindex!(d, (1, 0), x1, -index)
 		end
 	end
-	for x2 in s2
+	for x2 in qgrams2
 		index = Base.ht_keyindex2!(d, x2)
 		if index > 0
 			d.age += 1
@@ -172,8 +172,8 @@ struct Jaccard <: AbstractQGramDistance
 end
 newcounter(::Jaccard) = ThreeCounters(0, 0, 0)
 @inline function count!(::Jaccard, c::ThreeCounters, n1::Integer, n2::Integer)
-	c.left += (n1 > 0)
-	c.right += (n2 > 0)
+	c.left += n1 > 0
+	c.right += n2 > 0
 	c.shared += (n1 > 0) & (n2 > 0)
 end
 calculate(::Jaccard, c::ThreeCounters) =
@@ -195,8 +195,8 @@ struct SorensenDice <: AbstractQGramDistance
 end
 newcounter(::SorensenDice) = ThreeCounters(0, 0, 0)
 @inline function count!(::SorensenDice, c::ThreeCounters, n1::Integer, n2::Integer)
-	c.left += (n1 > 0)
-	c.right += (n2 > 0)
+	c.left += n1 > 0
+	c.right += n2 > 0
 	c.shared += (n1 > 0) & (n2 > 0)
 end
 calculate(::SorensenDice, c::ThreeCounters) =
@@ -218,8 +218,8 @@ struct Overlap <: AbstractQGramDistance
 end
 newcounter(::Overlap) = ThreeCounters(0, 0, 0)
 @inline function count!(::Overlap, c::ThreeCounters, n1::Integer, n2::Integer)
-	c.left += (n1 > 0)
-	c.right += (n2 > 0)
+	c.left += n1 > 0
+	c.right += n2 > 0
 	c.shared += (n1 > 0) & (n2 > 0)
 end
 calculate(::Overlap, c::ThreeCounters) =
@@ -291,9 +291,9 @@ newcounter(::MorisitaOverlap) = FiveCounters(0, 0, 0, 0, 0)
 @inline function count!(::MorisitaOverlap, c::FiveCounters, n1::Integer, n2::Integer)
 	c.leftsum += n1
 	c.rightsum += n2
-	c.leftsq += (n1^2)
-	c.rightsq += (n2^2)
-	c.shared += (n1 * n2)
+	c.leftsq += n1^2
+	c.rightsq += n2^2
+	c.shared += n1 * n2
 end
 calculate(::MorisitaOverlap, c::FiveCounters) =
 	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
