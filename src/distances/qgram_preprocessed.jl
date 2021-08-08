@@ -20,7 +20,7 @@ evaluate(Overlap(2), qd1, qd2)
 struct QGramDict{S, K}
     s::S
     q::Int
-    counts::Dict{K,Int}
+    counts::Dict{K, Int}
 end
 Base.length(s::QGramDict) = length(s.s)
 Base.iterate(s::QGramDict) = iterate(s.s)
@@ -35,7 +35,7 @@ end
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
 # qgram to the number of times it has been seen.
 function countdict(qgrams)
-    d = Dict{eltype(qgrams), Int32}()
+    d = Dict{eltype(qgrams), Int}()
     for qg in qgrams
         index = Base.ht_keyindex2!(d, qg)
 		if index > 0
@@ -96,7 +96,7 @@ evaluate(Jaccard(2), qs1, qs2)
 struct QGramSortedVector{S, K}
     s::S
     q::Int
-    counts::Vector{Pair{K,Int}}
+    counts::Vector{Pair{K, Int}}
 end
 Base.length(s::QGramSortedVector) = length(s.s)
 Base.iterate(s::QGramSortedVector) = iterate(s.s)
