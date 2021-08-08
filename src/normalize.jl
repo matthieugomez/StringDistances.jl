@@ -167,13 +167,6 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
-    _findnearest(s, itr, dist; min_score = min_score)
-end
-function findnearest(s, itr, dist::AbstractQGramDistance; min_score = 0.0)
-    _findnearest(QGramSortedVector(s, dist.q), itr, dist; min_score = min_score)
-end
-
-function _findnearest(s, itr, dist::StringDistance; min_score = 0.0)
     min_score_atomic = Threads.Atomic{Float64}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
@@ -193,7 +186,6 @@ end
 _helper(dist::AbstractQGramDistance, ::Missing) = missing
 _helper(dist::AbstractQGramDistance, s) = QGramSortedVector(s, dist.q)
 _helper(dist::StringDistance, s) = s
-
 
 function Base.findmax(s, itr, dist::StringDistance; min_score = 0.0)
     @warn "findmax(s, itr, dist; min_score) is deprecated. Use findnearest(s, itr, dist; min_score)"
@@ -221,7 +213,6 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 0-element Array{Int64,1}
 ```
 """
-
 function Base.findall(s, itr, dist::StringDistance; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
     s = _helper(dist, s)

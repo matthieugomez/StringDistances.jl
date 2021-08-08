@@ -1,6 +1,5 @@
 # sometimes we already preprocess the strings
 # We now define special methods for these special string types
-
 """
 	QGramDict(s, q::Integer = 2)
 
