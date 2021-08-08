@@ -93,7 +93,7 @@ function (dist::AbstractQGramDistance)(s1, s2)
 	((s1 === missing) | (s2 === missing)) && return missing
 	counter = newcounter(dist)
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
-		count!(counter, n1, n2)
+		count!(dist, counter, n1, n2)
 	end
 	calculate(dist, counter)
 end
@@ -115,15 +115,15 @@ struct QGram <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct SingleCounter{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+mutable struct SingleCounter <: AbstractQGramMatchCounter
 	shared::Int
 end
 
-newcounter(d::QGram) = SingleCounter{QGram}(0)
-@inline function count!(c::SingleCounter{QGram}, n1::Integer, n2::Integer)
+newcounter(::QGram) = SingleCounter(0)
+@inline function count!(::QGram, c::SingleCounter, n1::Integer, n2::Integer)
 	c.shared += abs(n1 - n2)
 end
-calculate(dist::QGram, c::SingleCounter{QGram}) = c.shared
+calculate(::QGram, c::SingleCounter) = c.shared
 
 """
 	Cosine(q::Int)
@@ -141,19 +141,19 @@ struct Cosine <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct ThreeCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+mutable struct ThreeCounters <: AbstractQGramMatchCounter
 	left::Int
 	right::Int
 	shared::Int
 end
 
-newcounter(d::Cosine) = ThreeCounters{Cosine}(0, 0, 0)
-@inline function count!(c::ThreeCounters{Cosine}, n1::Integer, n2::Integer)
+newcounter(::Cosine) = ThreeCounters(0, 0, 0)
+@inline function count!(::Cosine, c::ThreeCounters, n1::Integer, n2::Integer)
 	c.left += n1^2
 	c.right += n2^2
 	c.shared += n1 * n2
 end
-calculate(d::Cosine, c::ThreeCounters{Cosine}) =
+calculate(::Cosine, c::ThreeCounters) =
 	1.0 - c.shared / (sqrt(c.left) * sqrt(c.right))
 
 """
@@ -170,13 +170,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
-newcounter(d::Jaccard) = ThreeCounters{Jaccard}(0, 0, 0)
-@inline function count!(c::ThreeCounters{Jaccard}, n1::Integer, n2::Integer)
+newcounter(::Jaccard) = ThreeCounters(0, 0, 0)
+@inline function count!(::Jaccard, c::ThreeCounters, n1::Integer, n2::Integer)
 	c.left += (n1 > 0)
 	c.right += (n2 > 0)
 	c.shared += (n1 > 0) & (n2 > 0)
 end
-calculate(d::Jaccard, c::ThreeCounters{Jaccard}) =
+calculate(::Jaccard, c::ThreeCounters) =
 	1.0 - c.shared / (c.left + c.right - c.shared)
 
 """
@@ -193,13 +193,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
-newcounter(d::SorensenDice) = ThreeCounters{SorensenDice}(0, 0, 0)
-@inline function count!(c::ThreeCounters{SorensenDice}, n1::Integer, n2::Integer)
+newcounter(::SorensenDice) = ThreeCounters(0, 0, 0)
+@inline function count!(::SorensenDice, c::ThreeCounters, n1::Integer, n2::Integer)
 	c.left += (n1 > 0)
 	c.right += (n2 > 0)
 	c.shared += (n1 > 0) & (n2 > 0)
 end
-calculate(d::SorensenDice, c::ThreeCounters{SorensenDice}) =
+calculate(::SorensenDice, c::ThreeCounters) =
 	1.0 - 2.0 * c.shared / (c.left + c.right)
 
 """
@@ -216,13 +216,13 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct Overlap <: AbstractQGramDistance
 	q::Int
 end
-newcounter(d::Overlap) = ThreeCounters{Overlap}(0, 0, 0)
-@inline function count!(c::ThreeCounters{Overlap}, n1::Integer, n2::Integer)
+newcounter(::Overlap) = ThreeCounters(0, 0, 0)
+@inline function count!(::Overlap, c::ThreeCounters, n1::Integer, n2::Integer)
 	c.left += (n1 > 0)
 	c.right += (n2 > 0)
 	c.shared += (n1 > 0) & (n2 > 0)
 end
-calculate(d::Overlap, c::ThreeCounters{Overlap}) =
+calculate(::Overlap, c::ThreeCounters) =
 	1.0 - c.shared / min(c.left, c.right)
 
 """
@@ -248,13 +248,13 @@ struct NMD <: AbstractQGramDistance
 	q::Int
 end
 
-newcounter(d::NMD) = ThreeCounters{NMD}(0, 0, 0)
-@inline function count!(c::ThreeCounters{NMD}, n1::Integer, n2::Integer)
+newcounter(::NMD) = ThreeCounters(0, 0, 0)
+@inline function count!(::NMD, c::ThreeCounters, n1::Integer, n2::Integer)
 	c.left += n1
 	c.right += n2
 	c.shared += max(n1, n2)
 end
-calculate(d::NMD, c::ThreeCounters{NMD}) =
+calculate(::NMD, c::ThreeCounters) =
 	(c.shared - min(c.left, c.right)) / max(c.left, c.right)
 
 
@@ -279,7 +279,7 @@ struct MorisitaOverlap <: AbstractQGramDistance
 	q::Int
 end
 
-mutable struct FiveCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCounter
+mutable struct FiveCounters <: AbstractQGramMatchCounter
 	leftsum::Int    # sum(m(s1))
 	rightsum::Int   # sum(m(s2))
 	leftsq::Int     # sum(m(s1).^2)
@@ -287,14 +287,14 @@ mutable struct FiveCounters{QD<:AbstractQGramDistance} <: AbstractQGramMatchCoun
 	shared::Int     # sum(m(s1) .* m(s2))
 end
 
-newcounter(d::MorisitaOverlap) = FiveCounters{MorisitaOverlap}(0, 0, 0, 0, 0)
-@inline function count!(c::FiveCounters{MorisitaOverlap}, n1::Integer, n2::Integer)
+newcounter(::MorisitaOverlap) = FiveCounters(0, 0, 0, 0, 0)
+@inline function count!(::MorisitaOverlap, c::FiveCounters, n1::Integer, n2::Integer)
 	c.leftsum += n1
 	c.rightsum += n2
 	c.leftsq += (n1^2)
 	c.rightsq += (n2^2)
 	c.shared += (n1 * n2)
 end
-calculate(d::MorisitaOverlap, c::FiveCounters{MorisitaOverlap}) =
+calculate(::MorisitaOverlap, c::FiveCounters) =
 	1.0 - ((2 * c.shared) / (c.leftsq*c.rightsum/c.leftsum + c.rightsq*c.leftsum/c.rightsum))
 

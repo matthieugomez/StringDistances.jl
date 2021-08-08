@@ -56,15 +56,15 @@ function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
     for (k1, c1) in d1
         index = Base.ht_keyindex2!(d2, k1)
 		if index > 0
-			count!(counter, c1, d2.vals[index])
+			count!(dist, counter, c1, d2.vals[index])
 		else
-			count!(counter, c1, 0)
+			count!(dist, counter, c1, 0)
         end
     end
     for (k2, c2) in d2
         index = Base.ht_keyindex2!(d1, k2)
 		if index <= 0
-			count!(counter, 0, c2)
+			count!(dist, counter, 0, c2)
         end
     end
     calculate(dist, counter)
@@ -125,12 +125,12 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
     	# length can be zero
         if i2 > length(d2)
 			for i in i1:length(d1)
-				@inbounds count!(counter, d1[i][2], 0)
+				@inbounds count!(dist, counter, d1[i][2], 0)
             end
             break
         elseif i1 > length(d1)
 			for i in i2:length(d2)
-				@inbounds count!(counter, 0, d2[i][2])
+				@inbounds count!(dist, counter, 0, d2[i][2])
             end
             break
         end
@@ -138,13 +138,13 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
         @inbounds k2, n2 = d2[i2]
         cmpval = Base.cmp(k1, k2)
 		if cmpval == -1 # k1 < k2
-			count!(counter, n1, 0)
+			count!(dist, counter, n1, 0)
             i1 += 1
         elseif cmpval == +1 # k2 < k1
-        	count!(counter, 0, n2)
+        	count!(dist, counter, 0, n2)
             i2 += 1
 		else
-			count!(counter, n1, n2)
+			count!(dist, counter, n1, n2)
             i1 += 1
             i2 += 1
         end
