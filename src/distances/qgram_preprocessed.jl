@@ -53,18 +53,18 @@ function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
     dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
     counter = eval_start(dist)
     d1, d2 = qc1.counts, qc2.counts
-    for (k1, c1) in d1
-        index = Base.ht_keyindex2!(d2, k1)
+    for (s1, n1) in d1
+        index = Base.ht_keyindex2!(d2, s1)
 		if index > 0
-			counter = eval_op(dist, counter, c1, d2.vals[index])
+			counter = eval_op(dist, counter, n1, d2.vals[index])
 		else
-			counter = eval_op(dist, counter, c1, 0)
+			counter = eval_op(dist, counter, n1, 0)
         end
     end
-    for (k2, c2) in d2
-        index = Base.ht_keyindex2!(d1, k2)
+    for (s2, n2) in d2
+        index = Base.ht_keyindex2!(d1, s2)
 		if index <= 0
-			counter = eval_op(dist, counter, 0, c2)
+			counter = eval_op(dist, counter, 0, n2)
         end
     end
     eval_reduce(dist, counter)
@@ -134,9 +134,9 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
             end
             break
         end
-        @inbounds k1, n1 = d1[i1]
-        @inbounds k2, n2 = d2[i2]
-        cmpval = Base.cmp(k1, k2)
+        @inbounds s1, n1 = d1[i1]
+        @inbounds s2, n2 = d2[i2]
+        cmpval = Base.cmp(s1, s2)
 		if cmpval == -1 # k1 < k2
 			counter = eval_op(dist, counter, n1, 0)
             i1 += 1

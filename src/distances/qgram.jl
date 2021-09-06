@@ -114,8 +114,6 @@ that contains the number of times a q-gram appears for the string s
 struct QGram <: AbstractQGramDistance
 	q::Int
 end
-
-
 eval_start(::QGram) = 0
 @inline eval_op(::QGram, c, n1::Integer, n2::Integer) = c + abs(n1 - n2)
 eval_reduce(::QGram, c) = c
@@ -135,7 +133,6 @@ that contains the  number of times a q-gram appears for the string s
 struct Cosine <: AbstractQGramDistance
 	q::Int
 end
-
 eval_start(::Cosine) = (0, 0, 0)
 @inline eval_op(::Cosine, c, n1::Integer, n2::Integer) = (c[1] + n1^2, c[2] + n2^2, c[3] + n1 * n2)
 eval_reduce(::Cosine, c) = 1 - c[3] / sqrt(c[1] * c[2])
@@ -154,7 +151,6 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
-
 eval_start(::Jaccard) = (0, 0, 0)
 @inline eval_op(::Jaccard, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
 eval_reduce(::Jaccard, c) = 1 - c[3] / (c[1] + c[2] - c[3])
@@ -173,7 +169,6 @@ where ``Q(s, q)``  denotes the set of q-grams of length n for the string s
 struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
-
 eval_start(::SorensenDice) = (0, 0, 0)
 @inline eval_op(::SorensenDice, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
 eval_reduce(::SorensenDice, c) = 1 - 2 * c[3] / (c[1] + c[2])
@@ -222,7 +217,6 @@ eval_start(::NMD) = (0, 0, 0)
 @inline eval_op(::NMD, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + max(n1, n2))
 eval_reduce(::NMD, c) = (c[3] - min(c[1], c[2])) / max(c[1], c[2])
 
-
 """
 	MorisitaOverlap(q::Int)
 
@@ -243,7 +237,6 @@ sum of those counts.
 struct MorisitaOverlap <: AbstractQGramDistance
 	q::Int
 end
-
 eval_start(::MorisitaOverlap) = (0, 0, 0, 0, 0)
 @inline eval_op(::MorisitaOverlap, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + n1^2, c[4] + n2^2, c[5] + n1 * n2)
 eval_reduce(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
