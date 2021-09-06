@@ -18,26 +18,26 @@ evaluate(Overlap(2), qd1, qd2)
 ```
 """
 struct QGramDict{S, K}
-    s::S
-    q::Int
-    counts::Dict{K, Int}
+	s::S
+	q::Int
+	counts::Dict{K, Int}
 end
 Base.length(s::QGramDict) = length(s.s)
 Base.iterate(s::QGramDict) = iterate(s.s)
 Base.iterate(s::QGramDict, state) = iterate(s.s, state)
 
 function QGramDict(s, q::Integer = 2)
-    (s isa QGramDict) && (s.q == q) && return s
-    qgs = qgrams(s, q)
-    QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
+	(s isa QGramDict) && (s.q == q) && return s
+	qgs = qgrams(s, q)
+	QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
 end
 
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
 # qgram to the number of times it has been seen.
 function countdict(qgrams)
-    d = Dict{eltype(qgrams), Int}()
-    for qg in qgrams
-        index = Base.ht_keyindex2!(d, qg)
+	d = Dict{eltype(qgrams), Int}()
+	for qg in qgrams
+		index = Base.ht_keyindex2!(d, qg)
 		if index > 0
 			d.age += 1
 			@inbounds d.keys[index] = qg
@@ -45,29 +45,29 @@ function countdict(qgrams)
 		else
 			@inbounds Base._setindex!(d, 1, qg, -index)
 		end
-    end
-    d
+	end
+	d
 end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
-    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
-    counter = eval_start(dist)
-    d1, d2 = qc1.counts, qc2.counts
-    for (s1, n1) in d1
-        index = Base.ht_keyindex2!(d2, s1)
+	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
+	counter = eval_start(dist)
+	d1, d2 = qc1.counts, qc2.counts
+	for (s1, n1) in d1
+		index = Base.ht_keyindex2!(d2, s1)
 		if index > 0
 			counter = eval_op(dist, counter, n1, d2.vals[index])
 		else
 			counter = eval_op(dist, counter, n1, 0)
-        end
-    end
-    for (s2, n2) in d2
-        index = Base.ht_keyindex2!(d1, s2)
+		end
+	end
+	for (s2, n2) in d2
+		index = Base.ht_keyindex2!(d1, s2)
 		if index <= 0
 			counter = eval_op(dist, counter, 0, n2)
-        end
-    end
-    eval_reduce(dist, counter)
+		end
+	end
+	eval_reduce(dist, counter)
 end
 
 """
@@ -94,20 +94,20 @@ evaluate(Jaccard(2), qs1, qs2)
 ```
 """
 struct QGramSortedVector{S, K}
-    s::S
-    q::Int
-    counts::Vector{Pair{K, Int}}
+	s::S
+	q::Int
+	counts::Vector{Pair{K, Int}}
 end
 Base.length(s::QGramSortedVector) = length(s.s)
 Base.iterate(s::QGramSortedVector) = iterate(s.s)
 Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
 
 function QGramSortedVector(s, q::Integer = 2)
-    (s isa QGramSortedVector) && (s.q == q) && return s
-    qgs = qgrams(s, q)
-    countpairs = collect(countdict(qgs))
-    sort!(countpairs, by = first)
-    QGramSortedVector{typeof(s), eltype(qgs)}(s, q, countpairs)
+	(s isa QGramSortedVector) && (s.q == q) && return s
+	qgs = qgrams(s, q)
+	countpairs = collect(countdict(qgs))
+	sort!(countpairs, by = first)
+	QGramSortedVector{typeof(s), eltype(qgs)}(s, q, countpairs)
 end
 
 
@@ -117,38 +117,38 @@ end
 # The abstract type defines different fallback versions which can be
 # specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
-    dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
-    counter = eval_start(dist)
-    d1, d2 = qc1.counts, qc2.counts
-    i1 = i2 = 1
-    while true
-    	# length can be zero
-        if i2 > length(d2)
+	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
+	counter = eval_start(dist)
+	d1, d2 = qc1.counts, qc2.counts
+	i1 = i2 = 1
+	while true
+		# length can be zero
+		if i2 > length(d2)
 			for i in i1:length(d1)
 				@inbounds counter = eval_op(dist, counter, d1[i][2], 0)
-            end
-            break
-        elseif i1 > length(d1)
+			end
+		break
+		elseif i1 > length(d1)
 			for i in i2:length(d2)
 				@inbounds counter = eval_op(dist, counter, 0, d2[i][2])
-            end
-            break
-        end
-        @inbounds s1, n1 = d1[i1]
-        @inbounds s2, n2 = d2[i2]
-        cmpval = Base.cmp(s1, s2)
+			end
+		break
+		end
+		@inbounds s1, n1 = d1[i1]
+		@inbounds s2, n2 = d2[i2]
+		cmpval = Base.cmp(s1, s2)
 		if cmpval == -1 # k1 < k2
 			counter = eval_op(dist, counter, n1, 0)
-            i1 += 1
-        elseif cmpval == 1 # k2 < k1
-        	counter = eval_op(dist, counter, 0, n2)
-            i2 += 1
+			i1 += 1
+		elseif cmpval == 1 # k2 < k1
+			counter = eval_op(dist, counter, 0, n2)
+			i2 += 1
 		else
 			counter = eval_op(dist, counter, n1, n2)
-            i1 += 1
-            i2 += 1
-        end
-    end
-    eval_reduce(dist, counter)
+			i1 += 1
+			i2 += 1
+		end
+	end
+	eval_reduce(dist, counter)
 end
 
