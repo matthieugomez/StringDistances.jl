@@ -20,7 +20,7 @@ struct Partial{S <: SemiMetric} <: SemiMetric
 end
 
 function (dist::Partial)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     out = dist.dist(s1, s2)
@@ -33,7 +33,7 @@ function (dist::Partial)(s1, s2)
 end
 
 function (dist::Partial{RatcliffObershelp})(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2)
@@ -79,7 +79,7 @@ struct TokenSort{S <: SemiMetric} <: SemiMetric
 end
 
 function (dist::TokenSort)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1 = join(sort!(split(s1)), " ")
     s2 = join(sort!(split(s2)), " ")
     out = dist.dist(s1, s2)
@@ -111,7 +111,7 @@ struct TokenSet{S <: SemiMetric} <: SemiMetric
 end
 
 function (dist::TokenSet)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     v1 = unique!(sort!(split(s1)))
     v2 = unique!(sort!(split(s2)))
     v0 = intersect(v1, v2)
