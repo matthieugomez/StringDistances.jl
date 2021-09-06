@@ -145,8 +145,25 @@ eval_reduce(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * 
 
 
 #==========================================================================
-Case without preprocessing
+QGramIterator
 ==========================================================================#
+@doc """
+Return an iterator corresponding to the the q-gram of an iterator. 
+When the iterator is a String, qgrams are SubStrings.
+
+### Arguments
+* `s` iterator
+* `q::Integer`: length of q-gram
+
+## Examples
+```julia
+for x in qgrams("hello", 2)
+	println(x)
+end
+```
+""" 
+qgrams
+
 
 struct QGramIterator{S <: Union{AbstractString, AbstractVector}}
 	s::S   # Collection
@@ -186,23 +203,9 @@ Base.eltype(qgram::QGramIterator{<: AbstractVector}) = typeof(first(qgram))
 qgrams(s::AbstractVector, q::Integer) = QGramIterator(s, q)
 qgrams(s, q::Integer) = QGramIterator(collect(s), q)
 
-@doc """
-Return an iterator corresponding to the the q-gram of an iterator. 
-When the iterator is a String, qgrams are SubStrings.
-
-### Arguments
-* `s` iterator
-* `q::Integer`: length of q-gram
-
-## Examples
-```julia
-for x in qgrams("hello", 2)
-	println(x)
-end
-```
-""" 
-qgrams
-
+#==========================================================================
+Compute QGramDistances on general iterators
+==========================================================================#
 # For two iterators s1 and s2, that define a length and eltype method,
 # this returns an iterator that,
 # for each element in s1 ∪ s2, returns (numbers of times it appears in s1, numbers of times it appears in s2)
@@ -246,7 +249,7 @@ end
 
 
 #==========================================================================
-Special path for QGramDicts, iterators that store a dictionary associating qgrams to the number of their occurences
+Compute QGramDistances on QGramDicts, iterators that store a dictionary associating qgrams to the number of their occurences
 ==========================================================================#
 
 """
@@ -322,8 +325,8 @@ end
 
 
 #==========================================================================
-Special path for QGramSortedVectors, iterators that store a sorted vector associating qgrams to the number of their occurences
-Constructing a QGramSortedVector requires elements of the initial iterator to have a natural order
+Compute QGramDistances on QGramSortedVectors, iterators that store a sorted vector associating qgrams to the number of their occurences
+Note that QGramSortedVectors require qgrams to have a natural order
 ==========================================================================#
 
 """
@@ -361,6 +364,7 @@ Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
 function QGramSortedVector(s, q::Integer = 2)
 	(s isa QGramSortedVector) && (s.q == q) && return s
 	qgs = qgrams(s, q)
+	# todo: maybe more efficient to create sorteddict directly
 	countpairs = collect(countdict(qgs))
 	sort!(countpairs, by = first)
 	QGramSortedVector{typeof(s), eltype(qgs)}(s, q, countpairs)
