@@ -70,7 +70,7 @@ function (dist::Jaro)(s1, s2)
             t += ch2 != ch1_match[i1]
         end
     end
-    return 1.0 - (m / len1 + m / len2 + (m - t/2) / m) / 3.0
+    return 1 - (m / len1 + m / len2 + (m - t/2) / m) / 3
 end
 
 
@@ -245,7 +245,7 @@ function (dist::RatcliffObershelp)(s1, s2)
     s1, s2 = reorder(s1, s2)
     n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)
-    len1 + len2 == 0 ? 0. : 1.0 - 2 *  n_matched / (len1 + len2)
+    len1 + len2 == 0 ? 0.0 : 1 - 2 *  n_matched / (len1 + len2)
 end
 
 function matching_blocks(s1, s2)

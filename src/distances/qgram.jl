@@ -246,8 +246,7 @@ end
 
 
 #==========================================================================
-Preprocessing with Dictionary
-We now define a special method for these special iterators
+Special path for QGramDicts, iterators that store a dictionary associating qgrams to the number of their occurences
 ==========================================================================#
 
 """
@@ -279,7 +278,8 @@ Base.iterate(s::QGramDict, state) = iterate(s.s, state)
 function QGramDict(s, q::Integer = 2)
 	(s isa QGramDict) && (s.q == q) && return s
 	qgs = qgrams(s, q)
-	QGramDict{typeof(s), eltype(qgs)}(s, q, countdict(qgs))
+	countpairs = countdict(qgs)
+	QGramDict{typeof(s), eltype(qgs)}(s, q, countpairs)
 end
 
 # Turn a sequence of qgrams to a count dict for them, i.e. map each
@@ -296,19 +296,19 @@ function countdict(qgrams)
 			@inbounds Base._setindex!(d, 1, qg, -index)
 		end
 	end
-	d
+	return d
 end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
-	counter = eval_start(dist)
 	d1, d2 = qc1.counts, qc2.counts
+	counter = eval_start(dist)
 	for (s1, n1) in d1
 		index = Base.ht_keyindex2!(d2, s1)
-		if index > 0
-			counter = eval_op(dist, counter, n1, d2.vals[index])
-		else
+		if index <= 0
 			counter = eval_op(dist, counter, n1, 0)
+		else
+			counter = eval_op(dist, counter, n1, d2.vals[index])
 		end
 	end
 	for (s2, n2) in d2
@@ -322,8 +322,8 @@ end
 
 
 #==========================================================================
-Preprocessing with SortedVectors
-We now define a special method for these special iterators
+Special path for QGramSortedVectors, iterators that store a sorted vector associating qgrams to the number of their occurences
+Constructing a QGramSortedVector requires elements of the initial iterator to have a natural order
 ==========================================================================#
 
 """
@@ -366,15 +366,10 @@ function QGramSortedVector(s, q::Integer = 2)
 	QGramSortedVector{typeof(s), eltype(qgs)}(s, q, countpairs)
 end
 
-
-# To implement the distances we will count qgram matches
-# between strings or pre-calculated AbstractQgramCounts objects.
-# The abstract type defines different fallback versions which can be
-# specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
-	counter = eval_start(dist)
 	d1, d2 = qc1.counts, qc2.counts
+	counter = eval_start(dist)
 	i1 = i2 = 1
 	while true
 		# length can be zero
@@ -392,13 +387,13 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
 		@inbounds s1, n1 = d1[i1]
 		@inbounds s2, n2 = d2[i2]
 		cmpval = Base.cmp(s1, s2)
-		if cmpval == -1 # k1 < k2
+		if cmpval == -1 # s1 < s2
 			counter = eval_op(dist, counter, n1, 0)
 			i1 += 1
-		elseif cmpval == 1 # k2 < k1
+		elseif cmpval == 1 # s1 > s2
 			counter = eval_op(dist, counter, 0, n2)
 			i2 += 1
-		else
+		else # s1 == s2
 			counter = eval_op(dist, counter, n1, n2)
 			i1 += 1
 			i2 += 1
