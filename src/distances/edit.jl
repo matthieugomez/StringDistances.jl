@@ -11,7 +11,7 @@ end
 Hamming() = Hamming(nothing)
 
 function (dist::Hamming)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     out = abs(length(s2) - length(s1))
     dist.max_dist !== nothing && out > dist.max_dist && return dist.max_dist + 1
     for (ch1, ch2) in zip(s1, s2)
@@ -39,7 +39,7 @@ struct Jaro <: SemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function (dist::Jaro)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     # If both are empty, the formula in Wikipedia gives 0
@@ -92,7 +92,7 @@ JaroWinkler(; p = 0.1, threshold = 0.3, maxlength = 4) = JaroWinkler(p, threshol
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function (dist::JaroWinkler)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     out = Jaro()(s1, s2)
@@ -120,7 +120,7 @@ Levenshtein() = Levenshtein(nothing)
 # Return max_dist + 1 if distance higher than max_dist 
 # to differentiate distance equal to max_dist or not, which is important for find fctions.
 function (dist::Levenshtein)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
@@ -174,7 +174,7 @@ DamerauLevenshtein() = DamerauLevenshtein(nothing)
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
 function (dist::DamerauLevenshtein)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
@@ -241,7 +241,7 @@ region on either side of the longest common subsequence.
 struct RatcliffObershelp <: SemiMetric end
 
 function (dist::RatcliffObershelp)(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     n_matched = sum(last.(matching_blocks(s1, s2)))
     len1, len2 = length(s1), length(s2)

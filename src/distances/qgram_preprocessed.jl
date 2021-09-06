@@ -51,23 +51,23 @@ end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
     dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
-    counter = newcounter(dist)
+    counter = eval_start(dist)
     d1, d2 = qc1.counts, qc2.counts
-    for (k1, c1) in d1
-        index = Base.ht_keyindex2!(d2, k1)
+    for (s1, n1) in d1
+        index = Base.ht_keyindex2!(d2, s1)
 		if index > 0
-			count!(dist, counter, c1, d2.vals[index])
+			counter = eval_op(dist, counter, n1, d2.vals[index])
 		else
-			count!(dist, counter, c1, 0)
+			counter = eval_op(dist, counter, n1, 0)
         end
     end
-    for (k2, c2) in d2
-        index = Base.ht_keyindex2!(d1, k2)
+    for (s2, n2) in d2
+        index = Base.ht_keyindex2!(d1, s2)
 		if index <= 0
-			count!(dist, counter, 0, c2)
+			counter = eval_op(dist, counter, 0, n2)
         end
     end
-    calculate(dist, counter)
+    eval_reduce(dist, counter)
 end
 
 """
@@ -118,37 +118,37 @@ end
 # specialied by subtypes for best performance.
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
     dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
-    counter = newcounter(dist)
+    counter = eval_start(dist)
     d1, d2 = qc1.counts, qc2.counts
     i1 = i2 = 1
     while true
     	# length can be zero
         if i2 > length(d2)
 			for i in i1:length(d1)
-				@inbounds count!(dist, counter, d1[i][2], 0)
+				@inbounds counter = eval_op(dist, counter, d1[i][2], 0)
             end
             break
         elseif i1 > length(d1)
 			for i in i2:length(d2)
-				@inbounds count!(dist, counter, 0, d2[i][2])
+				@inbounds counter = eval_op(dist, counter, 0, d2[i][2])
             end
             break
         end
-        @inbounds k1, n1 = d1[i1]
-        @inbounds k2, n2 = d2[i2]
-        cmpval = Base.cmp(k1, k2)
+        @inbounds s1, n1 = d1[i1]
+        @inbounds s2, n2 = d2[i2]
+        cmpval = Base.cmp(s1, s2)
 		if cmpval == -1 # k1 < k2
-			count!(dist, counter, n1, 0)
+			counter = eval_op(dist, counter, n1, 0)
             i1 += 1
-        elseif cmpval == +1 # k2 < k1
-        	count!(dist, counter, 0, n2)
+        elseif cmpval == 1 # k2 < k1
+        	counter = eval_op(dist, counter, 0, n2)
             i2 += 1
 		else
-			count!(dist, counter, n1, n2)
+			counter = eval_op(dist, counter, n1, n2)
             i1 += 1
             i2 += 1
         end
     end
-    calculate(dist, counter)
+    eval_reduce(dist, counter)
 end
 
