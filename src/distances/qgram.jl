@@ -240,4 +240,3 @@ end
 eval_start(::MorisitaOverlap) = (0, 0, 0, 0, 0)
 @inline eval_op(::MorisitaOverlap, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + n1^2, c[4] + n2^2, c[5] + n1 * n2)
 eval_reduce(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
-
