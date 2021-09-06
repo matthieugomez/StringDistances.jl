@@ -172,7 +172,7 @@ function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
     is = [0 for _ in 1:Threads.nthreads()]
     s = _helper(dist, s)
     # need collect since @threads requires a length method
-    for i in collect(eachindex(itr))
+    Threads.@threads for i in collect(eachindex(itr))
         score = compare(s, _helper(dist, itr[i]), dist; min_score = min_score_atomic[])
         score_old = Threads.atomic_max!(min_score_atomic, score)
         if score >= score_old

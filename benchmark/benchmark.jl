@@ -31,9 +31,9 @@ end
 
 
 @time findnearest(x[1], y, Levenshtein());
-# 0.02
+# 0.1
 @time findnearest(x[1], y, DamerauLevenshtein());
-# 0.05
+# 0.1
 @time findnearest(x[1], y, QGram(2));
 # 0.75
 
