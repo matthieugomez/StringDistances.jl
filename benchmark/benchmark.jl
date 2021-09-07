@@ -17,13 +17,13 @@ end
 @time f(Jaro(), x, y);
 #0.3s 
 @time f(Levenshtein(), x, y);
-# 0.4s
+# 0.36s
 @time f(Levenshtein(), x, y, min_score = 0.8);
 # 0.11 
 @time f(DamerauLevenshtein(), x, y);
-# 0.58s.
+# 0.56s.
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8);
-# 0.08 (now 0.09)
+# 0.08
 @time f(RatcliffObershelp(), x, y);
 # 1.35s
 

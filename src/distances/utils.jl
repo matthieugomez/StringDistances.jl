@@ -51,30 +51,4 @@ function common_prefix(s1, s2)
     return l
 end
 
-function _take(s, n::Integer)
-    Base.Iterators.take(s, n)
-end
-function _take(s::AbstractString, n::Integer)
-   StringWithLength(SubString(s, firstindex(s), nextind(s, 0, n)), n)
-end
-
-function _drop(s, n::Integer)
-    Base.Iterators.drop(s, n)
-end
-
-function _drop(s::AbstractString, n::Integer)
-    SubString(s, nextind(s, 0, n + 1), lastindex(s))
-end
-
-function _drop(s::StringWithLength, n::Integer)
-   StringWithLength(SubString(s, nextind(s, 0, n + 1), lastindex(s)), length(s) - n)
-end
-
-function _slice(s, n1::Integer, n2::Integer)
-    Base.Iterators.take(Base.Iterators.drop(s, n1), n2 - n1)
-end
-function _slice(s::AbstractString, n1::Integer, n2::Integer)
-   SubString(s, nextind(s, 0, n1 + 1),  nextind(s, 0, n2))
-end
-
 

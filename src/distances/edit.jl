@@ -42,16 +42,15 @@ function (dist::Jaro)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    # If both are empty, the formula in Wikipedia gives 0
-    # Add this line so that not the case
-    len2 == 0 && return 0.0
+    # Note: if both are empty, formula in Wikipedia gives 1, but it makes more sense to set it to s1 == s2
+    len2 == 0 && return Float64(s1 == s2)
     d = max(0, div(len2, 2) - 1)
     flag = fill(false, len2)
     ch1_match = Vector{eltype(s1)}()
     for (i1, ch1) in enumerate(s1)
         for (i2, ch2) in enumerate(s2)
-            # greedy alignement
-            if (i2 <= i1 + d) && (i2 >= i1 - d) && (ch1 == ch2) && !flag[i2] 
+            # for each character in s1, greedy search of matching character in s2 within a distance d
+            if (i2 >= i1 - d) && (i2 <= i1 + d) && (ch1 == ch2) && !flag[i2] 
                 flag[i2] = true
                 push!(ch1_match, ch1)
                 break
@@ -60,17 +59,20 @@ function (dist::Jaro)(s1, s2)
     end
     #  m counts number matching characters
     m = length(ch1_match)
-    m == 0 && return 1.0
-    # t counts number transpositions
-    t = 0
-    i1 = 0
-    for (i2, ch2) in enumerate(s2)
-        if flag[i2]
-            i1 += 1
-            t += ch2 != ch1_match[i1]
+    if m == 0
+        return 1.0
+    else
+        # t/2 counts number transpositions
+        t = 0
+        i1 = 0
+        for (i2, ch2) in enumerate(s2)
+            if flag[i2]
+                i1 += 1
+                @inbounds t += ch2 != ch1_match[i1]
+            end
         end
+        return 1 - (m / len1 + m / len2 + (m - 0.5 * t) / m) / 3
     end
-    return 1 - (m / len1 + m / len2 + (m - t/2) / m) / 3
 end
 
 
@@ -137,12 +139,12 @@ function (dist::Levenshtein)(s1, s2)
         dist.max_dist !== nothing && (value_lb = left - 1)
         for (i2, ch2) in enumerate(s2)
             i2 <= k && continue
-            above, current, left = current, left, v[i2 - k]
+            @inbounds above, current, left = current, left, v[i2 - k]
             if ch1 != ch2
                 current = min(current, above, left) + 1
             end
             dist.max_dist !== nothing && (value_lb = min(value_lb, left))
-            v[i2 - k] = current
+            @inbounds v[i2 - k] = current
         end
         dist.max_dist !== nothing && value_lb > dist.max_dist && return dist.max_dist + 1
     end
@@ -190,38 +192,34 @@ function (dist::DamerauLevenshtein)(s1, s2)
     prevch1, prevch2 = first(s1), first(s2)
     current = 0
     for (i1, ch1) in enumerate(s1)
-        i1 <= k && continue
+        i1 <= k && (prevch1 = ch1 ; continue)
         left = i1 - k - 1
         current = left + 1
         nextTransCost = 0
         if dist.max_dist !== nothing
-            i2_start += (i1 - k - 1 > dist.max_dist - (len2 - len1)) ? 1 : 0
-            i2_end += (i2_end < len2) ? 1 : 0
+            i2_start += i1 - k - 1 + len2 - len1 > dist.max_dist
+            i2_end += i2_end < len2
         end
         for (i2, ch2) in enumerate(s2)
-            if i2 <= k 
-                prevch2 = ch2
-            elseif (dist.max_dist !== nothing) && ((i2 - k - 1 < i2_start) | (i2 - k - 1 >= i2_end))
-                # no need to look beyond window of lower right diagonal - max distance cells 
-                #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
-                prevch2 = ch2
-            else
-                above, current, left = current, left, v[i2 - k]
-                w[i2 - k], nextTransCost, thisTransCost = current, w[i2 - k], nextTransCost
-                # left now equals current cost (which will be diagonal at next iteration)
-                if ch1 != ch2
-                    current = min(left, current, above) + 1
-                    # never happens at i2 = k + 1 because then the two previous characters were equal
-                    if (i1 - k - 1 > 0) & (i2 - k - 1 > 0) && (ch1 == prevch2) && (prevch1 == ch2)
-                        thisTransCost += 1
-                        current = min(current, thisTransCost)
-                    end
+            i2 <= k && (prevch2 = ch2 ; continue)
+            # no need to look beyond window of lower right diagonal - max distance cells 
+            #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
+            (dist.max_dist !== nothing) && !(i2_start <= i2 - k - 1 < i2_end) && (prevch2 = ch2 ; continue)
+            @inbounds above, current, left = current, left, v[i2 - k]
+            @inbounds w[i2 - k], nextTransCost, thisTransCost = current, w[i2 - k], nextTransCost
+            # left now equals current cost (which will be diagonal at next iteration)
+            if ch1 != ch2
+                current = min(left, current, above) + 1
+                # never happens at i2 = k + 1 because then the two previous characters were equal
+                if (i1 - k - 1 > 0) && (i2 - k - 1 > 0) && (ch1 == prevch2) && (prevch1 == ch2)
+                    thisTransCost += 1
+                    current = min(current, thisTransCost)
                 end
-                v[i2 - k] = current
-                prevch2 = ch2
             end
+            @inbounds v[i2 - k] = current
+            prevch2 = ch2
         end
-        dist.max_dist !== nothing && v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
+        @inbounds dist.max_dist !== nothing && v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
         prevch1 = ch1
     end
     dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
@@ -265,6 +263,14 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1, s2, start1::Integer,
                     start1 + n1 + len - 1, start2 + n2 + len - 1)
     return x
 end
+
+
+_take(s, n::Integer) = Base.Iterators.take(s, n)
+_take(s::StringWithLength, n::Integer) = StringWithLength(SubString(s, firstindex(s), nextind(s, 0, n)), n)
+
+_drop(s, n::Integer) = Base.Iterators.drop(s, n)
+_drop(s::StringWithLength, n::Integer) = StringWithLength(SubString(s, nextind(s, 0, n + 1), lastindex(s)), length(s) - n)
+
 
 function longest_common_pattern(s1, s2)
     if length(s1) > length(s2)

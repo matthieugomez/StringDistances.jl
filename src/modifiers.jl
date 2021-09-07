@@ -54,7 +54,8 @@ function (dist::Partial{RatcliffObershelp})(s1, s2)
     end
     return out
 end
-
+_slice(s, n1::Integer, n2::Integer) = Base.Iterators.take(Base.Iterators.drop(s, n1), n2 - n1)
+_slice(s::StringWithLength, n1::Integer, n2::Integer) = SubString(s, nextind(s, 0, n1 + 1),  nextind(s, 0, n2))
 """
    TokenSort(dist)
 
