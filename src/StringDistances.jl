@@ -9,7 +9,7 @@ include("distances/qgram.jl")
 
 include("modifiers.jl")
 include("normalize.jl")
-include("pairwise.jl")
+include("convenience.jl")
 # Distances API
 Distances.result_type(dist::StringDistance, s1::Type, s2::Type) = typeof(dist("", ""))
 Distances.result_type(dist::StringDistance, s1, s2) = result_type(dist, typeof(s1), typeof(s2))
@@ -27,10 +27,11 @@ Distances.result_type(dist::StringDistance, s1, s2) = result_type(dist, typeof(s
 export
 StringDistance,
 Hamming,
-Levenshtein,
-DamerauLevenshtein,
 Jaro,
 JaroWinkler,
+Levenshtein,
+OptimalStringAlignement,
+DamerauLevenshtein,
 RatcliffObershelp,
 AbstractQGramDistance,
 QGramDict,

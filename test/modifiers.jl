@@ -60,9 +60,9 @@ end
 	#Levenshtein
 	compare("aüa", "aua", Levenshtein())
 	@test compare("ok", missing, Levenshtein()) === missing
-	compare("aüa", "aua", DamerauLevenshtein())
-	@test StringDistances.normalize(Partial(DamerauLevenshtein()))("ab", "cde") == 1.0
-	@test compare("ab", "de", Partial(DamerauLevenshtein())) == 0
+	compare("aüa", "aua", OptimalStringAlignement())
+	@test StringDistances.normalize(Partial(OptimalStringAlignement()))("ab", "cde") == 1.0
+	@test compare("ab", "de", Partial(OptimalStringAlignement())) == 0
 
 	# RatcliffObershelp
 	@test compare("New York Mets vs Atlanta Braves", "", RatcliffObershelp())  ≈ 0.0
@@ -115,7 +115,7 @@ end
 	("ifhs", "fish"),
 	("leia", "leela"),
 	]
-	for dist in (Levenshtein, DamerauLevenshtein)
+	for dist in (Levenshtein, OptimalStringAlignement)
 		for i in eachindex(strings)
 			if compare(strings[i]..., dist()) <  1 / 3
 				@test compare(strings[i]..., dist() ; min_score = 1/ 3) ≈ 0.0

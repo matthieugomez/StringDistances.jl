@@ -14,6 +14,7 @@ The available distances are:
 	- Hamming Distance `Hamming()`
 	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler()`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
+	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement()`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 - Q-gram distances compare the set of all substrings of length `q` in each string.

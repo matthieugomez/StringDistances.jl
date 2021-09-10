@@ -7,7 +7,7 @@ using StringDistances, Unicode, Test, Random
 	TestStrings1missing = ["", "abc", "bc", missing]
 	TestStrings2missing = ["mew", missing]
 
-	for d in [Jaro(), Levenshtein(), DamerauLevenshtein(), RatcliffObershelp(),
+	for d in [Jaro(), Levenshtein(), OptimalStringAlignement(), RatcliffObershelp(),
 				QGram(2), Cosine(2), Jaccard(2), SorensenDice(2), Overlap(2)]
 
 		R = pairwise(d, TestStrings1)

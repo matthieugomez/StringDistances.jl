@@ -38,20 +38,31 @@ using StringDistances, Unicode, Test, Random
 		@test ismissing(evaluate(Levenshtein(), "", missing))
 	end
 
+	@testset "OptimalStringAlignement" begin
+		@test evaluate(OptimalStringAlignement(), "", "") == 0
+		@test evaluate(OptimalStringAlignement(), "abc", "") == 3
+		@test evaluate(OptimalStringAlignement(), "bc", "abc") == 1
+		@test evaluate(OptimalStringAlignement(), "fuor", "four") == 1
+		@test evaluate(OptimalStringAlignement(), "abcd", "acb") == 2
+		@test evaluate(OptimalStringAlignement(), "cape sand recycling ", "edith ann graham") == 17
+		@test evaluate(OptimalStringAlignement(), "jellyifhs", "jellyfish") == 2
+		@test evaluate(OptimalStringAlignement(), "ifhs", "fish") == 2
+		@test OptimalStringAlignement(2)("abcdef", "abcxyf") == 2
+
+		@test evaluate(OptimalStringAlignement(), [1, 2, 3], [1,2, 4]) == 1
+		@test evaluate(OptimalStringAlignement(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(OptimalStringAlignement(), "alborgów", "amoniak")
+		@test OptimalStringAlignement()("bc", "abc") == 1
+		@test result_type(OptimalStringAlignement(), "hello", "world") == Int
+		@inferred evaluate(OptimalStringAlignement(), "", "")
+		@test ismissing(evaluate(OptimalStringAlignement(), "", missing))
+	end
+
 	@testset "DamerauLevenshtein" begin
 		@test evaluate(DamerauLevenshtein(), "", "") == 0
-		@test evaluate(DamerauLevenshtein(), "abc", "") == 3
-		@test evaluate(DamerauLevenshtein(), "bc", "abc") == 1
-		@test evaluate(DamerauLevenshtein(), "fuor", "four") == 1
-		@test evaluate(DamerauLevenshtein(), "abcd", "acb") == 2
-		@test evaluate(DamerauLevenshtein(), "cape sand recycling ", "edith ann graham") == 17
-		@test evaluate(DamerauLevenshtein(), "jellyifhs", "jellyfish") == 2
-		@test evaluate(DamerauLevenshtein(), "ifhs", "fish") == 2
-		@test DamerauLevenshtein(2)("abcdef", "abcxyf") == 2
-
-		@test evaluate(DamerauLevenshtein(), [1, 2, 3], [1,2, 4]) == 1
-		@test evaluate(DamerauLevenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(DamerauLevenshtein(), "alborgów", "amoniak")
-		@test DamerauLevenshtein()("bc", "abc") == 1
+		@test evaluate(DamerauLevenshtein(), "CA", "ABC") == 2
+		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABDCEF") == 1
+		@test evaluate(DamerauLevenshtein(), "ABCDEF", "BACDFE") == 2
+		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABCDE") == 1
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
 		@inferred evaluate(DamerauLevenshtein(), "", "")
 		@test ismissing(evaluate(DamerauLevenshtein(), "", missing))
@@ -292,7 +303,7 @@ using StringDistances, Unicode, Test, Random
 	]
 
 	solutions = ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
-			(DamerauLevenshtein(), [1  2  4  1  3  0  3  2  3  3  4  6 17  2  2  2]),
+			(OptimalStringAlignement(), [1  2  4  1  3  0  3  2  3  3  4  6 17  2  2  2]),
 			(Jaro(), [0.05555556 0.17777778 0.23333333 0.04166667 1.00000000 0.00000000 1.00000000 0.44444444 0.25396825 0.2805556 0.2285714 0.48809524 0.3916667 0.07407407 0.16666667 0.21666667]),
 			(QGram(1), [0   3   3   1 3  0   6   4   5   4   4  11  14   0   0   3]),
 			(QGram(2), [  6   7   7   1 2 0   4   4   7   8   4  13  32   8   6   5]),
@@ -320,13 +331,13 @@ using StringDistances, Unicode, Test, Random
 	for i in eachindex(strings)
 		d = Levenshtein()(strings[i]...)
 		@test Levenshtein(d)(strings[i]...) == d
-		d = DamerauLevenshtein()(strings[i]...)
-		@test DamerauLevenshtein(d)(strings[i]...) == d
+		d = OptimalStringAlignement()(strings[i]...)
+		@test OptimalStringAlignement(d)(strings[i]...) == d
 	end
 end
 
-d = DamerauLevenshtein()("abcdef", "abcxyf")
-@test DamerauLevenshtein(d)("abcdef", "abcxyf") == d
+d = OptimalStringAlignement()("abcdef", "abcxyf")
+@test OptimalStringAlignement(d)("abcdef", "abcxyf") == d
 
 
 

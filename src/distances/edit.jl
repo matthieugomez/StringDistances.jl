@@ -155,29 +155,29 @@ function (dist::Levenshtein)(s1, s2)
 end
 
 """
-    DamerauLevenshtein()
+        OptimalStringAlignement()
 
-Creates the restricted DamerauLevenshtein distance
+    Creates the OptimalStringAlignement distance (also known ad the unrestricted DamerauLevenshtein distance).
 
-The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, 
-deletions or substitutions of a single character, or transposition of two adjacent characters) 
-required to change one string into the other.
+    It is the minimum number of operations (consisting of insertions, 
+    deletions or substitutions of a single character, or transposition of two adjacent characters) 
+    required to change one string into the other.
 
-The restricted distance differs slightly from the classic Damerau-Levenshtein algorithm by imposing 
-the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit 
-distanceof 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
-uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
-the triangle inequality.
+    The distance differs slightly from the Damerau-Levenshtein algorithm by imposing 
+    the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit 
+    distance of 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
+    uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
+    the triangle inequality.
 """
 
-struct DamerauLevenshtein{V <: Union{Integer, Nothing}} <: SemiMetric
+struct OptimalStringAlignement{V <: Union{Integer, Nothing}} <: SemiMetric
    max_dist::V
 end
-DamerauLevenshtein() = DamerauLevenshtein(nothing)
+OptimalStringAlignement() = OptimalStringAlignement(nothing)
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
-function (dist::DamerauLevenshtein)(s1, s2)
+function (dist::OptimalStringAlignement)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -226,6 +226,59 @@ function (dist::DamerauLevenshtein)(s1, s2)
     end
     dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
     return current
+end
+
+
+"""
+    DamerauLevenshtein()
+
+Creates the DamerauLevenshtein distance
+
+The DamerauLevenshtein distance is the minimum number of operations (consisting of insertions, 
+deletions or substitutions of a single character, or transposition of two adjacent characters) 
+required to change one string into the other.
+"""
+
+struct DamerauLevenshtein <: Metric
+end
+
+## https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+function (dist::DamerauLevenshtein)(s1, s2)
+    (s1 === missing) | (s2 === missing) && return missing
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    T = promote_type(eltype(s1), eltype(s2))
+    da = Dict{T, Int}(x => 0 for x in Iterators.flatten((s1, s2)))
+    d = zeros(Int, len1 + 2, len2 + 2)
+    md = len1 + len2
+    @inbounds for i in 0:len1
+        d[i + 2, 1] = md
+        d[i + 2, 2] = i
+    end
+    @inbounds for j in 0:len2
+        d[1, j + 2] = md
+        d[2, j + 2] = j
+    end
+    # fill in the distance matrix d
+    for (i1, ch1) in enumerate(s1)
+        db = 0
+        for (i2, ch2) in enumerate(s2)
+            j1 = da[ch2]
+            j2 = db
+            if ch1 == ch2
+                cost = 0
+                db = i2
+            else
+                cost = 1
+            end
+            @inbounds d[i1 + 2, i2 + 2] = min(d[i1 + 1, i2 + 1] + cost, 
+                                  d[i1 + 2, i2 + 1] + 1,
+                                  d[i1 + 1, i2 + 2] + 1,
+                                  d[j1 + 1, j2 + 1] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+        end
+        da[ch1] = i1
+    end
+    return d[end, end]
 end
 
 """
