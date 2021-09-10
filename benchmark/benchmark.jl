@@ -26,7 +26,7 @@ end
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8);
 # 0.08
 @time f(RatcliffObershelp(), x, y);
-# 0.8s
+# 0.65s
 
 
 

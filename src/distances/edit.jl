@@ -248,25 +248,30 @@ function (dist::RatcliffObershelp)(s1, s2)
 end
 
 function length_matching_blocks(s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
+    # p is just a storage vector which will be reused
+    p = zeros(Int, max(end1 - start1, end2 - start2) + 1)
+    length_matching_blocks!(p, s1, s2, start1, start2, end1, end2)
+end
+
+function length_matching_blocks!(p::Vector{Int}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
     end1 >= start1 || return 0
     end2 >= start2 || return 0
-    j1, j2, len = longest_common_pattern(s1, s2, start1, start2, end1, end2)
+    j1, j2, len = longest_common_pattern!(p, s1, s2, start1, start2, end1, end2)
     # exit if there is no common substring
     len == 0 && return 0
     return len + 
-    length_matching_blocks(s1, s2, start1, start2, j1 - 1, j2 - 1) +
-    length_matching_blocks(s1, s2, j1 + len, j2 + len, end1, end2)
+    length_matching_blocks!(p, s1, s2, start1, start2, j1 - 1, j2 - 1) +
+    length_matching_blocks!(p, s1, s2, j1 + len, j2 + len, end1, end2)
 end
 
-
-function longest_common_pattern(s1, s2, start1, start2, end1, end2)
+function longest_common_pattern!(p, s1, s2, start1, start2, end1, end2)
     if end1 - start1 > end2 - start2
-        j2, j1, len = longest_common_pattern(s2, s1, start2, start1, end2, end1)
+        j2, j1, len = longest_common_pattern!(p, s2, s1, start2, start1, end2, end1)
     else
         j1, j2, len = 0, 0, 0
+        fill!(p, 0)
         # p[i2-start2+1] stores the startingindex of the longest 
         # common pattern up to i2 with prevch1 as last matching character
-        p = zeros(Int, end2 - start2 + 1)
         for (i1, ch1) in enumerate(s1)
             i1 >= start1 || continue
             i1 <= end1 || break

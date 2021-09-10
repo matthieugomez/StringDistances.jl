@@ -56,19 +56,21 @@ function (dist::Partial{RatcliffObershelp})(s1, s2)
 end
 
 function matching_blocks(s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
-    matching_blocks!(Set{Tuple{Int, Int, Int}}(), s1, s2, start1, start2, end1, end2)
+    x = Set{Tuple{Int, Int, Int}}()
+    p = zeros(Int, max(end1 - start1, end2 - start2) + 1)
+    matching_blocks!(x, p, s1, s2, start1, start2, end1, end2)
 end
 
-function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
-    j1, j2, len = longest_common_pattern(s1, s2, start1, start2, end1, end2)
+function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, p::Vector{Int}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
+    j1, j2, len = longest_common_pattern!(p, s1, s2, start1, start2, end1, end2)
     # exit if there is no common substring
     len == 0 && return x
     # add the info of the common to the existing set
     push!(x, (j1, j2, len))
      # add the longest common substring that happens before
-    matching_blocks!(x, s1, s2, start1, start2, j1 - 1, j2 - 1)
+    matching_blocks!(x, p, s1, s2, start1, start2, j1 - 1, j2 - 1)
      # add the longest common substring that happens after
-    matching_blocks!(x, s1, s2, j1 + len, j2 + len, end1, end2)
+    matching_blocks!(x, p, s1, s2, j1 + len, j2 + len, end1, end2)
     return x
 end
 
