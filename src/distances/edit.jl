@@ -248,22 +248,16 @@ function (dist::DamerauLevenshtein)(s1, s2)
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     T = promote_type(eltype(s1), eltype(s2))
-    da = Dict{T, Int}(x => 0 for x in Iterators.flatten((s1, s2)))
-    d = zeros(Int, len1 + 2, len2 + 2)
-    md = len1 + len2
-    @inbounds for i in 0:len1
-        d[i + 2, 1] = md
-        d[i + 2, 2] = i
-    end
-    @inbounds for j in 0:len2
-        d[1, j + 2] = md
-        d[2, j + 2] = j
-    end
+    da = Dict{T, Int}()
+    sizehint!(da, len1 + len2)
+    d = zeros(Int, len1 + 1, len2 + 1)
+    d[:, 1] = 0:len1
+    d[1, :] = 0:len2
     # fill in the distance matrix d
     for (i1, ch1) in enumerate(s1)
         db = 0
         for (i2, ch2) in enumerate(s2)
-            j1 = da[ch2]
+            j1 = get(da, ch2, 0)
             j2 = db
             if ch1 == ch2
                 cost = 0
@@ -271,10 +265,16 @@ function (dist::DamerauLevenshtein)(s1, s2)
             else
                 cost = 1
             end
-            @inbounds d[i1 + 2, i2 + 2] = min(d[i1 + 1, i2 + 1] + cost, 
-                                  d[i1 + 2, i2 + 1] + 1,
-                                  d[i1 + 1, i2 + 2] + 1,
-                                  d[j1 + 1, j2 + 1] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+            if j1 == 0 || j2 == 0
+               @inbounds d[i1 + 1, i2 + 1] = min(d[i1, i2] + cost, 
+                                                 d[i1 + 1, i2] + 1,
+                                                 d[i1, i2 + 1] + 1)
+            else
+                @inbounds d[i1 + 1, i2 + 1] = min(d[i1, i2] + cost, 
+                                                  d[i1 + 1, i2] + 1,
+                                                  d[i1, i2 + 1] + 1,
+                                                  d[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+            end
         end
         da[ch1] = i1
     end

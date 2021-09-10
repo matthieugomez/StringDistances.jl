@@ -73,7 +73,7 @@ The function `pairwise` is particularly optimized for QGram-distances (each elem
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
-The functions `findnearest` and `findall` are particularly optimized for `Levenshtein`, `DamerauLevenshtein` distances (these distances stop early if the distance is higher than a certain threshold).
+The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances (these distances stop early if the distance is higher than a certain threshold).
 
 
 ### distance modifiers
