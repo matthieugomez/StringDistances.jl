@@ -7,6 +7,7 @@ using StringDistances, Unicode, Test
 	@test Partial(QGram(2))("martha", missing) === missing
 	@test Partial(Levenshtein())("martha", "marhta") == 2
 	@test Partial(RatcliffObershelp())("martha", "marhta") ≈ 0.16666666 atol = 1e-5
+	@test Partial(RatcliffObershelp())("martha", "marhtaXXX") ≈ 0.16666666 atol = 1e-5
 	@test Partial(RatcliffObershelp())("martha", missing) === missing
 
 	# TokenSort

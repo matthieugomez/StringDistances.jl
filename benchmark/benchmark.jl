@@ -1,5 +1,5 @@
 
-using StringDistances, Random
+using Revise, StringDistances, Random
 Random.seed!(2)
 x = map(Random.randstring, rand(5:25,500_000))
 y = map(Random.randstring, rand(5:25,500_000))
@@ -13,6 +13,7 @@ function g(dist, x, y)
 end
 
 
+@time f(Hamming(), x, y);
 
 @time f(Jaro(), x, y);
 #0.3s 
@@ -25,7 +26,7 @@ end
 @time f(DamerauLevenshtein(), x, y, min_score = 0.8);
 # 0.08
 @time f(RatcliffObershelp(), x, y);
-# 1.35s
+# 0.8s
 
 
 

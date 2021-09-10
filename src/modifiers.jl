@@ -34,11 +34,10 @@ end
 
 function (dist::Partial{RatcliffObershelp})(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2)
     out = 1.0
-    for r in matching_blocks(s1, s2)
+    for r in matching_blocks(s1, s2, 1, 1, len1, len2)
         # Make sure the substring of s2 has length len1
         s2_start = r[2] - r[1] + 1
         s2_end = s2_start + len1 - 1
@@ -49,13 +48,30 @@ function (dist::Partial{RatcliffObershelp})(s1, s2)
             s2_start += len2 - s2_end
             s2_end += len2 - s2_end
         end
-        curr = dist.dist(s1, _slice(s2, s2_start - 1, s2_end))
+        n_matched = length_matching_blocks(s1, s2, 1, s2_start, len1, s2_end)
+        curr = 1 - 2 * n_matched / (len1 + s2_end - s2_start + 1)
         out = min(out, curr)
     end
     return out
 end
-_slice(s, n1::Integer, n2::Integer) = Base.Iterators.take(Base.Iterators.drop(s, n1), n2 - n1)
-_slice(s::StringWithLength, n1::Integer, n2::Integer) = SubString(s, nextind(s, 0, n1 + 1),  nextind(s, 0, n2))
+
+function matching_blocks(s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
+    matching_blocks!(Set{Tuple{Int, Int, Int}}(), s1, s2, start1, start2, end1, end2)
+end
+
+function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
+    j1, j2, len = longest_common_pattern(s1, s2, start1, start2, end1, end2)
+    # exit if there is no common substring
+    len == 0 && return x
+    # add the info of the common to the existing set
+    push!(x, (j1, j2, len))
+     # add the longest common substring that happens before
+    matching_blocks!(x, s1, s2, start1, start2, j1 - 1, j2 - 1)
+     # add the longest common substring that happens after
+    matching_blocks!(x, s1, s2, j1 + len, j2 + len, end1, end2)
+    return x
+end
+
 """
    TokenSort(dist)
 
