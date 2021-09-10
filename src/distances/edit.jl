@@ -253,11 +253,9 @@ function length_matching_blocks(s1, s2, start1::Integer, start2::Integer, end1::
     j1, j2, len = longest_common_pattern(s1, s2, start1, start2, end1, end2)
     # exit if there is no common substring
     len == 0 && return 0
-    # add the length of the longest common substring that happens before
-    len += length_matching_blocks(s1, s2, start1, start2, j1 - 1, j2 - 1)
-    # add the length of the longest common substring that happens after
-    len += length_matching_blocks(s1, s2, j1 + len, j2 + len, end1, end2)
-    return len
+    return len + 
+    length_matching_blocks(s1, s2, start1, start2, j1 - 1, j2 - 1) +
+    length_matching_blocks(s1, s2, j1 + len, j2 + len, end1, end2)
 end
 
 
