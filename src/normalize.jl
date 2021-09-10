@@ -4,7 +4,7 @@ struct Normalized{V <: SemiMetric} <: SemiMetric
 end
 
 function (dist::Normalized{<:Hamming})(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -13,7 +13,7 @@ function (dist::Normalized{<:Hamming})(s1, s2)
 end
 
 function (dist::Normalized{<:Union{Levenshtein{Nothing}, DamerauLevenshtein{Nothing}}})(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len2 == 0 && return 1.0
@@ -27,7 +27,7 @@ function (dist::Normalized{<:Union{Levenshtein{Nothing}, DamerauLevenshtein{Noth
 end
 
 function (dist::Normalized{<:AbstractQGramDistance})(s1, s2)
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     # When string length < q for qgram distance, returns s1 == s2
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -94,7 +94,7 @@ TokenMax(dist::SemiMetric; max_dist = 1.0) = TokenMax(dist, max_dist)
 normalize(dist::TokenMax; max_dist = 1.0) = TokenMax(dist.dist, max_dist)
 
 function (dist::TokenMax)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
-    ((s1 === missing) | (s2 === missing)) && return missing
+    (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     max_dist = dist.max_dist
