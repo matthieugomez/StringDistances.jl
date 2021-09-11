@@ -5,18 +5,19 @@ Creates the Hamming distance
 
 The Hamming distance is defined as the number of characters that do not match
 """
-struct Hamming{V <: Union{Integer, Nothing}} <: SemiMetric
+struct Hamming{V <: Union{Int, Nothing}} <: SemiMetric
    max_dist::V
 end
 Hamming() = Hamming(nothing)
 
-function (dist::Hamming)(s1, s2)
+function (dist::Hamming{T})(s1, s2) where {T}
     (s1 === missing) | (s2 === missing) && return missing
     out = abs(length(s2) - length(s1))
-    dist.max_dist !== nothing && out > dist.max_dist && return dist.max_dist + 1
     for (ch1, ch2) in zip(s1, s2)
         out += ch1 != ch2
-        dist.max_dist !== nothing && out > dist.max_dist && return dist.max_dist + 1
+        if T <: Int
+            out > dist.max_dist && return dist.max_dist + 1
+        end
     end
     return out
 end
@@ -40,8 +41,11 @@ struct Jaro <: SemiMetric end
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function (dist::Jaro)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
+    if len1 > len2
+        s1, s2 = s2, s1
+        len1, len2 = len2, len1
+    end
     # If both iterators empty, formula in Wikipedia gives 1, but it makes more sense to set it to s1 == s2
     len2 > 0 || return Float64(s1 == s2)
     d = max(0, div(len2, 2) - 1)
@@ -97,8 +101,6 @@ JaroWinkler(; p = 0.1, threshold = 0.3, maxlength = 4) = JaroWinkler(p, threshol
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function (dist::JaroWinkler)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
-    len1, len2 = length(s1), length(s2)
     out = Jaro()(s1, s2)
     if out <= dist.threshold
         l = common_prefix(s1, s2)[1]
@@ -116,18 +118,23 @@ Creates the Levenshtein distance
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein{V <: Union{Integer, Nothing}} <: Metric
+struct Levenshtein{V <: Union{Int, Nothing}} <: Metric
    max_dist::V
 end
 Levenshtein() = Levenshtein(nothing)
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 # Return max_dist + 1 if distance higher than max_dist 
 # to differentiate distance equal to max_dist or not, which is important for find fctions.
-function (dist::Levenshtein)(s1, s2)
+function (dist::Levenshtein{T})(s1, s2) where {T}
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
+    if len1 > len2
+        s1, s2 = s2, s1
+        len1, len2 = len2, len1
+    end
+    if T <: Int
+        len2 - len1 > dist.max_dist && return dist.max_dist + 1
+    end
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
@@ -138,19 +145,27 @@ function (dist::Levenshtein)(s1, s2)
     for (i1, ch1) in enumerate(s1)
         i1 > k || continue
         left = current = i1 - k - 1
-        dist.max_dist !== nothing && (value_lb = left - 1)
+        if T <: Int
+            value_lb = left - 1
+        end
         for (i2, ch2) in enumerate(s2)
             i2 > k || continue
             @inbounds above, current, left = current, left, v[i2 - k]
             if ch1 != ch2
                 current = min(current, above, left) + 1
             end
-            dist.max_dist !== nothing && (value_lb = min(value_lb, left))
+            if T <: Int
+                value_lb = min(value_lb, left)
+            end
             @inbounds v[i2 - k] = current
         end
-        dist.max_dist !== nothing && value_lb > dist.max_dist && return dist.max_dist + 1
+        if T <: Int
+            value_lb > dist.max_dist && return dist.max_dist + 1
+        end
     end
-    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1 
+    if T <: Int
+        current > dist.max_dist && return dist.max_dist + 1 
+    end
     return current
 end
 
@@ -169,49 +184,56 @@ end
     uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
     the triangle inequality.
 """
-struct OptimalStringAlignement{V <: Union{Integer, Nothing}} <: SemiMetric
+struct OptimalStringAlignement{V <: Union{Int, Nothing}} <: SemiMetric
    max_dist::V
 end
 OptimalStringAlignement() = OptimalStringAlignement(nothing)
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
-function (dist::OptimalStringAlignement)(s1, s2)
+function (dist::OptimalStringAlignement{T})(s1, s2) where {T}
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    dist.max_dist !== nothing && len2 - len1 > dist.max_dist && return dist.max_dist + 1
-    # prefix common to both strings can be ignored
+    if len1 > len2
+        s1, s2 = s2, s1
+        len1, len2 = len2, len1
+    end
+    if T <: Int 
+        len2 - len1 > dist.max_dist && return dist.max_dist + 1
+    end
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
-    v = collect(1:(len2-k))
+    v = collect(1:(len2 - k))
     w = similar(v)
-    if dist.max_dist !== nothing
+    prevch1, prevch2 = first(s1), first(s2)
+    current = 0
+    if T <: Int
         i2_start = 0
         i2_end = dist.max_dist
     end
-    prevch1, prevch2 = first(s1), first(s2)
-    current = 0
     for (i1, ch1) in enumerate(s1)
         i1 > k || (prevch1 = ch1 ; continue)
         left = i1 - k - 1
         current = left + 1
         nextTransCost = 0
-        if dist.max_dist !== nothing
+        if T <: Int
             i2_start += i1 - k - 1 + len2 - len1 > dist.max_dist
             i2_end += i2_end < len2
         end
         for (i2, ch2) in enumerate(s2)
             i2 > k || (prevch2 = ch2 ; continue)
             # no need to look beyond window of lower right diagonal - max distance cells 
-            #lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
-            dist.max_dist !== nothing && !(i2_start <= i2 - k - 1 < i2_end) && (prevch2 = ch2 ; continue)
+            # lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
+            if T <: Int
+                if !(i2_start <= i2 - k - 1 < i2_end)
+                    prevch2 = ch2
+                    continue
+                end
+            end
             @inbounds above, current, left = current, left, v[i2 - k]
             @inbounds w[i2 - k], nextTransCost, thisTransCost = current, w[i2 - k], nextTransCost
-            # left now equals current cost (which will be diagonal at next iteration)
             if ch1 != ch2
-                current = min(left, current, above) + 1
-                # never happens at i2 = k + 1 because then the two previous characters were equal
+                current = min(current, above, left) + 1
                 if i1 - k - 1 > 0 && i2 - k - 1 > 0 && ch1 == prevch2 && prevch1 == ch2
                     thisTransCost += 1
                     current = min(current, thisTransCost)
@@ -220,10 +242,14 @@ function (dist::OptimalStringAlignement)(s1, s2)
             @inbounds v[i2 - k] = current
             prevch2 = ch2
         end
-        @inbounds dist.max_dist !== nothing && v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
+        if T <: Int
+            v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
+        end
         prevch1 = ch1
     end
-    dist.max_dist !== nothing && current > dist.max_dist && return dist.max_dist + 1
+    if T <: Int
+        current > dist.max_dist && return dist.max_dist + 1
+    end
     return current
 end
 
@@ -244,13 +270,16 @@ struct DamerauLevenshtein <: Metric end
 # Compared to Levenshtein & Restricted distance, cannot get by with only two vectors since transposition can be global
 function (dist::DamerauLevenshtein)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
-    s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
+    if len1 > len2
+        s1, s2 = s2, s1
+        len1, len2 = len2, len1
+    end
     # da[ch1] will store last spotted position of ch1 in s1
-    da = Dict{eltype(s1), Int}()
+    da = Dict{eltype(s1), UInt32}()
     sizehint!(da, len1)
     # distm[i1+1, i2+1] will store the distance between Iterators.take(s1, i1) and Iterators.take(s2, i2)
-    distm = zeros(Int, len1 + 1, len2 + 1)
+    distm = zeros(UInt32, len1 + 1, len2 + 1)
     distm[:, 1] = 0:len1
     distm[1, :] = 0:len2
     for (i1, ch1) in enumerate(s1)
@@ -263,7 +292,7 @@ function (dist::DamerauLevenshtein)(s1, s2)
                                 distm[i1 + 1, i2] + 1,
                                 distm[i1, i2 + 1] + 1)
             # avoid lookup if we already know transposition won't be chosen
-            j1 = ((i1 == 1) | (j2 == 0) | (i2 - j2 >= pre) | match) ? 0 : get(da, ch2, 0)
+            j1 = (i1 == 1 || j2 == 0 || match) ? 0 : get(da, ch2, 0)
             @inbounds distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
             if match
                 j2 = i2
@@ -271,7 +300,7 @@ function (dist::DamerauLevenshtein)(s1, s2)
         end
         da[ch1] = i1
     end
-    return distm[end, end]
+    return Int(distm[end, end])
 end
 
 """
