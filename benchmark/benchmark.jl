@@ -26,7 +26,7 @@ end
 @time f(OptimalStringAlignement(), x, y, min_score = 0.8);
 # 0.08
 @time f(DamerauLevenshtein(), x, y);
-# 1.2s
+# 1.1s
 @time f(RatcliffObershelp(), x, y);
 # 0.65s
 

@@ -242,14 +242,13 @@ end
 
 # https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 # https://www.lemoda.net/text-fuzzy/damerau-levenshtein/
-# Needs to hold matrix, not just two vectors, since transposition can happen non-locally
+# Compared to Levenshtein & Restricted distance, cannot get by with only two vectors since transposition can be global
 function (dist::DamerauLevenshtein)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
-    T = promote_type(eltype(s1), eltype(s2))
-    da = Dict{T, Int}()
-    sizehint!(da, len1 + len2)
+    da = Dict{eltype(s1), Int}()
+    sizehint!(da, len1)
     distm = zeros(Int, len1 + 1, len2 + 1)
     distm[:, 1] = 0:len1
     distm[1, :] = 0:len2
@@ -263,9 +262,9 @@ function (dist::DamerauLevenshtein)(s1, s2)
                                 distm[i1 + 1, i2] + 1,
                                 distm[i1, i2 + 1] + 1)
             # let us now consider transposition.
-            # only lookup when transposition might be chosen
-            j1 = ((j2 == 0) | (i2 - j2 >= pre) | match) ? 0 : get(da, ch2, 0)
-            distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+            # avoid lookup if we already know transposition won't be chosen
+            j1 = ((i1 == 1) | (j2 == 0) | (i2 - j2 >= pre) | match) ? 0 : get(da, ch2, 0)
+            @inbounds distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
             if match
                 j2 = i2
             end
