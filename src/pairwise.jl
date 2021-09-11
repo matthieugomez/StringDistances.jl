@@ -1,12 +1,10 @@
 """
-    pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+    pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
 
 Compute distances between all pairs of elements in `xs`  and `ys` according to the
 `StringDistance` `dist`. Returns a matrix R such that `R[i, j]` corrresponds to the distance between `xs[i]` and `ys[j]`.
 
-For AbstractQGramDistances preprocessing will be used either if `preprocess` is set 
-to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
-false if no preprocessing should be used, regardless of length.
+Set `preprocess` to false if no preprocessing should be used.
 
 Both symmetric and asymmetric versions are available.
 
@@ -32,14 +30,12 @@ function pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector =
 end
 
 """
-    pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+    pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
 
 Compute distances between all pairs of elements in `xs` and `ys` according to the
 `StringDistance` `dist` and write the result in `R`. `R[i, j]` corresponds to the distance between `xs[i]` and `ys[j]`.
 
-For AbstractQGramDistances preprocessing will be used either if `preprocess` is set 
-to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
-false if no preprocessing should be used, regardless of length.
+Set `preprocess` to false if no preprocessing should be used.
 """
 function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
