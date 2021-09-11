@@ -253,28 +253,24 @@ function (dist::DamerauLevenshtein)(s1, s2)
     distm = zeros(Int, len1 + 1, len2 + 1)
     distm[:, 1] = 0:len1
     distm[1, :] = 0:len2
-    # fill in the distance matrix d
     for (i1, ch1) in enumerate(s1)
-        # last spotted position of ch1 in s2
+        # j2 is last spotted position of ch1 in s2
+        # j1 will be last spotted position of ch2 in s1
         j2 = 0
         for (i2, ch2) in enumerate(s2)
-            # last spotted position of ch2 in s1
-            j1 = get(da, ch2, 0)
             match = ch1 == ch2
-            if j1 == 0 || j2 == 0
-               @inbounds distm[i1 + 1, i2 + 1] = min(distm[i1, i2] + !match, 
-                                                     distm[i1 + 1, i2] + 1,
-                                                     distm[i1, i2 + 1] + 1)
-            else
-                @inbounds distm[i1 + 1, i2 + 1] = min(distm[i1, i2] + !match, 
-                                                      distm[i1 + 1, i2] + 1,
-                                                      distm[i1, i2 + 1] + 1,
-                                                      distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
-            end
+            @inbounds pre = min(distm[i1, i2] + !match, 
+                                distm[i1 + 1, i2] + 1,
+                                distm[i1, i2 + 1] + 1)
+            # let us now consider transposition.
+            # only lookup when transposition might be chosen
+            j1 = ((j2 == 0) | (i2 - j2 >= pre) | match) ? 0 : get(da, ch2, 0)
+            distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
             if match
                 j2 = i2
             end
         end
+        # da[ch1] is last spotted position of ch1 in s1
         da[ch1] = i1
     end
     return distm[end, end]
