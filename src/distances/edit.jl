@@ -247,8 +247,10 @@ function (dist::DamerauLevenshtein)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
+    # da[ch1] will store last spotted position of ch1 in s1
     da = Dict{eltype(s1), Int}()
     sizehint!(da, len1)
+    # dist[i1+1, i2+1] will store the distance between Iterators.take(s1, i1) and Iterators.take(s2, i2)
     distm = zeros(Int, len1 + 1, len2 + 1)
     distm[:, 1] = 0:len1
     distm[1, :] = 0:len2
@@ -261,7 +263,6 @@ function (dist::DamerauLevenshtein)(s1, s2)
             @inbounds pre = min(distm[i1, i2] + !match, 
                                 distm[i1 + 1, i2] + 1,
                                 distm[i1, i2 + 1] + 1)
-            # let us now consider transposition.
             # avoid lookup if we already know transposition won't be chosen
             j1 = ((i1 == 1) | (j2 == 0) | (i2 - j2 >= pre) | match) ? 0 : get(da, ch2, 0)
             @inbounds distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
@@ -269,7 +270,6 @@ function (dist::DamerauLevenshtein)(s1, s2)
                 j2 = i2
             end
         end
-        # da[ch1] is last spotted position of ch1 in s1
         da[ch1] = i1
     end
     return distm[end, end]
