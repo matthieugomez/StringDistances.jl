@@ -61,3 +61,4 @@ julia> StringDistances.normalize(Levenshtein())(s1, s2)
 """
 normalize(dist::SemiMetric; max_dist = 1.0) = Normalized{typeof(dist)}(dist, max_dist)
 normalize(dist::Normalized; max_dist = 1.0) = Normalized(dist.dist, max_dist)
+

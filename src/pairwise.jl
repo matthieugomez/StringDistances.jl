@@ -1,4 +1,3 @@
-
 """
     pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
 
@@ -26,11 +25,8 @@ julia> pairwise(Levenshtein(), iter, iter2)
  10.0
 ```
 """
-function pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+function pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     T = result_type(dist, eltype(xs), eltype(ys))
-    if Missing <: Union{eltype(xs), eltype(ys)}
-        T = Union{T, Missing}
-    end
     R = Matrix{T}(undef, length(xs), length(ys))
     pairwise!(R, dist, xs, ys; preprocess = preprocess)
 end
@@ -45,7 +41,7 @@ For AbstractQGramDistances preprocessing will be used either if `preprocess` is 
 to true or if there are more than 5 elements in `xs`. Set `preprocess` to 
 false if no preprocessing should be used, regardless of length.
 """
-function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = nothing)
+function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
     length(ys) == size(R, 2) || throw(DimensionMismatch("inconsistent length"))
     ((xs === ys) & (dist isa SemiMetric)) ?
@@ -53,36 +49,35 @@ function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, 
         _asymmetric_pairwise!(R, dist, xs, ys; preprocess = preprocess)
 end
 
-function _symmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector; preprocess = nothing)
-    objs = _preprocess(xs, dist, preprocess)
-    for i in 1:length(objs)
+function _symmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector; preprocess = true)
+    if preprocess
+        xs = _preprocess_list(dist, xs)
+    end
+    for i in 1:length(xs)
         # handle missing
-        R[i, i] = objs[i] != objs[i]
-        Threads.@threads for j in (i+1):length(objs)
-            R[i, j] = R[j, i] = evaluate(dist, objs[i], objs[j])
+        R[i, i] = xs[i] != xs[i]
+        Threads.@threads for j in (i+1):length(xs)
+            R[i, j] = R[j, i] = evaluate(dist, xs[i], xs[j])
         end
     end
     return R
 end
 
-function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector; preprocess = nothing)
-    objsxs = _preprocess(xs, dist, preprocess)
-    objsys = xs === ys ? objsxs : _preprocess(ys, dist, preprocess)
-    for i in 1:length(objsxs)
-        Threads.@threads for j in 1:length(objsys)
-            R[i, j] = evaluate(dist, objsxs[i], objsys[j])
-        end
-    end
-    return R
-end
-
-function _preprocess(xs, dist::StringDistance, preprocess)
-    if preprocess === nothing
-        preprocess = length(xs) >= 5
-    end
-    if (dist isa AbstractQGramDistance) && preprocess
-        return fetch.(map(x -> (Threads.@spawn x === missing ? x : QGramSortedVector(x, dist.q)), xs))
+function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector; preprocess = true)
+    if preprocess
+        objxs = _preprocess_list(dist, xs)
+        objys = xs === ys ? objxs : _preprocess_list(dist, ys)
     else
-        return xs
+        objxs = xs
+        objys = ys
     end
+    for i in 1:length(objxs)
+        Threads.@threads for j in 1:length(objys)
+            R[i, j] = evaluate(dist, objxs[i], objys[j])
+        end
+    end
+    return R
 end
+
+_preprocess_list(dist::StringDistance, xs)  = xs
+_preprocess_list(dist::AbstractQGramDistance, xs) = fetch.(map(x -> (Threads.@spawn x === missing ? x : QGramSortedVector(x, dist.q)), xs))

@@ -192,9 +192,7 @@ Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
 qgrams(s::AbstractString, q::Integer) = QGramIterator(s, q)
 
 
-#q-grams of AbstractVector
-# Alternatively, I could also use partition in IterTools but it creates a vector for each iteration
-# so it does not seem to be worth it.
+# q-grams of General Iterators
 function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstindex(qgram.s))
 	state + qgram.q - 1 > lastindex(qgram.s) && return nothing
 	view(qgram.s, state:(state + qgram.q - 1)), state + 1
