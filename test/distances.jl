@@ -29,6 +29,7 @@ using StringDistances, Unicode, Test, Random
 		@test evaluate(Levenshtein(), "kitten", "sitting") == 3
 		@test evaluate(Levenshtein(), "saturday", "sunday") == 3
 		@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
+		@test evaluate(Levenshtein(), "a cat", "an act") == 3
 		@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
 		@test evaluate(Levenshtein(), [1, 2, 3], [1, 2, 4]) == 1
 		@test evaluate(Levenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Levenshtein(), "alborgów", "amoniak")
@@ -47,6 +48,9 @@ using StringDistances, Unicode, Test, Random
 		@test evaluate(OptimalStringAlignement(), "cape sand recycling ", "edith ann graham") == 17
 		@test evaluate(OptimalStringAlignement(), "jellyifhs", "jellyfish") == 2
 		@test evaluate(OptimalStringAlignement(), "ifhs", "fish") == 2
+		@test evaluate(OptimalStringAlignement(), "a cat", "an act") == 2
+		@test evaluate(OptimalStringAlignement(), "a cat", "an abct") == 4
+		@test evaluate(OptimalStringAlignement(), "a cat", "a tc") == 3
 		@test OptimalStringAlignement(2)("abcdef", "abcxyf") == 2
 
 		@test evaluate(OptimalStringAlignement(), [1, 2, 3], [1,2, 4]) == 1
@@ -63,6 +67,9 @@ using StringDistances, Unicode, Test, Random
 		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABDCEF") == 1
 		@test evaluate(DamerauLevenshtein(), "ABCDEF", "BACDFE") == 2
 		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABCDE") == 1
+		@test evaluate(DamerauLevenshtein(), "a cat", "an act") == 2
+		@test evaluate(DamerauLevenshtein(), "a cat", "an abct") == 3
+		@test evaluate(DamerauLevenshtein(), "a cat", "a tc") == 2
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
 		@inferred evaluate(DamerauLevenshtein(), "", "")
 		@test ismissing(evaluate(DamerauLevenshtein(), "", missing))

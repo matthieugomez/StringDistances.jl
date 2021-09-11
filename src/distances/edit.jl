@@ -169,7 +169,6 @@ end
     uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
     the triangle inequality.
 """
-
 struct OptimalStringAlignement{V <: Union{Integer, Nothing}} <: SemiMetric
    max_dist::V
 end
@@ -238,11 +237,12 @@ The DamerauLevenshtein distance is the minimum number of operations (consisting 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
 required to change one string into the other.
 """
-
 struct DamerauLevenshtein <: Metric
 end
 
-## https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+# https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+# https://www.lemoda.net/text-fuzzy/damerau-levenshtein/
+# Needs to hold matrix, not just two vectors, since transposition can happen non-locally
 function (dist::DamerauLevenshtein)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
@@ -250,35 +250,34 @@ function (dist::DamerauLevenshtein)(s1, s2)
     T = promote_type(eltype(s1), eltype(s2))
     da = Dict{T, Int}()
     sizehint!(da, len1 + len2)
-    d = zeros(Int, len1 + 1, len2 + 1)
-    d[:, 1] = 0:len1
-    d[1, :] = 0:len2
+    distm = zeros(Int, len1 + 1, len2 + 1)
+    distm[:, 1] = 0:len1
+    distm[1, :] = 0:len2
     # fill in the distance matrix d
     for (i1, ch1) in enumerate(s1)
-        db = 0
+        # last spotted position of ch1 in s2
+        j2 = 0
         for (i2, ch2) in enumerate(s2)
+            # last spotted position of ch2 in s1
             j1 = get(da, ch2, 0)
-            j2 = db
-            if ch1 == ch2
-                cost = 0
-                db = i2
-            else
-                cost = 1
-            end
+            match = ch1 == ch2
             if j1 == 0 || j2 == 0
-               @inbounds d[i1 + 1, i2 + 1] = min(d[i1, i2] + cost, 
-                                                 d[i1 + 1, i2] + 1,
-                                                 d[i1, i2 + 1] + 1)
+               @inbounds distm[i1 + 1, i2 + 1] = min(distm[i1, i2] + !match, 
+                                                     distm[i1 + 1, i2] + 1,
+                                                     distm[i1, i2 + 1] + 1)
             else
-                @inbounds d[i1 + 1, i2 + 1] = min(d[i1, i2] + cost, 
-                                                  d[i1 + 1, i2] + 1,
-                                                  d[i1, i2 + 1] + 1,
-                                                  d[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+                @inbounds distm[i1 + 1, i2 + 1] = min(distm[i1, i2] + !match, 
+                                                      distm[i1 + 1, i2] + 1,
+                                                      distm[i1, i2 + 1] + 1,
+                                                      distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+            end
+            if match
+                j2 = i2
             end
         end
         da[ch1] = i1
     end
-    return d[end, end]
+    return distm[end, end]
 end
 
 """
