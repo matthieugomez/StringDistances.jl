@@ -74,6 +74,10 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, p::Vector{Int}, s1, s2, 
     return x
 end
 
+function normalize(dist::Partial; max_dist = 1.0)
+    Partial(normalize(dist.dist; max_dist = max_dist))
+end
+
 """
    TokenSort(dist)
 
@@ -104,18 +108,20 @@ function (dist::TokenSort)(s1::Union{AbstractString, Missing}, s2::Union{Abstrac
     out = dist.dist(s1, s2)
 end
 
+function normalize(dist::TokenSort; max_dist = 1.0)
+    TokenSort(normalize(dist.dist; max_dist = max_dist))
+end
+
 """
    TokenSet(dist)
 
-Creates the `TokenSet{dist}` distance.
+Creates the `TokenSet{dist}` distance, which is only defined on AbstractStrings.
 
 `TokenSet{dist}` returns the minimum the distances between:
 [SORTED_INTERSECTION]
 [SORTED_INTERSECTION] + [SORTED_REST_OF_STRING1]
 [SORTED_INTERSECTION] + [SORTED_REST_OF_STRING2]
 See: http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
-
-It is only defined on AbstractStrings.
 
 ### Examples
 ```julia-repl
@@ -144,4 +150,67 @@ function (dist::TokenSet)(s1::Union{AbstractString, Missing}, s2::Union{Abstract
     min(score_01, score_02, score_12)
 end
 
+function normalize(dist::TokenSet; max_dist = 1.0)
+    TokenSet(normalize(dist.dist; max_dist = max_dist))
+end
 
+
+"""
+   TokenMax(dist)
+
+Creates the `TokenMax{dist}` distance, which is only defined on AbstractStrings.
+
+`TokenMax{dist}` normalizes the distance `dist` and returns the minimum of the distance,
+its [`Partial`](@ref) modifier, its [`TokenSort`](@ref) modifier, and its 
+[`TokenSet`](@ref) modifier, with penalty terms depending on the strings lengths.
+
+
+### Examples
+```julia-repl
+julia> s1 = "New York Mets vs Atlanta"
+julia> s2 = "Atlanta Braves vs New York Mets"
+julia> evaluate(TokenMax(RatcliffObershelp()), s1, s2)
+0.05
+```
+"""
+struct TokenMax{S <: SemiMetric} <: SemiMetric
+    dist::S
+    max_dist::Float64
+end
+TokenMax(dist::SemiMetric; max_dist = 1.0) = TokenMax(dist, max_dist)
+
+function (dist::TokenMax)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing})
+    (s1 === missing) | (s2 === missing) && return missing
+    s1, s2 = reorder(s1, s2)
+    len1, len2 = length(s1), length(s2)
+    max_dist = dist.max_dist
+    dist0 = normalize(dist.dist; max_dist = max_dist)
+    score = dist0(s1, s2)
+    min_score = min(max_dist, score)
+    unbase_scale = 0.95
+    # if one string is much shorter than the other, use partial
+    if length(s2) >= 1.5 * length(s1)
+        partial_scale = length(s2) > (8 * length(s1)) ? 0.6 : 0.9
+        dist0 = normalize(dist0, max_dist = 1 - (1 - max_dist) / partial_scale)
+        score_partial = 1 - partial_scale * (1 - Partial(dist0)(s1, s2))
+        min_score = min(max_dist, score_partial)
+        dist0 = normalize(dist0, max_dist = 1 - (1 - max_dist) / (unbase_scale * partial_scale))
+        score_sort = 1 - unbase_scale * partial_scale * (1 - TokenSort(Partial(dist0))(s1, s2))
+        max_dist = min(max_dist, score_sort)
+        dist0 = normalize(dist0, max_dist = 1 - (1 - max_dist) / (unbase_scale * partial_scale))
+        score_set = 1 - unbase_scale * partial_scale * (1 - TokenSet(Partial(dist0))(s1, s2)) 
+        out = min(score, score_partial, score_sort, score_set)
+    else
+        dist0 = normalize(dist0, max_dist = 1 - (1 - max_dist) / unbase_scale)
+        score_sort = 1 - unbase_scale * (1 - TokenSort(dist0)(s1, s2))
+        max_dist = min(max_dist, score_sort)
+        dist0 = normalize(dist0, max_dist = 1 - (1 - max_dist) / unbase_scale)
+        score_set = 1 - unbase_scale * (1 - TokenSet(dist0)(s1, s2))
+        out = min(score, score_sort, score_set)
+    end
+    out > max_dist ? 1.0 : out
+end
+
+function normalize(dist::TokenMax; max_dist = 1.0)
+    TokenMax(dist.dist, max_dist)
+end
