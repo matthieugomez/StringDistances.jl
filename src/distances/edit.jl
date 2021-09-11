@@ -237,8 +237,7 @@ The DamerauLevenshtein distance is the minimum number of operations (consisting 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
 required to change one string into the other.
 """
-struct DamerauLevenshtein <: Metric
-end
+struct DamerauLevenshtein <: Metric end
 
 # https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 # https://www.lemoda.net/text-fuzzy/damerau-levenshtein/
@@ -250,7 +249,7 @@ function (dist::DamerauLevenshtein)(s1, s2)
     # da[ch1] will store last spotted position of ch1 in s1
     da = Dict{eltype(s1), Int}()
     sizehint!(da, len1)
-    # dist[i1+1, i2+1] will store the distance between Iterators.take(s1, i1) and Iterators.take(s2, i2)
+    # distm[i1+1, i2+1] will store the distance between Iterators.take(s1, i1) and Iterators.take(s2, i2)
     distm = zeros(Int, len1 + 1, len2 + 1)
     distm[:, 1] = 0:len1
     distm[1, :] = 0:len2
