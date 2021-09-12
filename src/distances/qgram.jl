@@ -17,7 +17,7 @@ struct QGram <: AbstractQGramDistance
 end
 eval_start(::QGram) = 0
 @inline eval_op(::QGram, c, n1::Integer, n2::Integer) = c + abs(n1 - n2)
-eval_reduce(::QGram, c) = c
+eval_end(::QGram, c) = c
 
 """
 	Cosine(q::Int)
@@ -36,7 +36,7 @@ struct Cosine <: AbstractQGramDistance
 end
 eval_start(::Cosine) = (0, 0, 0)
 @inline eval_op(::Cosine, c, n1::Integer, n2::Integer) = (c[1] + n1^2, c[2] + n2^2, c[3] + n1 * n2)
-eval_reduce(::Cosine, c) = 1 - c[3] / sqrt(c[1] * c[2])
+eval_end(::Cosine, c) = 1 - c[3] / sqrt(c[1] * c[2])
 
 """
 	Jaccard(q::Int)
@@ -54,7 +54,7 @@ struct Jaccard <: AbstractQGramDistance
 end
 eval_start(::Jaccard) = (0, 0, 0)
 @inline eval_op(::Jaccard, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_reduce(::Jaccard, c) = 1 - c[3] / (c[1] + c[2] - c[3])
+eval_end(::Jaccard, c) = 1 - c[3] / (c[1] + c[2] - c[3])
 
 """
 	SorensenDice(q::Int)
@@ -72,7 +72,7 @@ struct SorensenDice <: AbstractQGramDistance
 end
 eval_start(::SorensenDice) = (0, 0, 0)
 @inline eval_op(::SorensenDice, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_reduce(::SorensenDice, c) = 1 - 2 * c[3] / (c[1] + c[2])
+eval_end(::SorensenDice, c) = 1 - 2 * c[3] / (c[1] + c[2])
 
 """
 	Overlap(q::Int)
@@ -90,7 +90,7 @@ struct Overlap <: AbstractQGramDistance
 end
 eval_start(::Overlap) = (0, 0, 0)
 @inline eval_op(::Overlap, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_reduce(::Overlap, c) = 1 - c[3] / min(c[1], c[2])
+eval_end(::Overlap, c) = 1 - c[3] / min(c[1], c[2])
 
 """
 	NMD(q::Int)
@@ -116,7 +116,7 @@ struct NMD <: AbstractQGramDistance
 end
 eval_start(::NMD) = (0, 0, 0)
 @inline eval_op(::NMD, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + max(n1, n2))
-eval_reduce(::NMD, c) = (c[3] - min(c[1], c[2])) / max(c[1], c[2])
+eval_end(::NMD, c) = (c[3] - min(c[1], c[2])) / max(c[1], c[2])
 
 """
 	MorisitaOverlap(q::Int)
@@ -140,7 +140,7 @@ struct MorisitaOverlap <: AbstractQGramDistance
 end
 eval_start(::MorisitaOverlap) = (0, 0, 0, 0, 0)
 @inline eval_op(::MorisitaOverlap, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + n1^2, c[4] + n2^2, c[5] + n1 * n2)
-eval_reduce(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
+eval_end(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
 
 
 
@@ -238,11 +238,11 @@ end
 
 function (dist::AbstractQGramDistance)(s1, s2)
 	(s1 === missing) | (s2 === missing) && return missing
-	counter = eval_start(dist)
+	c = eval_start(dist)
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
-		counter = eval_op(dist, counter, n1, n2)
+		c = eval_op(dist, c, n1, n2)
 	end
-	eval_reduce(dist, counter)
+	eval_end(dist, c)
 end
 
 
@@ -303,22 +303,22 @@ end
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
 	d1, d2 = qc1.counts, qc2.counts
-	counter = eval_start(dist)
+	c = eval_start(dist)
 	for (s1, n1) in d1
 		index = Base.ht_keyindex2!(d2, s1)
 		if index <= 0
-			counter = eval_op(dist, counter, n1, 0)
+			c = eval_op(dist, c, n1, 0)
 		else
-			counter = eval_op(dist, counter, n1, d2.vals[index])
+			c = eval_op(dist, c, n1, d2.vals[index])
 		end
 	end
 	for (s2, n2) in d2
 		index = Base.ht_keyindex2!(d1, s2)
 		if index <= 0
-			counter = eval_op(dist, counter, 0, n2)
+			c = eval_op(dist, c, 0, n2)
 		end
 	end
-	eval_reduce(dist, counter)
+	eval_end(dist, c)
 end
 
 
@@ -371,18 +371,18 @@ end
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
 	d1, d2 = qc1.counts, qc2.counts
-	counter = eval_start(dist)
+	c = eval_start(dist)
 	i1 = i2 = 1
 	while true
 		# length can be zero
 		if i2 > length(d2)
 			for i in i1:length(d1)
-				@inbounds counter = eval_op(dist, counter, d1[i][2], 0)
+				@inbounds c = eval_op(dist, c, d1[i][2], 0)
 			end
 		break
 		elseif i1 > length(d1)
 			for i in i2:length(d2)
-				@inbounds counter = eval_op(dist, counter, 0, d2[i][2])
+				@inbounds c = eval_op(dist, c, 0, d2[i][2])
 			end
 		break
 		end
@@ -390,17 +390,17 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
 		@inbounds s2, n2 = d2[i2]
 		cmpval = Base.cmp(s1, s2)
 		if cmpval == -1 # s1 < s2
-			counter = eval_op(dist, counter, n1, 0)
+			c = eval_op(dist, c, n1, 0)
 			i1 += 1
 		elseif cmpval == 1 # s1 > s2
-			counter = eval_op(dist, counter, 0, n2)
+			c = eval_op(dist, c, 0, n2)
 			i2 += 1
 		else # s1 == s2
-			counter = eval_op(dist, counter, n1, n2)
+			c = eval_op(dist, c, n1, n2)
 			i1 += 1
 			i2 += 1
 		end
 	end
-	eval_reduce(dist, counter)
+	eval_end(dist, c)
 end
 
