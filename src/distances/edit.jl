@@ -5,7 +5,7 @@ Creates the Hamming distance
 
 The Hamming distance is defined as the number of characters that do not match
 """
-struct Hamming{V <: Union{Int, Nothing}} <: StringSemiMetric
+struct Hamming{V <: Union{Int, Nothing}} <: StringMetric
    max_dist::V
 end
 Hamming() = Hamming(nothing)

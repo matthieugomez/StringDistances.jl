@@ -1,5 +1,5 @@
 """
-    findnearest(s, itr, dist::StringDistance) -> (x, index)
+    findnearest(s, itr, dist::Union{StringMetric, StringSemiMetric}) -> (x, index)
 
 `findnearest` returns the value and index of the element of `itr` that has the 
 lowest distance with `s` according to the distance `dist`. 
@@ -18,7 +18,7 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 (nothing, nothing)
 ```
 """
-function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
+function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
     min_score_atomic = Threads.Atomic{Float64}(min_score)
     scores = [0.0 for _ in 1:Threads.nthreads()]
     is = [0 for _ in 1:Threads.nthreads()]
@@ -37,15 +37,15 @@ function findnearest(s, itr, dist::StringDistance; min_score = 0.0)
 end
 _preprocess(dist::AbstractQGramDistance, ::Missing) = missing
 _preprocess(dist::AbstractQGramDistance, s) = QGramSortedVector(s, dist.q)
-_preprocess(dist::StringDistance, s) = s
+_preprocess(dist::Union{StringSemiMetric, StringMetric}, s) = s
 
-function Base.findmax(s, itr, dist::StringDistance; min_score = 0.0)
+function Base.findmax(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
     @warn "findmax(s, itr, dist; min_score) is deprecated. Use findnearest(s, itr, dist; min_score)"
     findnearest(s, itr, dist; min_score = min_score)
 end
 
 """
-    findall(s, itr , dist::StringDistance; min_score = 0.8)
+    findall(s, itr , dist::Union{StringSemiMetric, StringMetric}; min_score = 0.8)
     
 `findall` returns the vector of indices for elements of `itr` that have a 
 similarity score higher or equal than `min_score` according to the distance `dist`.
@@ -66,7 +66,7 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 0-element Array{Int64,1}
 ```
 """
-function Base.findall(s, itr, dist::StringDistance; min_score = 0.8)
+function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.8)
     out = [Int[] for _ in 1:Threads.nthreads()]
     s = _preprocess(dist, s)
     # need collect since @threads requires a length method

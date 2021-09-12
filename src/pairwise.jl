@@ -23,21 +23,21 @@ julia> pairwise(Levenshtein(), iter, iter2)
  10.0
 ```
 """
-function pairwise(dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
+function pairwise(dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     T = result_type(dist, eltype(xs), eltype(ys))
     R = Matrix{T}(undef, length(xs), length(ys))
     pairwise!(R, dist, xs, ys; preprocess = preprocess)
 end
 
 """
-    pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
+    pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
 
 Compute distances between all pairs of elements in `xs` and `ys` according to the
-`StringDistance` `dist` and write the result in `R`. `R[i, j]` corresponds to the distance between `xs[i]` and `ys[j]`.
+`Union{StringSemiMetric, StringMetric}` `dist` and write the result in `R`. `R[i, j]` corresponds to the distance between `xs[i]` and `ys[j]`.
 
 Set `preprocess` to false if no preprocessing should be used.
 """
-function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
+function pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
     length(ys) == size(R, 2) || throw(DimensionMismatch("inconsistent length"))
     (xs === ys) ?
@@ -45,7 +45,7 @@ function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, 
         _asymmetric_pairwise!(R, dist, xs, ys; preprocess = preprocess)
 end
 
-function _symmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector; preprocess = true)
+function _symmetric_pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector; preprocess = true)
     if preprocess
         xs = _preprocess_list(dist, xs)
     end
@@ -59,7 +59,7 @@ function _symmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::Abstr
     return R
 end
 
-function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector; preprocess = true)
+function _asymmetric_pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector; preprocess = true)
     if preprocess
         objxs = _preprocess_list(dist, xs)
         objys = xs === ys ? objxs : _preprocess_list(dist, ys)
@@ -75,5 +75,5 @@ function _asymmetric_pairwise!(R::AbstractMatrix, dist::StringDistance, xs::Abst
     return R
 end
 
-_preprocess_list(dist::StringDistance, xs)  = xs
+_preprocess_list(dist::Union{StringSemiMetric, StringMetric}, xs)  = xs
 _preprocess_list(dist::AbstractQGramDistance, xs) = fetch.(map(x -> (Threads.@spawn x === missing ? x : QGramSortedVector(x, dist.q)), xs))

@@ -5,26 +5,25 @@
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
 ## Supported Distances
-
-Distances are defined over iterators that define `length` (this includes `AbstractStrings`, but also `GraphemeIterators` or `AbstractVectors`)
+The package defines two abstract types: `StringSemiMetric <: SemiMetric`, and `StringMetric <: Metric`.
+String distances inherit from one of these two types. They act over any pair of iterators that define `length` (this includes `AbstractStrings`, but also `GraphemeIterators` or `AbstractVectors`)
 
 The available distances are:
-
 - Edit Distances
-	- Hamming Distance `Hamming()`
-	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler()`
-	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein() <: Metric`
-	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement()`
-	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: Metric`
-	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
+	- Hamming Distance `Hamming() <: SemiStringMetric`
+	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler() <: SemiStringMetric`
+	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein() <: StringMetric`
+	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement() <: SemiStringMetric`
+	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: StringMetric`
+	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp() <: SemiStringMetric`
 - Q-gram distances compare the set of all substrings of length `q` in each string.
-	- QGram Distance `Qgram(q::Int)`
-	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q::Int)`
-	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q::Int)`
-	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q::Int)`
-	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q::Int)`
-	- [MorisitaOverlap Distance](https://en.wikipedia.org/wiki/Morisita%27s_overlap_index) `MorisitaOverlap(q::Int)`
-	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int)`
+	- QGram Distance `Qgram(q::Int) <: SemiStringMetric`
+	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q::Int) <: SemiStringMetric`
+	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q::Int) <: SemiStringMetric`
+	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q::Int) <: SemiStringMetric`
+	- [Sorensen-Dice Distance](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) `SorensenDice(q::Int) <: SemiStringMetric`
+	- [MorisitaOverlap Distance](https://en.wikipedia.org/wiki/Morisita%27s_overlap_index) `MorisitaOverlap(q::Int) <: SemiStringMetric`
+	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int) <: SemiStringMetric`
 
 
 ## Basic Use
