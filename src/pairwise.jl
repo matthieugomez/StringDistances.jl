@@ -40,7 +40,7 @@ Set `preprocess` to false if no preprocessing should be used.
 function pairwise!(R::AbstractMatrix, dist::StringDistance, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
     length(ys) == size(R, 2) || throw(DimensionMismatch("inconsistent length"))
-    ((xs === ys) & (dist isa SemiMetric)) ?
+    (xs === ys) ?
         _symmetric_pairwise!(R, dist, xs; preprocess = preprocess) :
         _asymmetric_pairwise!(R, dist, xs, ys; preprocess = preprocess)
 end

@@ -1,4 +1,4 @@
-struct Normalized{V <: SemiMetric} <: SemiMetric
+struct Normalized{V <: StringDistance} <: StringSemiMetric
     dist::V
     max_dist::Float64
 end
@@ -59,6 +59,22 @@ julia> StringDistances.normalize(Levenshtein())(s1, s2)
 0.8064 
 ```
 """
-normalize(dist::SemiMetric; max_dist = 1.0) = Normalized{typeof(dist)}(dist, max_dist)
+normalize(dist::StringDistance; max_dist = 1.0) = Normalized{typeof(dist)}(dist, max_dist)
 normalize(dist::Normalized; max_dist = 1.0) = Normalized(dist.dist, max_dist)
 
+
+"""
+    compare(s1, s2, dist)
+
+return a similarity score between 0 and 1 for the strings `s1` and 
+`s2` based on the distance `dist`.
+
+### Examples
+```julia-repl
+julia> compare("martha", "marhta", Levenshtein())
+0.6666666666666667
+```
+"""
+function compare(s1, s2, dist::StringDistance; min_score = 0.0)
+    1 - normalize(dist, max_dist = 1 - min_score)(s1, s2)
+end 

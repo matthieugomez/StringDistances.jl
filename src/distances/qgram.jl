@@ -1,4 +1,4 @@
-abstract type AbstractQGramDistance <: SemiMetric end
+abstract type AbstractQGramDistance <: StringSemiMetric end
 
 """
 	QGram(q::Int)

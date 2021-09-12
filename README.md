@@ -13,9 +13,9 @@ The available distances are:
 - Edit Distances
 	- Hamming Distance `Hamming()`
 	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler()`
-	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein()`
-	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) `DamerauLevenshtein()`
-	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement()`
+	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein() <: Metric`
+	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement()`
+	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: Metric`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp()`
 - Q-gram distances compare the set of all substrings of length `q` in each string.
 	- QGram Distance `Qgram(q::Int)`
@@ -59,13 +59,13 @@ pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
 The function `pairwise` is particularly optimized for QGram-distances (each element is processed only once).
 
 
-### distance modifiers
-The package also defines Distance "modifiers" that are defined in the Python package - [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/). These modifiers are particularly helpful to match strings composed of multiple words.
+### fuzzywuzzy
+The package also defines Distance "modifiers" that are defined in the Python package - [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/). These modifiers are particularly helpful to match strings composed of multiple words (e.g. addresses, company names).
 
 - [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
 - [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
 - [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
-- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string lengths. This is a good distance to match strings composed of multiple words, like addresses.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
+- [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 
 
 ### find
@@ -83,5 +83,8 @@ The package also adds some convience function to find the element in a list that
 
 The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances (these distances stop early if the distance is higher than a certain threshold).
 
+
+## Notes
+- All string lookups are case sensitive.
 
 

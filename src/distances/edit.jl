@@ -5,7 +5,7 @@ Creates the Hamming distance
 
 The Hamming distance is defined as the number of characters that do not match
 """
-struct Hamming{V <: Union{Int, Nothing}} <: SemiMetric
+struct Hamming{V <: Union{Int, Nothing}} <: StringSemiMetric
    max_dist::V
 end
 Hamming() = Hamming(nothing)
@@ -36,7 +36,7 @@ The Jaro distance is defined as
 where ``m`` is the number of matching characters and 
 ``t`` is half the number of transpositions.
 """
-struct Jaro <: SemiMetric end
+struct Jaro <: StringSemiMetric end
 
 ## http://alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 function (dist::Jaro)(s1, s2)
@@ -90,7 +90,7 @@ Creates the JaroWinkler distance
 The JaroWinkler distance is defined as the Jaro distance, which is multiplied by
 ``(1-min(l,  maxlength) * p)`` as long as it is lower than `threshold`, and where `l` denotes the length of the common prefix.
 """
-struct JaroWinkler <: SemiMetric
+struct JaroWinkler <: StringSemiMetric
     p::Float64          # scaling factor. Default to 0.1
     threshold::Float64  # boost limit. Default to 0.3
     maxlength::Integer  # max length of common prefix. Default to 4
@@ -118,7 +118,7 @@ Creates the Levenshtein distance
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein{V <: Union{Int, Nothing}} <: Metric
+struct Levenshtein{V <: Union{Int, Nothing}} <: StringMetric
    max_dist::V
 end
 Levenshtein() = Levenshtein(nothing)
@@ -138,8 +138,7 @@ function (dist::Levenshtein{T})(s1, s2) where {T}
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
-    # distance initialized to first row of matrix
-    # distance between "" and s2[1:i]
+    # first row of matrix set to distance between "" and s2[1:i]
     v = collect(1:(len2-k))
     current = 0
     for (i1, ch1) in enumerate(s1)
@@ -184,7 +183,7 @@ end
     uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
     the triangle inequality.
 """
-struct OptimalStringAlignement{V <: Union{Int, Nothing}} <: SemiMetric
+struct OptimalStringAlignement{V <: Union{Int, Nothing}} <: StringSemiMetric
    max_dist::V
 end
 OptimalStringAlignement() = OptimalStringAlignement(nothing)
@@ -263,7 +262,7 @@ The DamerauLevenshtein distance is the minimum number of operations (consisting 
 deletions or substitutions of a single character, or transposition of two adjacent characters) 
 required to change one string into the other.
 """
-struct DamerauLevenshtein <: Metric end
+struct DamerauLevenshtein <: StringMetric end
 
 # https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 # https://www.lemoda.net/text-fuzzy/damerau-levenshtein/
@@ -291,7 +290,7 @@ function (dist::DamerauLevenshtein)(s1, s2)
             @inbounds pre = min(distm[i1, i2] + !match, 
                                 distm[i1 + 1, i2] + 1,
                                 distm[i1, i2 + 1] + 1)
-            # avoid lookup if we already know transposition won't be chosen
+            # avoid lookup if we know transposition won't be chosen
             j1 = (i1 == 1 || j2 == 0 || match) ? 0 : get(da, ch2, 0)
             @inbounds distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
             if match
@@ -313,7 +312,7 @@ divided by the total number of characters in the two strings. Matching character
 in the longest common subsequence plus, recursively, matching characters in the unmatched 
 region on either side of the longest common subsequence.
 """
-struct RatcliffObershelp <: SemiMetric end
+struct RatcliffObershelp <: StringSemiMetric end
 
 function (dist::RatcliffObershelp)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing

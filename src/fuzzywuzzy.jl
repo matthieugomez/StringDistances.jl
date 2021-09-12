@@ -15,7 +15,7 @@ julia> Partial(RatcliffObershelp())(s1, s2)
 0.5483870967741935
 ```
 """
-struct Partial{S <: SemiMetric} <: SemiMetric
+struct Partial{S <: StringDistance} <: StringSemiMetric
     dist::S
 end
 
@@ -97,7 +97,7 @@ julia> TokenSort(RatcliffObershelp())(s1, s2)
 0.0
 ```
 """
-struct TokenSort{S <: SemiMetric} <: SemiMetric
+struct TokenSort{S <: StringDistance} <: StringSemiMetric
     dist::S
 end
 
@@ -131,7 +131,7 @@ julia> TokenSet(RatcliffObershelp())(s1, s2)
 0.0
 ```
 """
-struct TokenSet{S <: SemiMetric} <: SemiMetric
+struct TokenSet{S <: StringDistance} <: StringSemiMetric
     dist::S
 end
 
@@ -173,7 +173,7 @@ julia> evaluate(TokenMax(RatcliffObershelp()), s1, s2)
 0.05
 ```
 """
-struct TokenMax{S <: SemiMetric} <: SemiMetric
+struct TokenMax{S <: StringDistance} <: StringSemiMetric
     dist::S
     max_dist::Float64
 end
