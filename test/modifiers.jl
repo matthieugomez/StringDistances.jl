@@ -61,7 +61,7 @@ end
 	compare("aüa", "aua", Levenshtein())
 	@test compare("ok", missing, Levenshtein()) === missing
 	compare("aüa", "aua", OptimalStringAlignement())
-	@test StringDistances.normalize(Partial(OptimalStringAlignement()))("ab", "cde") == 1.0
+	@test StringDistances.Normalized(Partial(OptimalStringAlignement()))("ab", "cde") == 1.0
 	@test compare("ab", "de", Partial(OptimalStringAlignement())) == 0
 
 	# RatcliffObershelp

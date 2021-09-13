@@ -4,6 +4,8 @@ using Distances
 import StatsAPI: pairwise, pairwise!
 abstract type StringSemiMetric <: SemiMetric end
 abstract type StringMetric <: Metric end
+const StringDistance = Union{StringSemiMetric, StringMetric}
+(dist::StringDistance)(s1, s2; max_dist = nothing) = dist(s1, s2)
 function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::Type, s2::Type)
     T = typeof(dist("", ""))
     if (Missing <: s1) | (Missing <: s2)
@@ -17,10 +19,8 @@ Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1, s2) = res
 include("distances/utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
-
-
-include("normalize.jl")
 include("pairwise.jl")
+include("normalize.jl")
 include("find.jl")
 include("fuzzywuzzy.jl")
 
@@ -32,7 +32,8 @@ include("fuzzywuzzy.jl")
 ##
 ##############################################################################
 
-export 
+export
+StringDistance, 
 StringSemiMetric,
 StringMetric,
 # edit distances

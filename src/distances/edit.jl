@@ -5,18 +5,15 @@ Creates the Hamming distance
 
 The Hamming distance is defined as the number of characters that do not match
 """
-struct Hamming{V <: Union{Int, Nothing}} <: StringMetric
-   max_dist::V
-end
-Hamming() = Hamming(nothing)
+struct Hamming <: StringMetric end
 
-function (dist::Hamming{T})(s1, s2) where {T}
+function (dist::Hamming)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     out = abs(length(s2) - length(s1))
     for (ch1, ch2) in zip(s1, s2)
         out += ch1 != ch2
-        if T <: Int
-            out > dist.max_dist && return dist.max_dist + 1
+        if max_dist !== nothing
+            out > max_dist && return Int(max_dist + 1)
         end
     end
     return out
@@ -118,22 +115,20 @@ Creates the Levenshtein distance
 The Levenshtein distance is the minimum number of operations (consisting of insertions, deletions, 
 substitutions of a single character) required to change one string into the other.
 """
-struct Levenshtein{V <: Union{Int, Nothing}} <: StringMetric
-   max_dist::V
-end
-Levenshtein() = Levenshtein(nothing)
+struct Levenshtein <: StringMetric end
+
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
 # Return max_dist + 1 if distance higher than max_dist 
 # to differentiate distance equal to max_dist or not, which is important for find fctions.
-function (dist::Levenshtein{T})(s1, s2) where {T}
+function (dist::Levenshtein)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     len1, len2 = length(s1), length(s2)
     if len1 > len2
         s1, s2 = s2, s1
         len1, len2 = len2, len1
     end
-    if T <: Int
-        len2 - len1 > dist.max_dist && return dist.max_dist + 1
+    if max_dist !== nothing
+        len2 - len1 > max_dist && return Int(max_dist + 1)
     end
     # prefix common to both strings can be ignored
     k = common_prefix(s1, s2)
@@ -144,7 +139,7 @@ function (dist::Levenshtein{T})(s1, s2) where {T}
     for (i1, ch1) in enumerate(s1)
         i1 > k || continue
         left = current = i1 - k - 1
-        if T <: Int
+        if max_dist !== nothing
             value_lb = left - 1
         end
         for (i2, ch2) in enumerate(s2)
@@ -153,17 +148,17 @@ function (dist::Levenshtein{T})(s1, s2) where {T}
             if ch1 != ch2
                 current = min(current, above, left) + 1
             end
-            if T <: Int
+            if max_dist !== nothing
                 value_lb = min(value_lb, left)
             end
             @inbounds v[i2 - k] = current
         end
-        if T <: Int
-            value_lb > dist.max_dist && return dist.max_dist + 1
+        if max_dist !== nothing
+            value_lb > max_dist && return Int(max_dist + 1)
         end
     end
-    if T <: Int
-        current > dist.max_dist && return dist.max_dist + 1 
+    if max_dist !== nothing
+        current > max_dist && return Int(max_dist + 1 )
     end
     return current
 end
@@ -183,22 +178,19 @@ end
     uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
     the triangle inequality.
 """
-struct OptimalStringAlignement{V <: Union{Int, Nothing}} <: StringSemiMetric
-   max_dist::V
-end
-OptimalStringAlignement() = OptimalStringAlignement(nothing)
+struct OptimalStringAlignement <: StringSemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
-function (dist::OptimalStringAlignement{T})(s1, s2) where {T}
+function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     len1, len2 = length(s1), length(s2)
     if len1 > len2
         s1, s2 = s2, s1
         len1, len2 = len2, len1
     end
-    if T <: Int 
-        len2 - len1 > dist.max_dist && return dist.max_dist + 1
+    if max_dist !== nothing 
+        len2 - len1 > max_dist && return Int(max_dist + 1)
     end
     k = common_prefix(s1, s2)
     k == len1 && return len2 - k
@@ -206,28 +198,25 @@ function (dist::OptimalStringAlignement{T})(s1, s2) where {T}
     w = similar(v)
     prevch1, prevch2 = first(s1), first(s2)
     current = 0
-    if T <: Int
+    if max_dist !== nothing
         i2_start = 0
-        i2_end = dist.max_dist
+        i2_end = max_dist
     end
     for (i1, ch1) in enumerate(s1)
         i1 > k || (prevch1 = ch1 ; continue)
         left = i1 - k - 1
         current = left + 1
         nextTransCost = 0
-        if T <: Int
-            i2_start += i1 - k - 1 + len2 - len1 > dist.max_dist
+        if max_dist !== nothing
+            i2_start += i1 - k - 1 + len2 - len1 > max_dist
             i2_end += i2_end < len2
         end
         for (i2, ch2) in enumerate(s2)
             i2 > k || (prevch2 = ch2 ; continue)
             # no need to look beyond window of lower right diagonal - max distance cells 
-            # lower right diag is i1 - (len2 - len1)) and the upper left diagonal + dist.max_dist cells (upper left is i1)
-            if T <: Int
-                if !(i2_start <= i2 - k - 1 < i2_end)
-                    prevch2 = ch2
-                    continue
-                end
+            # lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
+            if max_dist !== nothing
+                (i2_start <= i2 - k - 1 < i2_end) || (prevch2 = ch2 ; continue)
             end
             @inbounds above, current, left = current, left, v[i2 - k]
             @inbounds w[i2 - k], nextTransCost, thisTransCost = current, w[i2 - k], nextTransCost
@@ -241,13 +230,13 @@ function (dist::OptimalStringAlignement{T})(s1, s2) where {T}
             @inbounds v[i2 - k] = current
             prevch2 = ch2
         end
-        if T <: Int
-            v[i1 - k + len2 - len1] > dist.max_dist && return dist.max_dist + 1
+        if max_dist !== nothing
+            v[i1 - k + len2 - len1] > max_dist && return Int(max_dist + 1)
         end
         prevch1 = ch1
     end
-    if T <: Int
-        current > dist.max_dist && return dist.max_dist + 1
+    if max_dist !== nothing
+        current > max_dist && return Int(max_dist + 1)
     end
     return current
 end

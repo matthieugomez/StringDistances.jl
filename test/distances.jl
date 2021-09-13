@@ -2,161 +2,162 @@ using StringDistances, Unicode, Test, Random
 
 @testset "Distances" begin
 	@testset "Hamming" begin
-		@test evaluate(Hamming(), "martha", "marhta") ≈  2
-		@test evaluate(Hamming(), "es an ", " vs an") ≈ 6
-		@test evaluate(Hamming(), [1, 2, 3], [1,2, 4]) ≈ 1
-		@inferred evaluate(Hamming(), "", "")
-		@test ismissing(evaluate(Hamming(), "", missing))
+		@test Hamming()("martha", "marhta") ≈  2
+		@test Hamming()("es an ", " vs an") ≈ 6
+		@test Hamming()([1, 2, 3], [1,2, 4]) ≈ 1
+		@inferred Hamming()("", "")
+		@test ismissing(Hamming()("", missing))
 	end
 
 	@testset "Jaro" begin
-		@test evaluate(Jaro(), "martha", "marhta") ≈  0.05555555555555547
-		@test evaluate(Jaro(), "es an ", " vs an") ≈ 0.2777777777777777
-		@test evaluate(Jaro(), " vs an", "es an ") ≈ 0.2777777777777777
-		@test evaluate(Jaro(), [1, 2, 3], [1,2, 4]) ≈ 0.2222222222222222
-		@test evaluate(Jaro(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Jaro(), "alborgów", "amoniak")
+		@test Jaro()("martha", "marhta") ≈  0.05555555555555547
+		@test Jaro()("es an ", " vs an") ≈ 0.2777777777777777
+		@test Jaro()(" vs an", "es an ") ≈ 0.2777777777777777
+		@test Jaro()([1, 2, 3], [1,2, 4]) ≈ 0.2222222222222222
+		@test Jaro()(graphemes("alborgów"), graphemes("amoniak")) == Jaro()("alborgów", "amoniak")
 		@test Jaro()(" vs an", "es an ") ≈ 0.2777777777777777
 		@test result_type(Jaro(), "hello", "world") == typeof(float(1))
-		@inferred evaluate(Jaro(), "", "")
-		@test ismissing(evaluate(Jaro(), "", missing))
+		@inferred Jaro()("", "")
+		@test ismissing(Jaro()("", missing))
 	end
 
 	@testset "Levenshtein" begin
-		@test evaluate(Levenshtein(), "", "") == 0
-		@test evaluate(Levenshtein(), "abc", "") == 3
-		@test evaluate(Levenshtein(), "", "abc") == 3
-		@test evaluate(Levenshtein(), "bc", "abc") == 1
-		@test evaluate(Levenshtein(), "kitten", "sitting") == 3
-		@test evaluate(Levenshtein(), "saturday", "sunday") == 3
-		@test evaluate(Levenshtein(), "hi, my name is", "my name is") == 4
-		@test evaluate(Levenshtein(), "a cat", "an act") == 3
-		@test evaluate(Levenshtein(), "alborgów", "amoniak") == 6
-		@test evaluate(Levenshtein(), [1, 2, 3], [1, 2, 4]) == 1
-		@test evaluate(Levenshtein(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(Levenshtein(), "alborgów", "amoniak")
+		@test Levenshtein()("", "") == 0
+		@test Levenshtein()("abc", "") == 3
+		@test Levenshtein()("", "abc") == 3
+		@test Levenshtein()("bc", "abc") == 1
+		@test Levenshtein()("kitten", "sitting") == 3
+		@test Levenshtein()("saturday", "sunday") == 3
+		@test Levenshtein()("hi, my name is", "my name is") == 4
+		@test Levenshtein()("a cat", "an act") == 3
+		@test Levenshtein()("alborgów", "amoniak") == 6
+		@test Levenshtein()([1, 2, 3], [1, 2, 4]) == 1
+		@test Levenshtein()(graphemes("alborgów"), graphemes("amoniak")) == Levenshtein()("alborgów", "amoniak")
 		@test Levenshtein()("", "abc") == 3
 		@test result_type(Levenshtein(), "hello", "world") == Int
-		@inferred evaluate(Levenshtein(), "", "")
-		@test ismissing(evaluate(Levenshtein(), "", missing))
+		@inferred Levenshtein()("", "")
+		@test ismissing(Levenshtein()("", missing))
 	end
 
 	@testset "OptimalStringAlignement" begin
-		@test evaluate(OptimalStringAlignement(), "", "") == 0
-		@test evaluate(OptimalStringAlignement(), "abc", "") == 3
-		@test evaluate(OptimalStringAlignement(), "bc", "abc") == 1
-		@test evaluate(OptimalStringAlignement(), "fuor", "four") == 1
-		@test evaluate(OptimalStringAlignement(), "abcd", "acb") == 2
-		@test evaluate(OptimalStringAlignement(), "cape sand recycling ", "edith ann graham") == 17
-		@test evaluate(OptimalStringAlignement(), "jellyifhs", "jellyfish") == 2
-		@test evaluate(OptimalStringAlignement(), "ifhs", "fish") == 2
-		@test evaluate(OptimalStringAlignement(), "a cat", "an act") == 2
-		@test evaluate(OptimalStringAlignement(), "a cat", "an abct") == 4
-		@test evaluate(OptimalStringAlignement(), "a cat", "a tc") == 3
-		@test OptimalStringAlignement(2)("abcdef", "abcxyf") == 2
+		@test OptimalStringAlignement()("", "") == 0
+		@test OptimalStringAlignement()("abc", "") == 3
+		@test OptimalStringAlignement()("bc", "abc") == 1
+		@test OptimalStringAlignement()("fuor", "four") == 1
+		@test OptimalStringAlignement()("abcd", "acb") == 2
+		@test OptimalStringAlignement()("cape sand recycling ", "edith ann graham") == 17
+		@test OptimalStringAlignement()("jellyifhs", "jellyfish") == 2
+		@test OptimalStringAlignement()("ifhs", "fish") == 2
+		@test OptimalStringAlignement()("a cat", "an act") == 2
+		@test OptimalStringAlignement()("a cat", "an abct") == 4
+		@test OptimalStringAlignement()("a cat", "a tc") == 3
+		@test OptimalStringAlignement()("abcdef", "abcxyf") == 2
+		@test OptimalStringAlignement()("abcdef", "abcxyf"; max_dist = 2) == 2
 
-		@test evaluate(OptimalStringAlignement(), [1, 2, 3], [1,2, 4]) == 1
-		@test evaluate(OptimalStringAlignement(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(OptimalStringAlignement(), "alborgów", "amoniak")
+		@test OptimalStringAlignement()([1, 2, 3], [1,2, 4]) == 1
+		@test OptimalStringAlignement()(graphemes("alborgów"), graphemes("amoniak")) == OptimalStringAlignement()("alborgów", "amoniak")
 		@test OptimalStringAlignement()("bc", "abc") == 1
 		@test result_type(OptimalStringAlignement(), "hello", "world") == Int
-		@inferred evaluate(OptimalStringAlignement(), "", "")
-		@test ismissing(evaluate(OptimalStringAlignement(), "", missing))
+		@inferred OptimalStringAlignement()("", "")
+		@test ismissing(OptimalStringAlignement()("", missing))
 	end
 
 	@testset "DamerauLevenshtein" begin
-		@test evaluate(DamerauLevenshtein(), "", "") == 0
-		@test evaluate(DamerauLevenshtein(), "CA", "ABC") == 2
-		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABDCEF") == 1
-		@test evaluate(DamerauLevenshtein(), "ABCDEF", "BACDFE") == 2
-		@test evaluate(DamerauLevenshtein(), "ABCDEF", "ABCDE") == 1
-		@test evaluate(DamerauLevenshtein(), "a cat", "an act") == 2
-		@test evaluate(DamerauLevenshtein(), "a cat", "an abct") == 3
-		@test evaluate(DamerauLevenshtein(), "a cat", "a tc") == 2
+		@test DamerauLevenshtein()("", "") == 0
+		@test DamerauLevenshtein()("CA", "ABC") == 2
+		@test DamerauLevenshtein()("ABCDEF", "ABDCEF") == 1
+		@test DamerauLevenshtein()("ABCDEF", "BACDFE") == 2
+		@test DamerauLevenshtein()("ABCDEF", "ABCDE") == 1
+		@test DamerauLevenshtein()("a cat", "an act") == 2
+		@test DamerauLevenshtein()("a cat", "an abct") == 3
+		@test DamerauLevenshtein()("a cat", "a tc") == 2
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
-		@inferred evaluate(DamerauLevenshtein(), "", "")
-		@test ismissing(evaluate(DamerauLevenshtein(), "", missing))
+		@inferred DamerauLevenshtein()("", "")
+		@test ismissing(DamerauLevenshtein()("", missing))
 	end
 
 	@testset "RatcliffObershelp" begin
-		@test evaluate(RatcliffObershelp(), "dixon", "dicksonx") ≈ 1 - 0.6153846153846154
-		@test evaluate(RatcliffObershelp(), "alexandre", "aleksander") ≈ 1 - 0.7368421052631579
-		@test evaluate(RatcliffObershelp(), "pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
-		@test evaluate(RatcliffObershelp(), "",  "pencilvaneya") ≈ 1.0
-		@test evaluate(RatcliffObershelp(),"NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
-		@test evaluate(RatcliffObershelp(), "Yankees",  "New York Yankees") ≈ 0.3913043478260869
-		@test evaluate(RatcliffObershelp(), "New York Mets",  "New York Yankees") ≈ 0.24137931034482762
-		@test evaluate(RatcliffObershelp(), [1, 2, 3], [1,2, 4]) ≈ 1/3
-		@test evaluate(RatcliffObershelp(), graphemes("alborgów"), graphemes("amoniak")) == evaluate(RatcliffObershelp(), "alborgów", "amoniak")
+		@test RatcliffObershelp()("dixon", "dicksonx") ≈ 1 - 0.6153846153846154
+		@test RatcliffObershelp()("alexandre", "aleksander") ≈ 1 - 0.7368421052631579
+		@test RatcliffObershelp()("pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
+		@test RatcliffObershelp()("",  "pencilvaneya") ≈ 1.0
+		@test RatcliffObershelp()("NEW YORK METS", "NEW YORK MEATS") ≈ 1 -  0.962962962963
+		@test RatcliffObershelp()("Yankees",  "New York Yankees") ≈ 0.3913043478260869
+		@test RatcliffObershelp()("New York Mets",  "New York Yankees") ≈ 0.24137931034482762
+		@test RatcliffObershelp()([1, 2, 3], [1,2, 4]) ≈ 1/3
+		@test RatcliffObershelp()(graphemes("alborgów"), graphemes("amoniak")) == RatcliffObershelp()("alborgów", "amoniak")
 		@test RatcliffObershelp()("pennsylvania",  "pencilvaneya") ≈ 1 - 0.6666666666666
 		@test result_type(RatcliffObershelp(), "hello", "world") == typeof(float(1))
-		@inferred evaluate(RatcliffObershelp(), "", "")
-		@test ismissing(evaluate(RatcliffObershelp(), "", missing))
+		@inferred RatcliffObershelp()("", "")
+		@test ismissing(RatcliffObershelp()("", missing))
 	end
 
 	@testset "QGram" begin
-		@test evaluate(QGram(1), "abc", "abc") == 0
-		@test evaluate(QGram(1), "", "abc") == 3
-		@test evaluate(QGram(1), "abc", "cba") == 0
-		@test evaluate(QGram(1), "abc", "ccc") == 4
-		@test evaluate(QGram(4), "aü☃", "aüaüafs") == 4
-		@test evaluate(QGram(2), SubString("aü☃", 1, 4), SubString("aüaüafs", 1, 4)) == 2
-		@test evaluate(QGram(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(QGram(2), "alborgów", "amoniak")
+		@test QGram(1)("abc", "abc") == 0
+		@test QGram(1)("", "abc") == 3
+		@test QGram(1)("abc", "cba") == 0
+		@test QGram(1)("abc", "ccc") == 4
+		@test QGram(4)("aü☃", "aüaüafs") == 4
+		@test QGram(2)(SubString("aü☃", 1, 4), SubString("aüaüafs", 1, 4)) == 2
+		@test QGram(2)(graphemes("alborgów"), graphemes("amoniak")) ≈ QGram(2)("alborgów", "amoniak")
 		@test QGram(1)("abc", "cba") == 0
 		@test result_type(QGram(1), "hello", "world") == Int
-		@test ismissing(evaluate(QGram(1), "", missing))
-		@inferred evaluate(QGram(1), "", "")
+		@test ismissing(QGram(1)("", missing))
+		@inferred QGram(1)("", "")
 	end
 
 	@testset "Cosine" begin
-		@test isnan(evaluate(Cosine(2), "", "abc"))
-		@test evaluate(Cosine(2), "abc", "ccc") ≈ 1 atol = 1e-4
-		@test evaluate(Cosine(2), "leia", "leela") ≈ 0.7113249 atol = 1e-4
-		@test evaluate(Cosine(2), [1, 2, 3], [1, 2, 4]) ≈ 0.5
-		@test evaluate(Cosine(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Cosine(2), "alborgów", "amoniak")
+		@test isnan(Cosine(2)("", "abc"))
+		@test Cosine(2)("abc", "ccc") ≈ 1 atol = 1e-4
+		@test Cosine(2)("leia", "leela") ≈ 0.7113249 atol = 1e-4
+		@test Cosine(2)([1, 2, 3], [1, 2, 4]) ≈ 0.5
+		@test Cosine(2)(graphemes("alborgów"), graphemes("amoniak")) ≈ Cosine(2)("alborgów", "amoniak")
 		@test Cosine(2)("leia", "leela") ≈ 0.7113249 atol = 1e-4
 		@test result_type(Cosine(2), "hello", "world") == typeof(float(1))
-		@inferred evaluate(Cosine(2), "", "")
-		@test ismissing(evaluate(Cosine(2), "", missing))
+		@inferred Cosine(2)("", "")
+		@test ismissing(Cosine(2)("", missing))
 	end
 
 	@testset "Jaccard" begin
-		@test evaluate(Jaccard(1), "", "abc") ≈ 1.0
-		@test evaluate(Jaccard(1), "abc", "ccc") ≈ 2/3 atol = 1e-4
-		@test evaluate(Jaccard(2), "leia", "leela") ≈ 0.83333 atol = 1e-4
-		@test evaluate(Jaccard(2), [1, 2, 3], [1, 2, 4]) ≈ 2/3 atol = 1e-4
-		@test evaluate(Jaccard(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(Jaccard(2), "alborgów", "amoniak")
+		@test Jaccard(1)("", "abc") ≈ 1.0
+		@test Jaccard(1)("abc", "ccc") ≈ 2/3 atol = 1e-4
+		@test Jaccard(2)("leia", "leela") ≈ 0.83333 atol = 1e-4
+		@test Jaccard(2)([1, 2, 3], [1, 2, 4]) ≈ 2/3 atol = 1e-4
+		@test Jaccard(2)(graphemes("alborgów"), graphemes("amoniak")) ≈ Jaccard(2)("alborgów", "amoniak")
 		@test Jaccard(2)("leia", "leela") ≈ 0.83333 atol = 1e-4
 		@test result_type(Jaccard(1), "hello", "world") == typeof(float(1))
-		@inferred evaluate(Jaccard(1), "", "")
-		@test ismissing(evaluate(Jaccard(1), "", missing))
+		@inferred Jaccard(1)("", "")
+		@test ismissing(Jaccard(1)("", missing))
 	end
 
 	@testset "SorensenDice" begin
-		@test evaluate(SorensenDice(1), "night", "nacht") ≈ 0.4 atol = 1e-4
-		@test evaluate(SorensenDice(2), "night", "nacht") ≈ 0.75 atol = 1e-4
-		@test evaluate(SorensenDice(2), graphemes("alborgów"), graphemes("amoniak")) ≈ evaluate(SorensenDice(2), "alborgów", "amoniak")
+		@test SorensenDice(1)("night", "nacht") ≈ 0.4 atol = 1e-4
+		@test SorensenDice(2)("night", "nacht") ≈ 0.75 atol = 1e-4
+		@test SorensenDice(2)(graphemes("alborgów"), graphemes("amoniak")) ≈ SorensenDice(2)("alborgów", "amoniak")
 		@test SorensenDice(2)("night", "nacht") ≈ 0.75 atol = 1e-4
 		@test result_type(SorensenDice(1), "hello", "world") == typeof(float(1))
-		@inferred evaluate(SorensenDice(1), "", "")
-		@test ismissing(evaluate(SorensenDice(1), "", missing))
+		@inferred SorensenDice(1)("", "")
+		@test ismissing(SorensenDice(1)("", missing))
 	end
 
 	@testset "Overlap" begin
-		@test evaluate(Overlap(1), "night", "nacht") ≈ 0.4 atol = 1e-4
-		@test evaluate(Overlap(1), "context", "contact") ≈ .2 atol = 1e-4
+		@test Overlap(1)("night", "nacht") ≈ 0.4 atol = 1e-4
+		@test Overlap(1)("context", "contact") ≈ .2 atol = 1e-4
 		@test Overlap(1)("context", "contact") ≈ .2 atol = 1e-4
 		@test result_type(Overlap(1), "hello", "world") == typeof(float(1))
-		@inferred evaluate(Overlap(1), "", "")
-		@test ismissing(evaluate(Overlap(1), "", missing))
+		@inferred Overlap(1)("", "")
+		@test ismissing(Overlap(1)("", missing))
 	end
 
 	@testset "MorisitaOverlap" begin
 		# overlap for 'n', 'h', and 't' and 5 q-grams per string:
-		@test evaluate(MorisitaOverlap(1), "night", "nacht") == 0.4 # 1.0-((2*3)/(5*5/5 + 5*5/5))
+		@test MorisitaOverlap(1)("night", "nacht") == 0.4 # 1.0-((2*3)/(5*5/5 + 5*5/5))
 
 		# overlap for 'o', 'n', 2-overlap for 'c' and 't' and 7 unique q-grams in total so multiplicity vectors
 		# ms1 = [1, 1, 1, 2, 1, 1, 0]
 		# ms2 = [2, 1, 1, 2, 0, 0, 1]
 		# sum(ms1 .* ms2) = 8, sum(ms1 .^ 2) = 9, sum(ms2 .^ 2) = 11, sum(ms1) = 7, sum(ms2) = 7
-		@test evaluate(MorisitaOverlap(1), "context", "contact") ≈ .2 atol = 1e-4 # 1.0-((2*8)/(9*7/7 + 11*7/7)) = 16/20
+		@test MorisitaOverlap(1)("context", "contact") ≈ .2 atol = 1e-4 # 1.0-((2*8)/(9*7/7 + 11*7/7)) = 16/20
 		@test MorisitaOverlap(1)("context", "contact") ≈ .2 atol = 1e-4
 
 		# Multiplicity vectors for 2-grams "co", "on", "nt", "te", "ex", "xt", "ta", "ac", "ct"
@@ -166,17 +167,17 @@ using StringDistances, Unicode, Test, Random
 		@test MorisitaOverlap(2)("context", "contact") == 0.5 # 1.0-((2*3)/(6*6/6 + 6*6/6))
 
 		@test result_type(MorisitaOverlap(1), "hello", "world") == typeof(float(1))
-		@inferred evaluate(MorisitaOverlap(1), "", "")
-		@test ismissing(evaluate(MorisitaOverlap(1), "", missing))
+		@inferred MorisitaOverlap(1)("", "")
+		@test ismissing(MorisitaOverlap(1)("", missing))
 	end
 
 	@testset "NMD" begin
 		# m(s1) = [1, 1, 1, 1, 1, 0, 0], m(s2) = [1, 0, 0, 1, 1, 1, 1]
-		@test evaluate(NMD(1), "night", "nacht") == 0.4 # (7-5)/5
+		@test NMD(1)("night", "nacht") == 0.4 # (7-5)/5
 
 		# ms1 = [1, 1, 1, 2, 1, 1, 0]
 		# ms2 = [2, 1, 1, 2, 0, 0, 1]
-		@test evaluate(NMD(1), "context", "contact") ≈ 0.2857 atol = 1e-4 # ((2+1+1+2+1+1+1)-7)/(7)
+		@test NMD(1)("context", "contact") ≈ 0.2857 atol = 1e-4 # ((2+1+1+2+1+1+1)-7)/(7)
 		@test NMD(1)("context", "contact") ≈ 0.2857 atol = 1e-4
 
 		# ms1 = [1, 1, 1, 1, 1, 1, 0, 0, 0]
@@ -184,8 +185,8 @@ using StringDistances, Unicode, Test, Random
 		@test NMD(2)("context", "contact") == 0.5 # ((1+1+1+1+1+1+1+1+1)-6)/6
 
 		@test result_type(NMD(1), "hello", "world") == typeof(float(1))
-		@inferred evaluate(NMD(1), "", "")
-		@test ismissing(evaluate(NMD(1), "", missing))
+		@inferred NMD(1)("", "")
+		@test ismissing(NMD(1)("", missing))
 	end
 
 	@testset "QGramDict and QGramSortedVector counts qgrams" begin
@@ -236,37 +237,37 @@ using StringDistances, Unicode, Test, Random
 		for _ in 1:100
 			qlen = rand(2:5)
 			str1, str2 = partlyoverlappingstrings(6:100, Chars)
-			d = Jaccard(qlen)
+			dist = Jaccard(qlen)
 
 			qd1 = QGramDict(str1, qlen)
 			qd2 = QGramDict(str2, qlen)
-			@test evaluate(d, str1, str2) == evaluate(d, qd1, qd2)
+			@test dist(str1, str2) == dist(qd1, qd2)
 
 			qd1b = QGramDict(graphemes(str1), qlen)
 			qd2b = QGramDict(graphemes(str2), qlen)
-			@test evaluate(d, str1, str2) == evaluate(d, qd1b, qd2b)
+			@test dist(str1, str2) == dist(qd1b, qd2b)
 
 			qc1 = QGramSortedVector(str1, qlen)
 			qc2 = QGramSortedVector(str2, qlen)
-			@test evaluate(d, str1, str2) == evaluate(d, qc1, qc2)
+			@test dist(str1, str2) == dist(qc1, qc2)
 
 			qc1b = QGramSortedVector(graphemes(str1), qlen)
 			qc2b = QGramSortedVector(graphemes(str2), qlen)
-			@test evaluate(d, str1, str2) == evaluate(d, qc1b, qc2b)
+			@test dist(str1, str2) == dist(qc1b, qc2b)
 		end
 	end
 
 	@testset "QGram distance on short strings" begin
-		@test isnan(evaluate(Overlap(2),  "1",  "2"))
-		@test isnan(evaluate(Jaccard(3), "s1", "s2"))
-		@test isnan(evaluate(Cosine(5),  "s1", "s2"))
+		@test isnan(Overlap(2)( "1",  "2"))
+		@test isnan(Jaccard(3)("s1", "s2"))
+		@test isnan(Cosine(5)( "s1", "s2"))
 
-		@test !isnan(evaluate(Overlap(2),  "s1",  "s2"))
-		@test !isnan(evaluate(Jaccard(3), "st1", "st2"))
-		@test !isnan(evaluate(Cosine(5),  "stri1", "stri2"))
+		@test !isnan(Overlap(2)( "s1",  "s2"))
+		@test !isnan(Jaccard(3)("st1", "st2"))
+		@test !isnan(Cosine(5)( "stri1", "stri2"))
 
-		@test !isnan(evaluate(Jaccard(3), "st1", "str2"))
-		@test !isnan(evaluate(Jaccard(3), "str1", "st2"))
+		@test !isnan(Jaccard(3)("st1", "str2"))
+		@test !isnan(Jaccard(3)("str1", "st2"))
 	end
 
 	@testset "Differential testing of String, QGramDict, and QGramSortedVector" begin
@@ -279,13 +280,13 @@ using StringDistances, Unicode, Test, Random
 				# QGramDict gets same result as for standard string
 				qd1 = QGramDict(str1, qlen)
 				qd2 = QGramDict(str2, qlen)
-				expected = evaluate(dist, str1, str2)
-				@test expected == evaluate(dist, qd1, qd2)
+				expected = dist(str1, str2)
+				@test expected == dist(qd1, qd2)
 
 				# QGramSortedVector gets same result as for standard string
 				qc1 = QGramSortedVector(str1, qlen)
 				qc2 = QGramSortedVector(str2, qlen)
-				@test expected == evaluate(dist, qc1, qc2)
+				@test expected == dist(qc1, qc2)
 			end
 		end
 	end
@@ -319,32 +320,29 @@ using StringDistances, Unicode, Test, Random
 			(Cosine(2), [0.6000000 0.7763932 0.6220355 0.0741799  NaN  NaN 1.0000000 1.0000000 0.6348516 0.6619383 0.1679497 1.0000000 0.9407651 0.5000000 1.0000000 0.7113249]))
 	# Test with R package StringDist
 	for x in solutions
-		t, solution = x
+		dist, solution = x
 		for i in eachindex(solution)
-			if isnan(evaluate(t, strings[i]...))
+			if isnan(dist(strings[i]...))
 				@test isnan(solution[i])
 			else
-				@test evaluate(t, strings[i]...) ≈ solution[i] atol = 1e-4
+				@test dist(strings[i]...) ≈ solution[i] atol = 1e-4
 			end
 		end
 	end
 	# test  RatcliffObershelp
 	solution = [83, 73, 62, 93, 0, 100, 0, 33, 62, 71, 83, 27, 33, 78, 50, 67]
 	for i in eachindex(strings)
-		@test round(Int, (1 - evaluate(RatcliffObershelp(), strings[i]...)) * 100) ≈ solution[i] atol = 1e-4
+		@test round(Int, (1 - RatcliffObershelp()(strings[i]...)) * 100) ≈ solution[i] atol = 1e-4
 	end
 
 	# test max_dist
 	for i in eachindex(strings)
 		d = Levenshtein()(strings[i]...)
-		@test Levenshtein(d)(strings[i]...) == d
+		@test Levenshtein()(strings[i]...; max_dist = d) == d
 		d = OptimalStringAlignement()(strings[i]...)
-		@test OptimalStringAlignement(d)(strings[i]...) == d
+		@test OptimalStringAlignement()(strings[i]...; max_dist = d) == d
 	end
 end
-
-d = OptimalStringAlignement()("abcdef", "abcxyf")
-@test OptimalStringAlignement(d)("abcdef", "abcxyf") == d
 
 
 
