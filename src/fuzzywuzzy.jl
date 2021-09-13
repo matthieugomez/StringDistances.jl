@@ -34,7 +34,7 @@ function (dist::Partial)(s1, s2; max_dist = nothing)
     return out
 end
 
-function (dist::Partial{T})(s1, s2; max_dist = nothing) where {T <: Union{RatcliffObershelp, Normalized{RatcliffObershelp}}}
+function (dist::Partial{<: Union{RatcliffObershelp, Normalized{RatcliffObershelp}}})(s1, s2; max_dist = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
@@ -74,6 +74,7 @@ function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, p::Vector{Int}, s1, s2, 
     return x
 end
 
+Normalized(dist::Partial)= Normalized{typeof(Partial(Normalized(dist.dist)))}(Partial(Normalized(dist.dist)))
 """
    TokenSort(dist)
 
@@ -103,6 +104,7 @@ function (dist::TokenSort)(s1::Union{AbstractString, Missing}, s2::Union{Abstrac
     dist.dist(f(s1), f(s2); max_dist = max_dist)
 end
 
+Normalized(dist::TokenSort) = Normalized{typeof(TokenSort(Normalized(dist.dist)))}(TokenSort(Normalized(dist.dist)))
 """
    TokenSet(dist)
 
@@ -141,6 +143,7 @@ function (dist::TokenSet)(s1::Union{AbstractString, Missing}, s2::Union{Abstract
     min(out_01, out_02, out_12)
 end
 
+Normalized(dist::TokenSet) = Normalized{typeof(TokenSet(Normalized(dist.dist)))}(TokenSet(Normalized(dist.dist)))
 """
    TokenMax(dist)
 
@@ -162,7 +165,6 @@ julia> evaluate(TokenMax(RatcliffObershelp()), s1, s2)
 struct TokenMax{S <: Normalized} <: StringSemiMetric
     dist::S
 end
-TokenMax(dist::Normalized) = TokenMax{typeof(dist)}(dist)
 TokenMax(dist::Union{StringSemiMetric, StringMetric}) = TokenMax(Normalized(dist))
 
 function (dist::TokenMax)(s1::Union{AbstractString, Missing}, s2::Union{AbstractString, Missing}; max_dist = 1.0)
@@ -188,5 +190,3 @@ function (dist::TokenMax)(s1::Union{AbstractString, Missing}, s2::Union{Abstract
     out = min(out, out_sort, out_set)
     out > max_dist ? 1.0 : out
 end
-
-Normalized(dist::TokenMax) = TokenMax(dist.dist)

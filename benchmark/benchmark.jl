@@ -14,19 +14,19 @@ end
 
 
 @time f(Hamming(), x, y);
-
+#0.05s 
 @time f(Jaro(), x, y);
 #0.3s 
 @time f(Levenshtein(), x, y);
-# 0.36s
+# 0.33s
 @time f(Levenshtein(), x, y, min_score = 0.8);
 # 0.11 
 @time f(OptimalStringAlignement(), x, y);
-# 0.56s.
+# 0.44s.
 @time f(OptimalStringAlignement(), x, y, min_score = 0.8);
 # 0.08
 @time f(DamerauLevenshtein(), x, y);
-# 1.0s
+# 0.8s
 @time f(RatcliffObershelp(), x, y);
 # 0.65s
 

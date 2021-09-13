@@ -1,7 +1,9 @@
-"""
-   Normalized(dist)
+# Normalized is basically wrapper like Symmetric 
 
-Creates a normalized distance. The distance always return a Float64 between 0.0 and 1.0 (or a missing if one of the argument is missing)
+"""
+   Normalized(dist::Union{StringSemiMetric, StringMetric})
+
+Creates a normalized distance. The normalized distance always return a Float64 between 0.0 and 1.0 (or a missing if one of the argument is missing)
 
 ### Examples
 ```julia-repl
@@ -13,15 +15,19 @@ julia> StringDistances.Normalized(Levenshtein())(s1, s2)
 0.8064 
 ```
 """
-struct Normalized{T <: Union{StringSemiMetric, StringMetric}} <: StringSemiMetric
+struct Normalized{T <: Union{StringSemiMetric, StringMetric}} <: NormalizedStringSemiMetric
     dist::T
 end
+Normalized(dist::Union{StringSemiMetric, StringMetric}) = Normalized{typeof(dist)}(dist)
 Normalized(dist::Normalized) = dist
+
+
+# this basically says that all distances are considered to be normalized by default
 function (dist::Normalized)(s1, s2; max_dist = 1.0)
-    out = dist.dist(s1, s2)
-    max_dist !== nothing && out > max_dist && return 1.0
-    return out
+    dist.dist(s1, s2; max_dist = max_dist)
 end
+
+
 
 function (dist::Normalized{<:Union{Hamming, DamerauLevenshtein}})(s1, s2; max_dist = 1.0)
     (s1 === missing) | (s2 === missing) && return missing

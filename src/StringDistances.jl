@@ -3,9 +3,11 @@ module StringDistances
 using Distances
 import StatsAPI: pairwise, pairwise!
 abstract type StringSemiMetric <: SemiMetric end
+abstract type NormalizedStringSemiMetric <: StringSemiMetric end
 abstract type StringMetric <: Metric end
-const StringDistance = Union{StringSemiMetric, StringMetric}
-(dist::StringDistance)(s1, s2; max_dist = nothing) = dist(s1, s2)
+(dist::NormalizedStringSemiMetric)(s1, s2; max_dist = 1.0) = dist(s1, s2)
+(dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
+
 function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::Type, s2::Type)
     T = typeof(dist("", ""))
     if (Missing <: s1) | (Missing <: s2)
@@ -25,7 +27,7 @@ include("find.jl")
 include("fuzzywuzzy.jl")
 
 
-
+const StringDistance = Union{StringSemiMetric, StringMetric}
 ##############################################################################
 ##
 ## Export

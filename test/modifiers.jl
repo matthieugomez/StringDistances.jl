@@ -92,7 +92,7 @@ end
 	@test compare("mariners", "mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow", TokenSet(RatcliffObershelp())) ≈ 39 / 100 atol = 1e-2
 	@test compare("mariners", "mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow", TokenSet(Partial(RatcliffObershelp()))) ≈ 88 / 100 atol = 1e-2
 	# not exactly the same because tokenmax has uses the max of rounded tokenset etc
-	@test compare("mariners", "mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow", TokenMax(RatcliffObershelp())) ≈ 52 / 100 atol = 1e-2
+	@test compare("mariners", "mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow mariner are playing tomorrow", TokenMax(RatcliffObershelp())) ≈ 78.75 / 100 atol = 1e-2
 
 
 
