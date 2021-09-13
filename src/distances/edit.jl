@@ -19,7 +19,6 @@ function (dist::Hamming)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     return out
 end
 
-
 """
     Jaro()
 
@@ -78,7 +77,6 @@ function (dist::Jaro)(s1, s2)
     end
 end
 
-
 """
     JaroWinkler(;p = 0.1, threshold = 0.3, maxlength = 4)
 
@@ -105,7 +103,6 @@ function (dist::JaroWinkler)(s1, s2)
     end
     return out
 end
-
 
 """
     Levenshtein()
@@ -240,7 +237,6 @@ function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothin
     end
     return current
 end
-
 
 """
     DamerauLevenshtein()
