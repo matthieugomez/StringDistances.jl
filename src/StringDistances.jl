@@ -3,9 +3,7 @@ module StringDistances
 using Distances
 import StatsAPI: pairwise, pairwise!
 abstract type StringSemiMetric <: SemiMetric end
-abstract type NormalizedStringSemiMetric <: StringSemiMetric end
 abstract type StringMetric <: Metric end
-(dist::NormalizedStringSemiMetric)(s1, s2; max_dist = 1.0) = dist(s1, s2)
 (dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
 
 function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::Type, s2::Type)
