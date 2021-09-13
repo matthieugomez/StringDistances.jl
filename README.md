@@ -25,7 +25,7 @@ The available distances are:
 	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int) <: SemiMetric`
 
 
-## Basic Use
+## Syntax
 ### distance
 The distance between two strings can be computed using the following syntax:
 
@@ -37,6 +37,11 @@ For instance, with the `Levenshtein` distance,
 
 ```julia
 Levenshtein()("martha", "marhta")
+```
+
+You can also use `evaluate`
+```julia
+evaluate(Levenshtein(), "martha", "marhta")
 ```
 
 ### pairwise
@@ -77,7 +82,7 @@ The package also adds some convience function to find the element in a list that
 	findall(s, itr, dist::StringDistance; min_score = 0.8)
 	```
 
-The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances (these distances stop early if the distance is higher than a certain threshold).
+The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances (these algorithm stops as soon as the distance is higher than a certain threshold).
 
 
 ## Notes
