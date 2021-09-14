@@ -15,8 +15,7 @@ function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::
 end
 Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1, s2) = result_type(dist, typeof(s1), typeof(s2))
 
-
-include("distances/utils.jl")
+include("utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
 include("pairwise.jl")

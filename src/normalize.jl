@@ -18,7 +18,6 @@ julia> StringDistances.Normalized(Levenshtein())(s1, s2)
 struct Normalized{T <: Union{StringSemiMetric, StringMetric}} <: StringSemiMetric
     dist::T
 end
-Normalized(dist::Union{StringSemiMetric, StringMetric}) = Normalized{typeof(dist)}(dist)
 Normalized(dist::Normalized) = dist
 
 # this basically says that all distances are considered to be normalized by default

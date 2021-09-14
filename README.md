@@ -24,68 +24,74 @@ The available distances are:
 	- [MorisitaOverlap Distance](https://en.wikipedia.org/wiki/Morisita%27s_overlap_index) `MorisitaOverlap(q::Int) <: SemiMetric`
 	- [Normalized Multiset Distance](https://www.sciencedirect.com/science/article/pii/S1047320313001417) `NMD(q::Int) <: SemiMetric`
 
-
 ## Syntax
-### distance
-The distance between two strings can be computed using the following syntax:
-
+Following the `Distances.jl` package, string distances can inherit from two abstract types: `StringSemiMetric <: SemiMetric` or `StringMetric <: Metric`.
+## Computing the distance between two strings (or iterators)
+You can always compute a certain distance between two strings  using the following syntax
 ```julia
-dist(s1, s2)
+r = evaluate(dist, x, y)
+r = dist(x, y)
+```
+Here, `dist` is an instance of a distance type: for example, the type for the Levenshtein distance is `Levenshtein`. You can compute the Levenshtein distance between `x` and `y` as
+```julia
+r = evaluate(Levenshtein(), x, y)
+r = Levenshtein()(x, y)
 ```
 
-For instance, with the `Levenshtein` distance,
+The function `compare` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns an element of type `Float64`. A value of 0.0 means completely different and a value of 1.0 means completely similar.
 
 ```julia
-Levenshtein()("martha", "marhta")
+Levenshtein()("martha", "martha")
+#> 0
+compare("martha", "martha", Levenshtein())
+#> 1.0
 ```
 
-You can also use `evaluate`
+## Computing the distance between two AbstractVectors of strings (or iterators)
+Consider `X` and `Y` two `AbstractVectors` of iterators. You can compute the matrix of distances across elements, `dist(X[i], Y[j])`, as follows:
 ```julia
-evaluate(Levenshtein(), "martha", "marhta")
+pairwise(dist, X, Y)
 ```
 
-### pairwise
-`pairwise` returns the matrix of distance between two `AbstractVectors` of AbstractStrings (or iterators)
-
+For instance, 
 ```julia
 pairwise(Jaccard(3), ["martha", "kitten"], ["marhta", "sitting"])
 ```
-The function `pairwise` is particularly optimized for QGram-distances (each element is processed only once).
+`pairwise` is optimized in various ways (e.g., for the case of QGram-distances, dictionary of qgrams are pre-computed)
+
+## Find closest string
+The package also adds convenience functions to find elements in a iterator of strings closest to a given string
+
+- `findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
+	```julia
+	findnearest(s, itr, dist)
+	```
+
+- `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum score. Its syntax is:
+	```julia
+	findall(s, itr, dist; min_score = 0.8)
+	```
+
+The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances, as these algorithm can stop early if the distance becomes higher than a certain threshold.
+
 
 
 ### fuzzywuzzy
-The package also defines Distance "modifiers" that are defined in the Python package - [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/). These modifiers are particularly helpful to match strings composed of multiple words (e.g. addresses, company names).
-
+The package also defines Distance "modifiers" that are inspired by the Python package - [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/). These modifiers are particularly helpful to match strings composed of multiple words (e.g. addresses, company names).
 - [Partial](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) returns the minimum of the distance between the shorter string and substrings of the longer string.
 - [TokenSort](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders by returning the distance of the two strings, after re-ordering words alphabetically. 
 - [TokenSet](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) adjusts for differences in word orders and word numbers by returning the distance between the intersection of two strings with each string.
 - [TokenMax](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/) normalizes the distance, and combine the `Partial`, `TokenSort` and `TokenSet` modifiers, with penalty terms depending on string.   `TokenMax(Levenshtein())` corresponds to the distance defined in [fuzzywuzzy](http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/)
 
 
-### find
-The package also adds some convience function to find the element in a list that is closest to a given string
+```julia
+Levenshtein()("this string", "this string is longer") = 10
+Partial(Levenshtein())("this string", "this string is longer") = 0
+```
 
-- The function `compare` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns an element of type `Float64`. A value of 0.0 means completely different and a value of 1.0 means completely similar.
-	```julia
-	compare("martha", "martha", Levenshtein())
-	#> 1.0
-	```
-
-
-- `findnearest` returns the value and index of the element in `itr` with the highest similarity score with `s`. Its syntax is:
-	```julia
-	findnearest(s, itr, dist::StringDistance)
-	```
-
-- `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum value (default to 0.8). Its syntax is:
-	```julia
-	findall(s, itr, dist::StringDistance; min_score = 0.8)
-	```
-
-The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances (these algorithm stops as soon as the distance is higher than a certain threshold).
 
 
 ## Notes
-- All string lookups are case sensitive.
+- All string distances are case sensitive.
 
 
