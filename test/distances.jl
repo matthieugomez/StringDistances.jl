@@ -31,6 +31,8 @@ using StringDistances, Unicode, Test, Random
 		@test Levenshtein()("hi, my name is", "my name is") == 4
 		@test Levenshtein()("a cat", "an act") == 3
 		@test Levenshtein()("alborgów", "amoniak") == 6
+		prefix = "my_prefix"
+		@test Levenshtein()(prefix * "alborgów", prefix * "amoniak") == Levenshtein()("alborgów", "amoniak")
 		@test Levenshtein()([1, 2, 3], [1, 2, 4]) == 1
 		@test Levenshtein()(graphemes("alborgów"), graphemes("amoniak")) == Levenshtein()("alborgów", "amoniak")
 		@test Levenshtein()("", "abc") == 3
@@ -53,7 +55,8 @@ using StringDistances, Unicode, Test, Random
 		@test OptimalStringAlignement()("a cat", "a tc") == 3
 		@test OptimalStringAlignement()("abcdef", "abcxyf") == 2
 		@test OptimalStringAlignement()("abcdef", "abcxyf"; max_dist = 2) == 2
-
+		prefix = "my_prefix"
+		@test OptimalStringAlignement()(prefix * "alborgów", prefix * "amoniak") == OptimalStringAlignement()("alborgów", "amoniak")
 		@test OptimalStringAlignement()([1, 2, 3], [1,2, 4]) == 1
 		@test OptimalStringAlignement()(graphemes("alborgów"), graphemes("amoniak")) == OptimalStringAlignement()("alborgów", "amoniak")
 		@test OptimalStringAlignement()("bc", "abc") == 1
@@ -71,6 +74,8 @@ using StringDistances, Unicode, Test, Random
 		@test DamerauLevenshtein()("a cat", "an act") == 2
 		@test DamerauLevenshtein()("a cat", "an abct") == 3
 		@test DamerauLevenshtein()("a cat", "a tc") == 2
+		prefix = "my_prefix"
+		@test DamerauLevenshtein()(prefix * "alborgów", prefix * "amoniak") == DamerauLevenshtein()("alborgów", "amoniak")
 		@test result_type(DamerauLevenshtein(), "hello", "world") == Int
 		@inferred DamerauLevenshtein()("", "")
 		@test ismissing(DamerauLevenshtein()("", missing))

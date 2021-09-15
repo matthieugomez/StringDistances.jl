@@ -141,9 +141,13 @@ function (dist::Levenshtein)(s1, s2; max_dist::Union{Integer, Nothing} = nothing
         end
         for (i2, ch2) in enumerate(s2)
             i2 > k || continue
-            @inbounds above, current, left = current, left, v[i2 - k]
+            above = current
+            # cost on diagonal (substitution)
+            current = left
+            @inbounds left = v[i2 - k]
             if ch1 != ch2
-                current = min(current, above, left) + 1
+                # minimum between substitution, deletion and insertion
+                current = min(current + 1, above + 1, left + 1)
             end
             if max_dist !== nothing
                 value_lb = min(value_lb, left)
@@ -194,15 +198,15 @@ function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothin
     v = collect(1:(len2 - k))
     w = similar(v)
     prevch1, prevch2 = first(s1), first(s2)
-    current = 0
     if max_dist !== nothing
         i2_start = 0
         i2_end = max_dist
     end
+    current = 0
     for (i1, ch1) in enumerate(s1)
         i1 > k || (prevch1 = ch1 ; continue)
         left = i1 - k - 1
-        current = left + 1
+        current = i1 - k
         nextTransCost = 0
         if max_dist !== nothing
             i2_start += i1 - k - 1 + len2 - len1 > max_dist
@@ -213,13 +217,17 @@ function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothin
             # no need to look beyond window of lower right diagonal - max distance cells 
             # lower right diag is i1 - (len2 - len1)) and the upper left diagonal + max_dist cells (upper left is i1)
             if max_dist !== nothing
-                (i2_start <= i2 - k - 1 < i2_end) || (prevch2 = ch2 ; continue)
+                (k + i2_start < i2 < 1 + k + i2_end) || (prevch2 = ch2 ; continue)
             end
-            @inbounds above, current, left = current, left, v[i2 - k]
-            @inbounds w[i2 - k], nextTransCost, thisTransCost = current, w[i2 - k], nextTransCost
+            above = current
+            thisTransCost = nextTransCost
+            @inbounds nextTransCost = w[i2 - k]
+            @inbounds w[i2 - k] = current = left
+            @inbounds left = v[i2 - k]
             if ch1 != ch2
-                current = min(current, above, left) + 1
-                if i1 - k - 1 > 0 && i2 - k - 1 > 0 && ch1 == prevch2 && prevch1 == ch2
+                # minimum between substitution, deletion and insertion
+                current = min(current + 1, above + 1, left + 1)
+                if i1 > k + 1 && i2 > k + 1 && ch1 == prevch2 && prevch1 == ch2
                     thisTransCost += 1
                     current = min(current, thisTransCost)
                 end
@@ -235,7 +243,7 @@ function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothin
     if max_dist !== nothing
         current > max_dist && return Int(max_dist + 1)
     end
-    return current
+    return Int(current)
 end
 
 """
@@ -259,27 +267,37 @@ function (dist::DamerauLevenshtein)(s1, s2)
         s1, s2 = s2, s1
         len1, len2 = len2, len1
     end
+    k = common_prefix(s1, s2)
+    k == len1 && return len2 - k
     # da[ch1] will store last spotted position of ch1 in s1
     da = Dict{eltype(s1), UInt32}()
-    sizehint!(da, len1)
-    # distm[i1+1, i2+1] will store the distance between Iterators.take(s1, i1) and Iterators.take(s2, i2)
-    distm = zeros(UInt32, len1 + 1, len2 + 1)
-    distm[:, 1] = 0:len1
-    distm[1, :] = 0:len2
+    sizehint!(da, len1 - k)
+    # distm[i1+1, i2+1] will store the distance between first i1 elements of s1 and first i2 elements of s2
+    distm = zeros(UInt32, len1 + 1 - k, len2 + 1 - k)
+    distm[:, 1] = 0:(len1-k)
+    distm[1, :] = 0:(len2-k)
     for (i1, ch1) in enumerate(s1)
+        i1 > k || continue
         # j2 is last spotted position of ch1 in s2
         # j1 will be last spotted position of ch2 in s1
         j2 = 0
         for (i2, ch2) in enumerate(s2)
-            match = ch1 == ch2
-            @inbounds pre = min(distm[i1, i2] + !match, 
-                                distm[i1 + 1, i2] + 1,
-                                distm[i1, i2 + 1] + 1)
-            # avoid lookup if we know transposition won't be chosen
-            j1 = (i1 == 1 || j2 == 0 || match) ? 0 : get(da, ch2, 0)
-            @inbounds distm[i1 + 1, i2 + 1] = (j1 == 0) ? pre : min(pre, distm[j1, j2] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
-            if match
+            i2 > k || continue
+            if ch1 == ch2
+                @inbounds distm[i1 + 1 - k, i2 + 1 - k] = distm[i1 - k, i2 - k]
                 j2 = i2
+            else
+                # minimum between substitution, deletion and insertion
+                @inbounds pre = min(distm[i1 - k, i2 - k] + one(UInt32), 
+                                    distm[i1 + 1 - k, i2 - k] + one(UInt32),
+                                    distm[i1 - k, i2 + 1 - k] + one(UInt32))
+                # minimum wrt transposition --- avoid lookup if we know transposition won't be chosen
+                # either because we're treating first character of s1 or because ch1 has not been spotted in s2 yet
+                j1 = (i1 == k + 1 || j2 == 0) ? 0 : get(da, ch2, 0)
+                if j1 > 0
+                    @inbounds pre = min(pre, distm[j1 - k, j2 - k] + (i1 - j1 - 1) + 1 + (i2 - j2 - 1))
+                end
+                @inbounds distm[i1 + 1 - k, i2 + 1 - k] = pre
             end
         end
         da[ch1] = i1
