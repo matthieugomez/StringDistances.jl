@@ -156,8 +156,6 @@ eval_start(::MorisitaOverlap) = (0, 0, 0, 0, 0)
 end
 eval_end(::MorisitaOverlap, c::NTuple{5, <:Integer}) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
 
-
-
 #==========================================================================
 QGramIterator
 ==========================================================================#
@@ -177,7 +175,6 @@ end
 ```
 """ 
 qgrams
-
 
 struct QGramIterator{S <: Union{AbstractString, AbstractVector}}
 	s::S   # Collection
@@ -204,7 +201,6 @@ end
 Base.eltype(qgram::QGramIterator{SubString{S}}) where {S} = SubString{S}
 Base.eltype(qgram::QGramIterator{S}) where {S <: AbstractString} = SubString{S}
 qgrams(s::AbstractString, q::Integer) = QGramIterator(s, q)
-
 
 # q-grams of General Iterators
 function Base.iterate(qgram::QGramIterator{<: AbstractVector}, state = firstindex(qgram.s))
