@@ -2,10 +2,10 @@ module StringDistances
 
 using Distances
 import StatsAPI: pairwise, pairwise!
+# Distances API
 abstract type StringSemiMetric <: SemiMetric end
 abstract type StringMetric <: Metric end
-(dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
-
+const StringDistance = Union{StringSemiMetric, StringMetric}
 function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::Type, s2::Type)
     T = typeof(dist("", ""))
     if (Missing <: s1) | (Missing <: s2)
@@ -15,6 +15,9 @@ function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::
 end
 Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1, s2) = result_type(dist, typeof(s1), typeof(s2))
 
+
+
+(dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
 include("utils.jl")
 include("distances/edit.jl")
 include("distances/qgram.jl")
@@ -24,7 +27,6 @@ include("find.jl")
 include("fuzzywuzzy.jl")
 
 
-const StringDistance = Union{StringSemiMetric, StringMetric}
 ##############################################################################
 ##
 ## Export

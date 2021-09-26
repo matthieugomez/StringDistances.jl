@@ -26,12 +26,11 @@ string_with_length(s::AbstractString) = StringWithLength(s, length(s))
 # Not really needed but avoid multi-encapsulation
 string_with_length(s::StringWithLength) = s
 Base.length(s::StringWithLength) = s.l
-Base.iterate(s::StringWithLength, i::Integer = firstindex(s.s)) = iterate(s.s, i)
+Base.iterate(s::StringWithLength) = iterate(s.s)
+Base.iterate(s::StringWithLength, i::Integer) = iterate(s.s, i)
 Base.nextind(s::StringWithLength, i::Int, n::Int = 1) = nextind(s.s, i, n)
 Base.ncodeunits(s::StringWithLength) = ncodeunits(s.s)
 Base.isvalid(s::StringWithLength, i::Int) = isvalid(s.s, i)
-
-
 function reorder(s1::AbstractString, s2::AbstractString)
     s1 = string_with_length(s1)
     s2 = string_with_length(s2)

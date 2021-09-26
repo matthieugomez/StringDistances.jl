@@ -34,15 +34,15 @@ function (dist::Partial)(s1, s2; max_dist = nothing)
     return out
 end
 
+# specialized (faster) version for RatcliffObershelp
 function (dist::Partial{<: Union{RatcliffObershelp, Normalized{RatcliffObershelp}}})(s1, s2; max_dist = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)
     len1 == len2 && return dist.dist(s1, s2)
     out = 1.0
-    for r in matching_blocks(s1, s2, 1, 1, len1, len2)
+    for s2_start in matching_blocks(s1, s2, 1, 1, len1, len2)
         # Make sure the substring of s2 has length len1
-        s2_start = r[2] - r[1] + 1
         if s2_start < 1
             s2_start = 1
         elseif s2_start + len1 - 1 > len2
@@ -56,20 +56,16 @@ function (dist::Partial{<: Union{RatcliffObershelp, Normalized{RatcliffObershelp
 end
 
 function matching_blocks(s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
-    x = Set{Tuple{Int, Int, Int}}()
+    x = Set{Int}()
     p = zeros(Int, max(end1 - start1, end2 - start2) + 1)
     matching_blocks!(x, p, s1, s2, start1, start2, end1, end2)
 end
 
-function matching_blocks!(x::Set{Tuple{Int, Int, Int}}, p::Vector{Int}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
+function matching_blocks!(x::Set{Int}, p::Vector{Int}, s1, s2, start1::Integer, start2::Integer, end1::Integer, end2::Integer)
     j1, j2, len = longest_common_pattern!(p, s1, s2, start1, start2, end1, end2)
-    # exit if there is no common substring
     len == 0 && return x
-    # add the info of the common to the existing set
-    push!(x, (j1, j2, len))
-     # add the longest common substring that happens before
+    push!(x, j2 - j1 + 1)
     matching_blocks!(x, p, s1, s2, start1, start2, j1 - 1, j2 - 1)
-     # add the longest common substring that happens after
     matching_blocks!(x, p, s1, s2, j1 + len, j2 + len, end1, end2)
     return x
 end
@@ -137,10 +133,9 @@ function (dist::TokenSet)(s1::Union{AbstractString, Missing}, s2::Union{Abstract
     s1 = join(v1, " ")
     s2 = join(v2, " ")
     isempty(s0) && return dist.dist(s1, s2; max_dist = max_dist)
-    out_01 = dist.dist(s0, s1; max_dist = max_dist)
-    out_02 = dist.dist(s0, s2; max_dist = max_dist)
-    out_12 = dist.dist(s1, s2; max_dist = max_dist)
-    min(out_01, out_02, out_12)
+    min(dist.dist(s0, s1; max_dist = max_dist),
+        dist.dist(s0, s2; max_dist = max_dist),
+        dist.dist(s1, s2; max_dist = max_dist))
 end
 
 Normalized(dist::TokenSet) = Normalized{typeof(TokenSet(Normalized(dist.dist)))}(TokenSet(Normalized(dist.dist)))
