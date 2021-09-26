@@ -16,8 +16,10 @@ struct QGram <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::QGram) = 0
-@inline eval_op(::QGram, c, n1::Integer, n2::Integer) = c + abs(n1 - n2)
-eval_end(::QGram, c) = c
+@inline function eval_op(::QGram, c::Integer, n1::Integer, n2::Integer)
+	c + abs(n1 - n2)
+end
+eval_end(::QGram, c::Integer) = c
 
 """
 	Cosine(q::Int)
@@ -35,8 +37,10 @@ struct Cosine <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::Cosine) = (0, 0, 0)
-@inline eval_op(::Cosine, c, n1::Integer, n2::Integer) = (c[1] + n1^2, c[2] + n2^2, c[3] + n1 * n2)
-eval_end(::Cosine, c) = 1 - c[3] / sqrt(c[1] * c[2])
+@inline function eval_op(::Cosine, c::NTuple{3, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + n1^2, c[2] + n2^2, c[3] + n1 * n2)
+end
+eval_end(::Cosine, c::NTuple{3, <:Integer}) = 1 - c[3] / sqrt(c[1] * c[2])
 
 """
 	Jaccard(q::Int)
@@ -53,8 +57,10 @@ struct Jaccard <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::Jaccard) = (0, 0, 0)
-@inline eval_op(::Jaccard, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_end(::Jaccard, c) = 1 - c[3] / (c[1] + c[2] - c[3])
+@inline function eval_op(::Jaccard, c::NTuple{3, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
+end
+eval_end(::Jaccard, c::NTuple{3, <:Integer}) = 1 - c[3] / (c[1] + c[2] - c[3])
 
 """
 	SorensenDice(q::Int)
@@ -71,8 +77,10 @@ struct SorensenDice <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::SorensenDice) = (0, 0, 0)
-@inline eval_op(::SorensenDice, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_end(::SorensenDice, c) = 1 - 2 * c[3] / (c[1] + c[2])
+@inline function eval_op(::SorensenDice, c::NTuple{3, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
+end
+eval_end(::SorensenDice, c::NTuple{3, <:Integer}) = 1 - 2 * c[3] / (c[1] + c[2])
 
 """
 	Overlap(q::Int)
@@ -89,8 +97,10 @@ struct Overlap <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::Overlap) = (0, 0, 0)
-@inline eval_op(::Overlap, c, n1::Integer, n2::Integer) = (c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
-eval_end(::Overlap, c) = 1 - c[3] / min(c[1], c[2])
+@inline function eval_op(::Overlap, c::NTuple{3, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + (n1 > 0), c[2] + (n2 > 0), c[3] + (n1 > 0) * (n2 > 0))
+end
+eval_end(::Overlap, c::NTuple{3, <:Integer}) = 1 - c[3] / min(c[1], c[2])
 
 """
 	NMD(q::Int)
@@ -115,8 +125,10 @@ struct NMD <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::NMD) = (0, 0, 0)
-@inline eval_op(::NMD, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + max(n1, n2))
-eval_end(::NMD, c) = (c[3] - min(c[1], c[2])) / max(c[1], c[2])
+@inline function eval_op(::NMD, c::NTuple{3, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + n1, c[2] + n2, c[3] + max(n1, n2))
+end
+eval_end(::NMD, c::NTuple{3, <:Integer}) = (c[3] - min(c[1], c[2])) / max(c[1], c[2])
 
 """
 	MorisitaOverlap(q::Int)
@@ -139,8 +151,10 @@ struct MorisitaOverlap <: AbstractQGramDistance
 	q::Int
 end
 eval_start(::MorisitaOverlap) = (0, 0, 0, 0, 0)
-@inline eval_op(::MorisitaOverlap, c, n1::Integer, n2::Integer) = (c[1] + n1, c[2] + n2, c[3] + n1^2, c[4] + n2^2, c[5] + n1 * n2)
-eval_end(::MorisitaOverlap, c) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
+@inline function eval_op(::MorisitaOverlap, c::NTuple{5, <:Integer}, n1::Integer, n2::Integer)
+	(c[1] + n1, c[2] + n2, c[3] + n1^2, c[4] + n2^2, c[5] + n1 * n2)
+end
+eval_end(::MorisitaOverlap, c::NTuple{5, <:Integer}) = 1 - 2 * c[5] / (c[3] * c[2] / c[1] + c[4] * c[1] / c[2])
 
 
 
@@ -245,7 +259,6 @@ function (dist::AbstractQGramDistance)(s1, s2)
 	eval_end(dist, c)
 end
 
-
 #==========================================================================
 Compute QGramDistances on QGramDicts, iterators that store a dictionary associating qgrams to the number of their occurences
 ==========================================================================#
@@ -273,8 +286,7 @@ struct QGramDict{S, K}
 	counts::Dict{K, Int}
 end
 Base.length(s::QGramDict) = length(s.s)
-Base.iterate(s::QGramDict) = iterate(s.s)
-Base.iterate(s::QGramDict, state) = iterate(s.s, state)
+Base.iterate(s::QGramDict, args...) = iterate(s.s, args...)
 
 function QGramDict(s, q::Integer = 2)
 	(s isa QGramDict) && (s.q == q) && return s
@@ -321,7 +333,6 @@ function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
 	eval_end(dist, c)
 end
 
-
 #==========================================================================
 Compute QGramDistances on QGramSortedVectors, iterators that store a sorted vector associating qgrams to the number of their occurences
 Note that QGramSortedVectors require qgrams to have a natural order
@@ -356,8 +367,7 @@ struct QGramSortedVector{S, K}
 	counts::Vector{Pair{K, Int}}
 end
 Base.length(s::QGramSortedVector) = length(s.s)
-Base.iterate(s::QGramSortedVector) = iterate(s.s)
-Base.iterate(s::QGramSortedVector, state) = iterate(s.s, state)
+Base.iterate(s::QGramSortedVector, args...) = iterate(s.s, args...)
 
 function QGramSortedVector(s, q::Integer = 2)
 	(s isa QGramSortedVector) && (s.q == q) && return s
@@ -403,4 +413,3 @@ function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedV
 	end
 	eval_end(dist, c)
 end
-
