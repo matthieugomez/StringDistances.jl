@@ -38,7 +38,7 @@ function (dist::Normalized{<:Union{Hamming, DamerauLevenshtein}})(s1, s2; max_di
     return out
 end
 
-function (dist::Normalized{<:Union{Levenshtein, OptimalStringAlignement}})(s1, s2; max_dist = 1.0)
+function (dist::Normalized{<:Union{Levenshtein, OptimalStringAlignment}})(s1, s2; max_dist = 1.0)
     (s1 === missing) | (s2 === missing) && return missing
     s1, s2 = reorder(s1, s2)
     len1, len2 = length(s1), length(s2)

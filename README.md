@@ -12,7 +12,7 @@ The available distances are:
 	- Hamming Distance `Hamming() <: SemiMetric`
 	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler() <: SemiMetric`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein() <: Metric`
-	- [Optimal String Alignement Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignement() <: SemiMetric`
+	- [Optimal String Alignment Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignment() <: SemiMetric`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: Metric`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp() <: SemiMetric`
 - Q-gram distances compare the set of all substrings of length `q` in each string (and which 
@@ -72,7 +72,7 @@ The package also adds convenience functions to find elements in a iterator of st
 	findall(s, itr, dist; min_score = 0.8)
 	```
 
-The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignement` distances, as these algorithm can stop early if the distance becomes higher than a certain threshold.
+The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignment` distances, as these algorithm can stop early if the distance becomes higher than a certain threshold.
 
 
 
