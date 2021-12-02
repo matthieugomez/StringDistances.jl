@@ -42,7 +42,7 @@ Hamming,
 Jaro,
 JaroWinkler,
 Levenshtein,
-OptimalStringAlignement,
+OptimalStringAlignment,
 DamerauLevenshtein,
 RatcliffObershelp,
 # Qgram distances

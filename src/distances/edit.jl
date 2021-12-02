@@ -165,25 +165,25 @@ function (dist::Levenshtein)(s1, s2; max_dist::Union{Integer, Nothing} = nothing
 end
 
 """
-        OptimalStringAlignement()
+    OptimalStringAlignment()
 
-    Creates the OptimalStringAlignement distance (also known ad the unrestricted DamerauLevenshtein distance).
+Creates the OptimalStringAlignment distance (also known as the restricted DamerauLevenshtein distance).
 
-    It is the minimum number of operations (consisting of insertions, 
-    deletions or substitutions of a single character, or transposition of two adjacent characters) 
-    required to change one string into the other.
+It is the minimum number of operations (consisting of insertions,
+deletions or substitutions of a single character, or transposition of two adjacent characters)
+required to change one string into the other.
 
-    The distance differs slightly from the Damerau-Levenshtein algorithm by imposing 
-    the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit 
-    distance of 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
-    uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy 
-    the triangle inequality.
+The distance differs slightly from the Damerau-Levenshtein algorithm by imposing
+the restriction that no substring is edited more than once. So for example, "CA" to "ABC" has an edit
+distance of 2 by a complete application of Damerau-Levenshtein, but a distance of 3 by this method that
+uses the optimal string alignment algorithm. In particular, the restricted distance does not satisfy
+the triangle inequality.
 """
-struct OptimalStringAlignement <: StringSemiMetric end
+struct OptimalStringAlignment <: StringSemiMetric end
 
 ## http://blog.softwx.net/2015/01/optimizing-damerau-levenshtein_15.html
 # Return max_dist + 1 if distance higher than max_dist
-function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
+function (dist::OptimalStringAlignment)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     len1, len2 = length(s1), length(s2)
     if len1 > len2
@@ -245,6 +245,8 @@ function (dist::OptimalStringAlignement)(s1, s2; max_dist::Union{Integer, Nothin
     end
     return Int(current)
 end
+
+Base.@deprecate_binding OptimalStringAlignement OptimalStringAlignment
 
 """
     DamerauLevenshtein()

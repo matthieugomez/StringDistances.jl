@@ -21,9 +21,9 @@ end
 # 0.33s
 @time f(Levenshtein(), x, y, min_score = 0.8);
 # 0.11 
-@time f(OptimalStringAlignement(), x, y);
+@time f(OptimalStringAlignment(), x, y);
 # 0.44s.
-@time f(OptimalStringAlignement(), x, y, min_score = 0.8);
+@time f(OptimalStringAlignment(), x, y, min_score = 0.8);
 # 0.08
 @time f(DamerauLevenshtein(), x, y);
 # 0.8s
@@ -35,7 +35,7 @@ end
 
 @time findnearest(x[1], y, Levenshtein());
 # 0.1
-@time findnearest(x[1], y, OptimalStringAlignement());
+@time findnearest(x[1], y, OptimalStringAlignment());
 # 0.1
 @time findnearest(x[1], y, QGram(2));
 # 0.75
@@ -44,17 +44,17 @@ end
 
 @time findall(x[1], y, Levenshtein());
 # 0.05
-@time findall(x[1], y, OptimalStringAlignement());
+@time findall(x[1], y, OptimalStringAlignment());
 # 0.05
-@time findall(x[1], y, Partial(OptimalStringAlignement()));
+@time findall(x[1], y, Partial(OptimalStringAlignment()));
 # 0.96
 @time findall(x[1], y, QGram(2));
 # 0.81
-@time findall(x[1], y, TokenSort(OptimalStringAlignement()));
+@time findall(x[1], y, TokenSort(OptimalStringAlignment()));
 # 0.27 (now 0.32)
-@time findall(x[1], y, TokenSet(OptimalStringAlignement()));
+@time findall(x[1], y, TokenSet(OptimalStringAlignment()));
 # 0.55
-@time findall(x[1], y, TokenMax(OptimalStringAlignement()));
+@time findall(x[1], y, TokenMax(OptimalStringAlignment()));
 # 2.25 (now 3.6)
 
 

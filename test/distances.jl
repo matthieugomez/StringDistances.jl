@@ -41,28 +41,28 @@ using StringDistances, Unicode, Test, Random
 		@test ismissing(Levenshtein()("", missing))
 	end
 
-	@testset "OptimalStringAlignement" begin
-		@test OptimalStringAlignement()("", "") == 0
-		@test OptimalStringAlignement()("abc", "") == 3
-		@test OptimalStringAlignement()("bc", "abc") == 1
-		@test OptimalStringAlignement()("fuor", "four") == 1
-		@test OptimalStringAlignement()("abcd", "acb") == 2
-		@test OptimalStringAlignement()("cape sand recycling ", "edith ann graham") == 17
-		@test OptimalStringAlignement()("jellyifhs", "jellyfish") == 2
-		@test OptimalStringAlignement()("ifhs", "fish") == 2
-		@test OptimalStringAlignement()("a cat", "an act") == 2
-		@test OptimalStringAlignement()("a cat", "an abct") == 4
-		@test OptimalStringAlignement()("a cat", "a tc") == 3
-		@test OptimalStringAlignement()("abcdef", "abcxyf") == 2
-		@test OptimalStringAlignement()("abcdef", "abcxyf"; max_dist = 2) == 2
+	@testset "OptimalStringAlignment" begin
+		@test OptimalStringAlignment()("", "") == 0
+		@test OptimalStringAlignment()("abc", "") == 3
+		@test OptimalStringAlignment()("bc", "abc") == 1
+		@test OptimalStringAlignment()("fuor", "four") == 1
+		@test OptimalStringAlignment()("abcd", "acb") == 2
+		@test OptimalStringAlignment()("cape sand recycling ", "edith ann graham") == 17
+		@test OptimalStringAlignment()("jellyifhs", "jellyfish") == 2
+		@test OptimalStringAlignment()("ifhs", "fish") == 2
+		@test OptimalStringAlignment()("a cat", "an act") == 2
+		@test OptimalStringAlignment()("a cat", "an abct") == 4
+		@test OptimalStringAlignment()("a cat", "a tc") == 3
+		@test OptimalStringAlignment()("abcdef", "abcxyf") == 2
+		@test OptimalStringAlignment()("abcdef", "abcxyf"; max_dist = 2) == 2
 		prefix = "my_prefix"
-		@test OptimalStringAlignement()(prefix * "alborgów", prefix * "amoniak") == OptimalStringAlignement()("alborgów", "amoniak")
-		@test OptimalStringAlignement()([1, 2, 3], [1,2, 4]) == 1
-		@test OptimalStringAlignement()(graphemes("alborgów"), graphemes("amoniak")) == OptimalStringAlignement()("alborgów", "amoniak")
-		@test OptimalStringAlignement()("bc", "abc") == 1
-		@test result_type(OptimalStringAlignement(), "hello", "world") == Int
-		@inferred OptimalStringAlignement()("", "")
-		@test ismissing(OptimalStringAlignement()("", missing))
+		@test OptimalStringAlignment()(prefix * "alborgów", prefix * "amoniak") == OptimalStringAlignment()("alborgów", "amoniak")
+		@test OptimalStringAlignment()([1, 2, 3], [1,2, 4]) == 1
+		@test OptimalStringAlignment()(graphemes("alborgów"), graphemes("amoniak")) == OptimalStringAlignment()("alborgów", "amoniak")
+		@test OptimalStringAlignment()("bc", "abc") == 1
+		@test result_type(OptimalStringAlignment(), "hello", "world") == Int
+		@inferred OptimalStringAlignment()("", "")
+		@test ismissing(OptimalStringAlignment()("", missing))
 	end
 
 	@testset "DamerauLevenshtein" begin
@@ -316,7 +316,7 @@ using StringDistances, Unicode, Test, Random
 	]
 
 	solutions = ((Levenshtein(), [2  2  4  1  3  0  3  2  3  3  4  6 17  3  3  2]),
-			(OptimalStringAlignement(), [1  2  4  1  3  0  3  2  3  3  4  6 17  2  2  2]),
+			(OptimalStringAlignment(), [1  2  4  1  3  0  3  2  3  3  4  6 17  2  2  2]),
 			(Jaro(), [0.05555556 0.17777778 0.23333333 0.04166667 1.00000000 0.00000000 1.00000000 0.44444444 0.25396825 0.2805556 0.2285714 0.48809524 0.3916667 0.07407407 0.16666667 0.21666667]),
 			(QGram(1), [0   3   3   1 3  0   6   4   5   4   4  11  14   0   0   3]),
 			(QGram(2), [  6   7   7   1 2 0   4   4   7   8   4  13  32   8   6   5]),
@@ -344,8 +344,8 @@ using StringDistances, Unicode, Test, Random
 	for i in eachindex(strings)
 		d = Levenshtein()(strings[i]...)
 		@test Levenshtein()(strings[i]...; max_dist = d) == d
-		d = OptimalStringAlignement()(strings[i]...)
-		@test OptimalStringAlignement()(strings[i]...; max_dist = d) == d
+		d = OptimalStringAlignment()(strings[i]...)
+		@test OptimalStringAlignment()(strings[i]...; max_dist = d) == d
 	end
 end
 
