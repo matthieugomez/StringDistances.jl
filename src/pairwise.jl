@@ -23,7 +23,7 @@ julia> pairwise(Levenshtein(), iter, iter2)
  10.0
 ```
 """
-function pairwise(dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
+function StatsAPI.pairwise(dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     T = result_type(dist, eltype(xs), eltype(ys))
     R = Matrix{T}(undef, length(xs), length(ys))
     pairwise!(R, dist, xs, ys; preprocess = preprocess)
@@ -37,7 +37,7 @@ Compute distances between all pairs of elements in `xs` and `ys` according to th
 
 Set `preprocess` to false if no preprocessing should be used.
 """
-function pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
+function StatsAPI.pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
     length(xs) == size(R, 1) || throw(DimensionMismatch("inconsistent length"))
     length(ys) == size(R, 2) || throw(DimensionMismatch("inconsistent length"))
     (xs === ys) ?
