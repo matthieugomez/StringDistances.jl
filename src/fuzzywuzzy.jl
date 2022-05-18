@@ -70,7 +70,7 @@ function matching_blocks!(x::Set{Int}, p::Vector{Int}, s1, s2, start1::Integer, 
     return x
 end
 
-Normalized(dist::Partial)= Normalized{typeof(Partial(Normalized(dist.dist)))}(Partial(Normalized(dist.dist)))
+Normalized(dist::Partial) = Normalized{typeof(Partial(Normalized(dist.dist)))}(Partial(Normalized(dist.dist)))
 """
    TokenSort(dist)
 
