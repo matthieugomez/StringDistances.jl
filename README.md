@@ -16,7 +16,7 @@ The available distances are:
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: Metric`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp() <: SemiMetric`
 - Q-gram distances compare the set of all substrings of length `q` in each string (and which 
-	- QGram Distance `Qgram(q::Int) <: SemiMetric`
+	- QGram Distance `QGram(q::Int) <: SemiMetric`
 	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q::Int) <: SemiMetric`
 	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q::Int) <: SemiMetric`
 	- [Overlap Distance](https://en.wikipedia.org/wiki/Overlap_coefficient) `Overlap(q::Int) <: SemiMetric`
