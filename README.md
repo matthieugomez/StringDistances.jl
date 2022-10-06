@@ -15,7 +15,7 @@ The available distances are:
 	- [Optimal String Alignment Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignment() <: SemiMetric`
 	- [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Distance_with_adjacent_transpositions) `DamerauLevenshtein() <: Metric`
 	- [RatcliffObershelp Distance](https://xlinux.nist.gov/dads/HTML/ratcliffObershelp.html) `RatcliffObershelp() <: SemiMetric`
-- Q-gram distances compare the set of all substrings of length `q` in each string (and which 
+- Q-gram distances (which compare the set of all substrings of length `q` in each string)
 	- QGram Distance `QGram(q::Int) <: SemiMetric`
 	- [Cosine Distance](https://en.wikipedia.org/wiki/Cosine_similarity) `Cosine(q::Int) <: SemiMetric`
 	- [Jaccard Distance](https://en.wikipedia.org/wiki/Jaccard_index) `Jaccard(q::Int) <: SemiMetric`
