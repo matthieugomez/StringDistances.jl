@@ -13,8 +13,6 @@ function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::
     end
     return T
 end
-Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1, s2) = result_type(dist, typeof(s1), typeof(s2))
-
 
 
 (dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
