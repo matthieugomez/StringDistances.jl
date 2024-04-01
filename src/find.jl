@@ -35,22 +35,14 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
-    min_score_atomic = Threads.Atomic{Float64}(min_score)
-    scores = [0.0 for _ in 1:Threads.nthreads()]
-    is = [0 for _ in 1:Threads.nthreads()]
-    s = _preprocess(dist, s)
-    # need collect since @threads requires a length method
-    Threads.@threads for i in collect(eachindex(itr))
-        score = compare(s, _preprocess(dist, itr[i]), dist; min_score = min_score_atomic[])
-        score_old = Threads.atomic_max!(min_score_atomic, score)
-        if score >= score_old
-            scores[Threads.threadid()] = score
-            is[Threads.threadid()] = i
-        end
+    scores = tmap(itr) do x
+        compare(s, _preprocess(dist, x), dist; min_score = min_score)
     end
-    imax = is[argmax(scores)]
-    imax == 0 ? (nothing, nothing) : (itr[imax], imax)
+
+    imax = argmax(scores)
+    iszero(scores) ? (nothing, nothing) : (itr[imax], imax)
 end
+
 _preprocess(dist::AbstractQGramDistance, ::Missing) = missing
 _preprocess(dist::AbstractQGramDistance, s) = QGramSortedVector(s, dist.q)
 _preprocess(dist::Union{StringSemiMetric, StringMetric}, s) = s
@@ -83,14 +75,13 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.8)
-    out = [Int[] for _ in 1:Threads.nthreads()]
+    out = Int[]
     s = _preprocess(dist, s)
-    # need collect since @threads requires a length method
-    Threads.@threads for i in collect(eachindex(itr))
+    @tasks for i in eachindex(itr)
         score = compare(s, _preprocess(dist, itr[i]), dist; min_score = min_score)
-        if score >= min_score
-            push!(out[Threads.threadid()], i)
+        @one_by_one if score >= min_score
+            push!(out, i)
         end
     end
-    vcat(out...)
+    return out
 end
