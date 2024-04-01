@@ -35,12 +35,16 @@ julia> findnearest(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
-    scores = tmap(itr) do x
-        compare(s, _preprocess(dist, x), dist; min_score = min_score)
+    _citr = collect(itr)
+    isempty(_citr) && return (nothing, nothing)
+
+    _preprocessed_s = _preprocess(dist, s)
+    scores = tmap(_citr) do x
+        compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
     end
 
     imax = argmax(scores)
-    iszero(scores) ? (nothing, nothing) : (itr[imax], imax)
+    iszero(scores) ? (nothing, nothing) : (_citr[imax], imax)
 end
 
 _preprocess(dist::AbstractQGramDistance, ::Missing) = missing
@@ -78,6 +82,7 @@ function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_s
     out = Int[]
     s = _preprocess(dist, s)
     @tasks for i in eachindex(itr)
+        @set scheduler = :greedy
         score = compare(s, _preprocess(dist, itr[i]), dist; min_score = min_score)
         @one_by_one if score >= min_score
             push!(out, i)
