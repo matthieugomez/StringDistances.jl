@@ -12,7 +12,7 @@ julia> compare("martha", "marhta", Levenshtein())
 """
 function compare(s1, s2, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
     1 - Normalized(dist)(s1, s2; max_dist = 1 - min_score)
-end 
+end
 
 """
     findnearest(s, itr, dist::Union{StringMetric, StringSemiMetric}) -> (x, index)
@@ -39,9 +39,22 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     isempty(_citr) && return (nothing, nothing)
 
     _preprocessed_s = _preprocess(dist, s)
-    scores = tmap(_citr) do x
-        compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+
+    chunk_size = max(1, length(_citr) ÷ (2 * Threads.nthreads()))
+    data_chunks = Iterators.partition(_citr, chunk_size)
+
+    chunk_score_tasks = map(data_chunks) do chunk
+        Threads.@spawn begin
+            map(chunk) do x
+                compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+            end
+        end
     end
+
+    # retrieve return type of `compare` for type stability in task
+    _self_cmp = compare(_preprocessed_s, _preprocessed_s, dist; min_score = min_score)
+    chunk_scores = fetch.(chunk_score_tasks)::Vector{Vector{typeof(_self_cmp)}}
+    scores = reduce(vcat, fetch.(chunk_scores))
 
     imax = argmax(scores)
     iszero(scores) ? (nothing, nothing) : (_citr[imax], imax)
@@ -79,14 +92,25 @@ julia> findall(s, iter, Levenshtein(); min_score = 0.9)
 ```
 """
 function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.8)
-    out = Int[]
-    s = _preprocess(dist, s)
-    @tasks for i in eachindex(itr)
-        @set scheduler = :greedy
-        score = compare(s, _preprocess(dist, itr[i]), dist; min_score = min_score)
-        @one_by_one if score >= min_score
-            push!(out, i)
+    _citr = collect(itr)
+    _preprocessed_s = _preprocess(dist, s)
+
+    chunk_size = max(1, length(_citr) ÷ (2 * Threads.nthreads()))
+    data_chunks = Iterators.partition(itr, chunk_size)
+    isempty(data_chunks) && return empty(eachindex(_citr))
+    
+    chunk_score_tasks = map(data_chunks) do chunk
+        Threads.@spawn begin
+            map(chunk) do x
+                compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+            end
         end
     end
-    return out
+
+    # retrieve return type of `compare` for type stability in task
+    _self_cmp = compare(_preprocessed_s, _preprocessed_s, dist; min_score = min_score)
+    chunk_scores::Vector{Vector{typeof(_self_cmp)}} = fetch.(chunk_score_tasks)
+
+    scores = reduce(vcat, fetch.(chunk_scores))
+    return findall(>=(min_score), scores)
 end

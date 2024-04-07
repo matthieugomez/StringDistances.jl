@@ -2,7 +2,7 @@ module StringDistances
 
 using Distances: Distances, SemiMetric, Metric, evaluate, result_type
 using StatsAPI: StatsAPI, pairwise, pairwise!
-using OhMyThreads: @one_by_one, @set, @tasks, GreedyScheduler, tmap
+
 # Distances API
 abstract type StringSemiMetric <: SemiMetric end
 abstract type StringMetric <: Metric end

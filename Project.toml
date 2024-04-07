@@ -4,7 +4,6 @@ version = "0.11.2"
 
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
-OhMyThreads = "67456a42-1dca-4109-a031-0a68de7e3ad5"
 StatsAPI = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
 
 [compat]
