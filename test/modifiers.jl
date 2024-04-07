@@ -1,5 +1,5 @@
 
-using StringDistances, Unicode, Test
+using StringDistances, Unicode, Random, Test
 
 @testset "Modifiers" begin
 	# Partial
@@ -150,4 +150,18 @@ end
 		@test findall("New York", skipmissing(["NewYork", "Newark", missing]), Levenshtein()) == [1]
 		@test findall("New York", skipmissing(Union{AbstractString, Missing}[missing, missing]), Levenshtein()) == []
 	end
+
+
+	Random.seed!(2)
+	y = map(Random.randstring, rand(5:25,1_000))
+	x = Random.randstring(10)
+	for dist in (Levenshtein(), OptimalStringAlignment(), QGram(2), Partial(OptimalStringAlignment()), TokenMax(OptimalStringAlignment()))
+		result = [compare(x, y, dist) for y in y]
+		@test findnearest(x, y, dist)[2] == findmax(result)[2]
+		@test findall(x, y, dist; min_score = 0.4) == findall(result .>= 0.4)
+	end
+
+
+
+
 end
