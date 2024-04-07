@@ -39,6 +39,7 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     isempty(_citr) && return (nothing, nothing)
 
     _preprocessed_s = _preprocess(dist, s)
+    min_score_atomic = Threads.Atomic{Float64}(min_score)
 
     chunk_size = max(1, length(_citr) ÷ (2 * Threads.nthreads()))
     data_chunks = Iterators.partition(_citr, chunk_size)
@@ -46,7 +47,9 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     chunk_score_tasks = map(data_chunks) do chunk
         Threads.@spawn begin
             map(chunk) do x
-                compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+                score = compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+                Threads.atomic_max!(min_score_atomic, score)
+                score
             end
         end
     end
