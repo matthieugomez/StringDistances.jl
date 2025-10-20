@@ -25,10 +25,6 @@ jobs:
           - os: macos-latest
             version: '1'
             arch: aarch64
-          - os: ubuntu-latest
-            version: 'nightly'
-            arch: x64
-            allow_failure: true
     steps:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
