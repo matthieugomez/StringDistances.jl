@@ -16,6 +16,8 @@ function Distances.result_type(dist::Union{StringSemiMetric, StringMetric}, s1::
 end
 
 
+# Fallback: swallow `max_dist` keyword for distances that don't support it,
+# so callers like Partial/TokenMax can pass max_dist generically.
 (dist::Union{StringSemiMetric, StringMetric})(s1, s2; max_dist = nothing) = dist(s1, s2)
 include("utils.jl")
 include("distances/edit.jl")

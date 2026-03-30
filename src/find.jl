@@ -47,7 +47,7 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     chunk_score_tasks = map(data_chunks) do chunk
         Threads.@spawn begin
             map(chunk) do x
-                score = compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score)
+                score = compare(_preprocessed_s, _preprocess(dist, x), dist; min_score = min_score_atomic[])
                 Threads.atomic_max!(min_score_atomic, score)
                 score
             end
@@ -57,7 +57,7 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     # retrieve return type of `compare` for type stability in task
     _self_cmp = compare(_preprocessed_s, _preprocessed_s, dist; min_score = min_score)
     chunk_scores = fetch.(chunk_score_tasks)::Vector{Vector{typeof(_self_cmp)}}
-    scores = reduce(vcat, fetch.(chunk_scores))
+    scores = reduce(vcat, chunk_scores)
 
     imax = argmax(scores)
     iszero(scores) ? (nothing, nothing) : (_citr[imax], imax)
@@ -67,10 +67,6 @@ _preprocess(dist::AbstractQGramDistance, ::Missing) = missing
 _preprocess(dist::AbstractQGramDistance, s) = QGramSortedVector(s, dist.q)
 _preprocess(dist::Union{StringSemiMetric, StringMetric}, s) = s
 
-function Base.findmax(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_score = 0.0)
-    @warn "findmax(s, itr, dist; min_score) is deprecated. Use findnearest(s, itr, dist; min_score)"
-    findnearest(s, itr, dist; min_score = min_score)
-end
 
 """
     findall(s, itr , dist::StringDistance; min_score = 0.8)
@@ -99,7 +95,7 @@ function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_s
     _preprocessed_s = _preprocess(dist, s)
 
     chunk_size = max(1, length(_citr) ÷ (2 * Threads.nthreads()))
-    data_chunks = Iterators.partition(itr, chunk_size)
+    data_chunks = Iterators.partition(_citr, chunk_size)
     isempty(data_chunks) && return empty(eachindex(_citr))
     
     chunk_score_tasks = map(data_chunks) do chunk
@@ -114,6 +110,6 @@ function Base.findall(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_s
     _self_cmp = compare(_preprocessed_s, _preprocessed_s, dist; min_score = min_score)
     chunk_scores::Vector{Vector{typeof(_self_cmp)}} = fetch.(chunk_score_tasks)
 
-    scores = reduce(vcat, fetch.(chunk_scores))
+    scores = reduce(vcat, chunk_scores)
     return findall(>=(min_score), scores)
 end

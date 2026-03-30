@@ -104,7 +104,6 @@ eval_end(::Overlap, c::NTuple{3, <:Integer}) = 1 - c[3] / min(c[1], c[2])
 
 """
 	NMD(q::Int)
-	NMD(q::Int)
 
 Creates a NMD (Normalized Multiset Distance) as introduced by Besiris and
 Zigouris 2013. The goal with this distance is to behave similarly to a normalized
