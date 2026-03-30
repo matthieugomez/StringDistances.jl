@@ -98,7 +98,7 @@ function (dist::JaroWinkler)(s1, s2)
     (s1 === missing) | (s2 === missing) && return missing
     out = Jaro()(s1, s2)
     if out <= dist.threshold
-        l = common_prefix(s1, s2)[1]
+        l = common_prefix(s1, s2)
         out = (1 - min(l, dist.maxlength) * dist.p) * out
     end
     return out
@@ -246,7 +246,6 @@ function (dist::OptimalStringAlignment)(s1, s2; max_dist::Union{Integer, Nothing
     return Int(current)
 end
 
-Base.@deprecate_binding OptimalStringAlignement OptimalStringAlignment
 
 """
     DamerauLevenshtein()

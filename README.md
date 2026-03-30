@@ -9,7 +9,7 @@ String distances act over any pair of iterators that define `length` (e.g. `Abst
 
 The available distances are:
 - Edit Distances
-	- Hamming Distance `Hamming() <: SemiMetric`
+	- Hamming Distance `Hamming() <: Metric`
 	- [Jaro and Jaro-Winkler Distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) `Jaro()` `JaroWinkler() <: SemiMetric`
 	- [Levenshtein Distance](https://en.wikipedia.org/wiki/Levenshtein_distance) `Levenshtein() <: Metric`
 	- [Optimal String Alignment Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance) (a.k.a. restricted Damerau-Levenshtein) `OptimalStringAlignment() <: SemiMetric`
