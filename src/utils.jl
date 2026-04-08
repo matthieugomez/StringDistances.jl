@@ -53,4 +53,19 @@ function common_prefix(s1, s2)
     return l
 end
 
+_default_thread_count() = isdefined(Threads, :threadpoolsize) ? Threads.threadpoolsize() : Threads.nthreads()
+
+function _chunk_ranges(n::Integer; ntasks::Integer = 4 * _default_thread_count())
+    n <= 0 && return UnitRange{Int}[]
+    nchunks = min(Int(n), max(1, ntasks))
+    chunk_size = cld(Int(n), nchunks)
+    ranges = Vector{UnitRange{Int}}(undef, nchunks)
+    start = 1
+    for i in 1:nchunks
+        stop = min(Int(n), start + chunk_size - 1)
+        ranges[i] = start:stop
+        start = stop + 1
+    end
+    return ranges
+end
 

@@ -263,9 +263,15 @@ using StringDistances, Unicode, Test, Random
 	end
 
 	@testset "QGram distance on short strings" begin
-		@test isnan(Overlap(2)( "1",  "2"))
-		@test isnan(Jaccard(3)("s1", "s2"))
-		@test isnan(Cosine(5)( "s1", "s2"))
+		@test Overlap(2)( "1",  "2") == 1.0
+		@test Jaccard(3)("s1", "s2") == 1.0
+		@test Cosine(5)( "s1", "s2") == 1.0
+
+		for d in (Cosine(2), Jaccard(2), SorensenDice(2), Overlap(2), MorisitaOverlap(2), NMD(2))
+			@test d("", "") == 0.0
+			@test d("a", "a") == 0.0
+			@test d("a", "b") == 1.0
+		end
 
 		@test !isnan(Overlap(2)( "s1",  "s2"))
 		@test !isnan(Jaccard(3)("st1", "st2"))
@@ -273,6 +279,16 @@ using StringDistances, Unicode, Test, Random
 
 		@test !isnan(Jaccard(3)("st1", "str2"))
 		@test !isnan(Jaccard(3)("str1", "st2"))
+
+		qd1 = QGramDict("", 2)
+		qd2 = QGramDict("a", 2)
+		@test Jaccard(2)(qd1, qd1) == 0.0
+		@test Jaccard(2)(qd1, qd2) == 1.0
+
+		qs1 = QGramSortedVector("", 2)
+		qs2 = QGramSortedVector("a", 2)
+		@test Jaccard(2)(qs1, qs1) == 0.0
+		@test Jaccard(2)(qs1, qs2) == 1.0
 	end
 
 	@testset "Differential testing of String, QGramDict, and QGramSortedVector" begin
@@ -321,8 +337,8 @@ using StringDistances, Unicode, Test, Random
 			(QGram(1), [0   3   3   1 3  0   6   4   5   4   4  11  14   0   0   3]),
 			(QGram(2), [  6   7   7   1 2 0   4   4   7   8   4  13  32   8   6   5]),
 			(Jaccard(1), [0.0 0.4285714 0.3750000 0.1666667       1.0 0.0 1.0000000 0.6666667 0.5714286 0.3750000 0.2000000 0.8333333 0.5000000 0.0 0.0 0.2500000]),
-			(Jaccard(2),  [ 0.7500000 0.8750000 0.7777778 0.1428571       1.0     NaN 1.0000000 1.0000000 0.7777778 0.8000000 0.3076923 1.0000000 0.9696970 0.6666667 1.0000000 0.8333333]),
-			(Cosine(2), [0.6000000 0.7763932 0.6220355 0.0741799  NaN  NaN 1.0000000 1.0000000 0.6348516 0.6619383 0.1679497 1.0000000 0.9407651 0.5000000 1.0000000 0.7113249]))
+			(Jaccard(2),  [ 0.7500000 0.8750000 0.7777778 0.1428571       1.0 0.0000000 1.0000000 1.0000000 0.7777778 0.8000000 0.3076923 1.0000000 0.9696970 0.6666667 1.0000000 0.8333333]),
+			(Cosine(2), [0.6000000 0.7763932 0.6220355 0.0741799  NaN 0.0000000 1.0000000 1.0000000 0.6348516 0.6619383 0.1679497 1.0000000 0.9407651 0.5000000 1.0000000 0.7113249]))
 	# Test with R package StringDist
 	for x in solutions
 		dist, solution = x
@@ -404,4 +420,3 @@ strings = [
 for x in strings:
    print(fuzz.ratio(x[0], x[1]))
 =#
-

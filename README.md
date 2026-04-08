@@ -38,12 +38,13 @@ r = evaluate(Levenshtein(), x, y)
 r = Levenshtein()(x, y)
 ```
 
-The function `compare` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns an element of type `Float64`. A value of 0.0 means completely different and a value of 1.0 means completely similar.
+The function `similarity` returns the similarity score, defined as 1 minus the normalized distance between two strings. It always returns an element of type `Float64`. A value of 0.0 means completely different and a value of 1.0 means completely similar.
+`compare` is kept as a deprecated alias for compatibility.
 
 ```julia
 Levenshtein()("martha", "martha")
 #> 0
-compare("martha", "martha", Levenshtein())
+similarity("martha", "martha", Levenshtein())
 #> 1.0
 ```
 
@@ -66,11 +67,13 @@ The package also adds convenience functions to find elements in a iterator of st
 	```julia
 	findnearest(s, itr, dist)
 	```
+	Missing entries in `itr` are ignored.
 
 - `findall` returns the indices of all elements in `itr` with a similarity score with `s` higher than a minimum score. Its syntax is:
 	```julia
 	findall(s, itr, dist; min_score = 0.8)
 	```
+	Missing entries in `itr` are ignored.
 
 The functions `findnearest` and `findall` are particularly optimized for the `Levenshtein` and `OptimalStringAlignment` distances, as these algorithm can stop early if the distance becomes higher than a certain threshold.
 
@@ -93,5 +96,4 @@ Partial(Levenshtein())("this string", "this string is longer") = 0
 
 ## Notes
 - All string distances are case sensitive.
-
-
+- For q-gram semimetrics other than `QGram`, when both inputs are shorter than `q`, identical inputs have distance `0.0` and different inputs have distance `1.0`.
