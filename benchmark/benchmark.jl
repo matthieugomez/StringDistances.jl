@@ -5,7 +5,7 @@ x = map(Random.randstring, rand(5:25,500_000))
 y = map(Random.randstring, rand(5:25,500_000))
 
 function f(t, x, y; min_score = 0.0)
-    [compare(x[i], y[i], t; min_score = min_score) for i in 1:length(x)]
+    [similarity(x[i], y[i], t; min_score = min_score) for i in 1:length(x)]
 end
 
 function g(dist, x, y)
@@ -83,4 +83,3 @@ system.time(stringdist(x,y,method='cosine', nthread = 1))
 system.time(stringdist(x,y,method='qgram', nthread = 1))
 
 =#
-

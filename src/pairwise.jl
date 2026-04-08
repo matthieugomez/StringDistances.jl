@@ -13,14 +13,14 @@ Both symmetric and asymmetric versions are available.
 julia> using StringDistances
 julia> iter = ["New York", "Princeton"]
 julia> pairwise(Levenshtein(), iter)
-2×2 Array{Float64,2}:
- 0.0  9.0
- 9.0  0.0
+2×2 Matrix{Int64}:
+ 0  9
+ 9  0
 julia> iter2 = ["San Francisco"]
 julia> pairwise(Levenshtein(), iter, iter2)
-2×1 Array{Float64,2}:
- 12.0
- 10.0
+2×1 Matrix{Int64}:
+ 12
+ 10
 ```
 """
 function StatsAPI.pairwise(dist::Union{StringSemiMetric, StringMetric}, xs::AbstractVector, ys::AbstractVector = xs; preprocess = true)
@@ -49,10 +49,10 @@ function _symmetric_pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, S
     if preprocess
         xs = _preprocess_list(dist, xs)
     end
-    for i in 1:length(xs)
+    Threads.@threads :dynamic for i in 1:length(xs)
         # handle missing
         R[i, i] = xs[i] != xs[i]
-        Threads.@threads for j in (i+1):length(xs)
+        for j in (i+1):length(xs)
             R[i, j] = R[j, i] = evaluate(dist, xs[i], xs[j])
         end
     end
@@ -67,13 +67,43 @@ function _asymmetric_pairwise!(R::AbstractMatrix, dist::Union{StringSemiMetric, 
         objxs = xs
         objys = ys
     end
-    for i in 1:length(objxs)
-        Threads.@threads for j in 1:length(objys)
-            R[i, j] = evaluate(dist, objxs[i], objys[j])
+    if length(objxs) >= length(objys)
+        Threads.@threads :dynamic for i in 1:length(objxs)
+            for j in 1:length(objys)
+                R[i, j] = evaluate(dist, objxs[i], objys[j])
+            end
+        end
+    else
+        Threads.@threads :dynamic for j in 1:length(objys)
+            for i in 1:length(objxs)
+                R[i, j] = evaluate(dist, objxs[i], objys[j])
+            end
         end
     end
     return R
 end
 
 _preprocess_list(dist::Union{StringSemiMetric, StringMetric}, xs)  = xs
-_preprocess_list(dist::AbstractQGramDistance, xs) = fetch.(map(x -> (Threads.@spawn x === missing ? x : QGramSortedVector(x, dist.q)), xs))
+
+function _preprocess_list(dist::AbstractQGramDistance, xs::AbstractVector)
+    idx = findfirst(x -> x !== missing, xs)
+    idx === nothing && return copy(xs)
+
+    S = Base.nonmissingtype(eltype(xs))
+    if !isconcretetype(S)
+        return map(x -> x === missing ? x : QGramSortedVector(x, dist.q), xs)
+    end
+
+    sample = QGramSortedVector(xs[idx], dist.q)
+    T = Missing <: eltype(xs) ? Union{Missing, typeof(sample)} : typeof(sample)
+    out = Vector{T}(undef, length(xs))
+    ranges = _chunk_ranges(length(xs))
+
+    Threads.@threads :dynamic for ir in eachindex(ranges)
+        for i in ranges[ir]
+            x = xs[i]
+            out[i] = x === missing ? missing : QGramSortedVector(x, dist.q)
+        end
+    end
+    return out
+end
