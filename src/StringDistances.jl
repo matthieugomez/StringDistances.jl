@@ -59,6 +59,7 @@ MorisitaOverlap,
 NMD,
 qgrams,
 # normalize
+similarity,
 compare,
 # fuzzywuzzy
 Partial,
@@ -73,4 +74,3 @@ result_type,
 pairwise,
 pairwise!
 end
-
