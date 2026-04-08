@@ -1,5 +1,13 @@
 abstract type AbstractQGramDistance <: StringSemiMetric end
 
+@inline _no_qgrams(s, q::Integer) = length(s) < q
+@inline _short_qgram_distance(::AbstractQGramDistance, s1, s2) = Float64(s1 != s2)
+
+function _degenerate_qgram_distance(dist::AbstractQGramDistance, s1, s2)
+	(_no_qgrams(s1, dist.q) && _no_qgrams(s2, dist.q)) || return nothing
+	return _short_qgram_distance(dist, s1, s2)
+end
+
 """
 	QGram(q::Int)
 
@@ -15,6 +23,7 @@ that contains the number of times a q-gram appears for the string s
 struct QGram <: AbstractQGramDistance
 	q::Int
 end
+@inline _short_qgram_distance(::QGram, s1, s2) = 0
 eval_start(::QGram) = 0
 @inline function eval_op(::QGram, c::Integer, n1::Integer, n2::Integer)
 	c + abs(n1 - n2)
@@ -247,6 +256,8 @@ end
 
 function (dist::AbstractQGramDistance)(s1, s2)
 	(s1 === missing) | (s2 === missing) && return missing
+	degenerate = _degenerate_qgram_distance(dist, s1, s2)
+	degenerate === nothing || return degenerate
 	c = eval_start(dist)
 	for (n1, n2) in _count(qgrams(s1, dist.q), qgrams(s2, dist.q))
 		c = eval_op(dist, c, n1, n2)
@@ -309,6 +320,8 @@ end
 
 function (dist::AbstractQGramDistance)(qc1::QGramDict, qc2::QGramDict)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramDict must have the same qgram length"))
+	degenerate = _degenerate_qgram_distance(dist, qc1.s, qc2.s)
+	degenerate === nothing || return degenerate
 	d1, d2 = qc1.counts, qc2.counts
 	c = eval_start(dist)
 	for (s1, n1) in d1
@@ -375,6 +388,8 @@ end
 
 function (dist::AbstractQGramDistance)(qc1::QGramSortedVector, qc2::QGramSortedVector)
 	dist.q == qc1.q == qc2.q || throw(ArgumentError("The distance and the QGramSortedVectors must have the same qgram length"))
+	degenerate = _degenerate_qgram_distance(dist, qc1.s, qc2.s)
+	degenerate === nothing || return degenerate
 	d1, d2 = qc1.counts, qc2.counts
 	c = eval_start(dist)
 	i1 = i2 = 1

@@ -78,8 +78,11 @@ using StringDistances, Unicode, Test, Random
 				end
 			end
 		end
-		# ensures missing
-		R5 = pairwise(d, TestStrings1missing; preprocess = true)
-		@test eltype(R5) == Union{result_type(d, String, String), Missing}
-	end
+			# ensures missing
+			R5 = pairwise(d, TestStrings1missing; preprocess = true)
+			@test eltype(R5) == Union{result_type(d, String, String), Missing}
+		end
+
+		@test pairwise(Jaccard(2), ["", ""]) == [0.0 0.0; 0.0 0.0]
+		@test pairwise(Cosine(2), ["a", "a"]) == [0.0 0.0; 0.0 0.0]
 end
