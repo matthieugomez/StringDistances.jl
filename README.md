@@ -4,7 +4,7 @@
 ## Installation
 The package is registered in the [`General`](https://github.com/JuliaRegistries/General) registry and so can be installed at the REPL with `] add StringDistances`.
 
-## What's New In 1.1
+## What's New In 1.0.0
 - `similarity(s1, s2, dist)` is now the canonical API for similarity scores.
   `compare(s1, s2, dist)` is still available as a deprecated alias for compatibility.
 - For q-gram semimetrics other than `QGram`, if both inputs are shorter than `q`, the distance is now defined as:
