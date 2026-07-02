@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
     tags: ['*']
+permissions:
+  contents: read
+  id-token: write
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
@@ -40,4 +43,5 @@ jobs:
       - uses: codecov/codecov-action@v5
         with:
           files: lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          use_oidc: true
