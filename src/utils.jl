@@ -4,8 +4,8 @@
 ## Some things about Strings
 
 # length: number of characters
-# ncodeunits: Return the number of code units in a string (aking to index of vector). 
-# Not all such indices  are valid – they may not be the start of a character,.
+# ncodeunits: Return the number of code units in a string (akin to the index of a vector).
+# Not all such indices are valid – they may not be the start of a character.
 # sizeof:  Size, in bytes, of the string str. Equal to the number of code units in str  
 # multiplied by the size, in bytes, of one code unit in str.
 

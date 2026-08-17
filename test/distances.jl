@@ -5,6 +5,8 @@ using StringDistances, Unicode, Test, Random
 		@test Hamming()("martha", "marhta") ≈  2
 		@test Hamming()("es an ", " vs an") ≈ 6
 		@test Hamming()([1, 2, 3], [1,2, 4]) ≈ 1
+		# max_dist cap applies even when one string is empty
+		@test Hamming()("", "abcdef"; max_dist = 2) == 3
 		@inferred Hamming()("", "")
 		@test ismissing(Hamming()("", missing))
 	end

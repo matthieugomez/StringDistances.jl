@@ -3,7 +3,7 @@
 
 Creates the `Partial{dist}` distance.
 
-`Partial{dist}`  returns the  minimum distance  between the shorter string and substrings of the longer string that have a length equal to the shorter string.
+`Partial{dist}` returns the minimum of the distances between the shorter string and substrings of the longer string that have a length equal to the shorter string (as well as the distance between the two full strings).
 
 See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
@@ -76,7 +76,7 @@ Normalized(dist::Partial) = Normalized{typeof(Partial(Normalized(dist.dist)))}(P
 
 Creates the `TokenSort{dist}` distance.
 
-`TokenSort{dist}` returns the distance between strings after reording words alphabetically.
+`TokenSort{dist}` returns the distance between strings after reordering words alphabetically.
 See http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
 
 It is only defined on AbstractStrings.

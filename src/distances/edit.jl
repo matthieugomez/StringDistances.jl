@@ -10,6 +10,9 @@ struct Hamming <: StringMetric end
 function (dist::Hamming)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     out = abs(length(s2) - length(s1))
+    if max_dist !== nothing
+        out > max_dist && return Int(max_dist + 1)
+    end
     for (ch1, ch2) in zip(s1, s2)
         out += ch1 != ch2
         if max_dist !== nothing
@@ -88,7 +91,7 @@ The JaroWinkler distance is defined as the Jaro distance, which is multiplied by
 struct JaroWinkler <: StringSemiMetric
     p::Float64          # scaling factor. Default to 0.1
     threshold::Float64  # boost limit. Default to 0.3
-    maxlength::Integer  # max length of common prefix. Default to 4
+    maxlength::Int      # max length of common prefix. Default to 4
 end
 
 JaroWinkler(; p = 0.1, threshold = 0.3, maxlength = 4) = JaroWinkler(p, threshold, maxlength)
@@ -115,8 +118,8 @@ substitutions of a single character) required to change one string into the othe
 struct Levenshtein <: StringMetric end
 
 ## Source: http://blog.softwx.net/2014/12/optimizing-levenshtein-algorithm-in-c.html
-# Return max_dist + 1 if distance higher than max_dist 
-# to differentiate distance equal to max_dist or not, which is important for find fctions.
+# Return max_dist + 1 if distance higher than max_dist
+# to differentiate distance equal to max_dist or not, which is important for find functions.
 function (dist::Levenshtein)(s1, s2; max_dist::Union{Integer, Nothing} = nothing)
     (s1 === missing) | (s2 === missing) && return missing
     len1, len2 = length(s1), length(s2)
@@ -348,7 +351,7 @@ function longest_common_pattern!(p, s1, s2, start1, start2, end1, end2)
     else
         j1, j2, len = 0, 0, 0
         fill!(p, 0)
-        # p[i2-start2+1] stores the startingindex of the longest 
+        # p[i2-start2+1] stores the starting index of the longest
         # common pattern up to i2 with prevch1 as last matching character
         for (i1, ch1) in enumerate(s1)
             i1 >= start1 || continue

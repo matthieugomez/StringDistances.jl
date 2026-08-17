@@ -293,6 +293,8 @@ struct QGramDict{S, K}
 end
 Base.length(s::QGramDict) = length(s.s)
 Base.iterate(s::QGramDict, args...) = iterate(s.s, args...)
+# compare underlying iterators (default `==` falls back to `===`, making wrappers of identical strings compare unequal)
+Base.:(==)(s1::QGramDict, s2::QGramDict) = s1.s == s2.s
 
 function QGramDict(s, q::Integer = 2)
 	(s isa QGramDict) && (s.q == q) && return s
@@ -376,6 +378,8 @@ struct QGramSortedVector{S, K}
 end
 Base.length(s::QGramSortedVector) = length(s.s)
 Base.iterate(s::QGramSortedVector, args...) = iterate(s.s, args...)
+# compare underlying iterators (default `==` falls back to `===`, making wrappers of identical strings compare unequal)
+Base.:(==)(s1::QGramSortedVector, s2::QGramSortedVector) = s1.s == s2.s
 
 function QGramSortedVector(s, q::Integer = 2)
 	(s isa QGramSortedVector) && (s.q == q) && return s

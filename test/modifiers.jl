@@ -60,6 +60,7 @@ end
 	#Levenshtein
 	similarity("aüa", "aua", Levenshtein())
 	@test similarity("ok", missing, Levenshtein()) === missing
+	@test similarity(missing, "a", Jaro()) === missing
 	similarity("aüa", "aua", OptimalStringAlignment())
 	@test StringDistances.Normalized(Partial(OptimalStringAlignment()))("ab", "cde") == 1.0
 	@test similarity("ab", "de", Partial(OptimalStringAlignment())) == 0
@@ -136,6 +137,9 @@ end
 	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], Levenshtein()) == ("NewYork", 3)
 	@test findnearest("New York", ["NewYork", missing, "Newark"], Levenshtein()) == ("NewYork", 1)
 	@test findnearest("New York", [missing, missing], Levenshtein()) == (nothing, nothing)
+	# with the default min_score = 0, a best match with similarity 0 is still returned (consistent with findall)
+	@test findnearest("abc", ["xyz"], Levenshtein()) == ("xyz", 1)
+	@test findnearest("abc", ["xyz"], Levenshtein(); min_score = 0.5) == (nothing, nothing)
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], Jaro()) == ("NewYork", 1)
 	@test findnearest("New York", ["NewYork", "Newark", "San Francisco"], QGram(2)) == ("NewYork", 1)
 	@test findnearest("New York", ["Newark", "San Francisco", "NewYork"], QGram(2)) == ("NewYork", 3)
@@ -149,6 +153,8 @@ end
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], Jaro(); min_score = 0.99) == Int[]
 	@test findall("New York", ["NewYork", "Newark", "San Francisco"], QGram(2); min_score = 0.99) == Int[]
 	@test findall("New York", [missing, "NewYork"], QGram(2); min_score = 0.7) == [2]
+	# identical strings shorter than q (compares preprocessed qgram wrappers)
+	@test findall("ab", ["ab", "cd"], Jaccard(3)) == [1]
 
 
 

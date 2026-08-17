@@ -24,6 +24,7 @@ Normalized(dist::Normalized) = dist
 # Consider all distances to be normalized by default
 function (dist::Normalized)(s1, s2; max_dist = 1.0)
     out = dist.dist(s1, s2; max_dist = max_dist)
+    out === missing && return missing
     max_dist !== nothing && out > max_dist && return 1.0
     return out
 end

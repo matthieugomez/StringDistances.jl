@@ -52,7 +52,8 @@ function findnearest(s, itr, dist::Union{StringSemiMetric, StringMetric}; min_sc
     end
 
     imax = argmax(scores)
-    scores[imax] > 0 ? (_citr[imax], imax) : (nothing, nothing)
+    # same acceptance rule as findall (missing entries have score -Inf)
+    scores[imax] >= min_score ? (_citr[imax], imax) : (nothing, nothing)
 end
 
 _preprocess(dist::AbstractQGramDistance, ::Missing) = missing

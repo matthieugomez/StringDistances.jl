@@ -1,3 +1,5 @@
 PC25
 Manifest.toml
 draft
+.DS_Store
+.sublime2Terminal.jl
